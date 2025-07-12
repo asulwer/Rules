@@ -2,7 +2,7 @@ This is a very early rewrite of the super slow [RulesEngine](https://github.com/
 
 ### Example - Customer Name Contains (with possible Name replacement)
 
-<img width="205" height="17" alt="image" src="https://github.com/user-attachments/assets/956752fc-f5bd-4679-961c-d65e16fecc04" />
+[Demo](https://github.com/asulwer/Rules/blob/master/Demo/Execute.cs) completed in the following time <img width="205" height="17" alt="image" src="https://github.com/user-attachments/assets/956752fc-f5bd-4679-961c-d65e16fecc04" />
 
 ```
 //Customer Model
