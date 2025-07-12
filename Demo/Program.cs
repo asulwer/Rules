@@ -23,7 +23,7 @@ namespace Demo
                             await demo.Run(cts.Token);
                             DateTime end = DateTime.Now;
 
-                            Console.WriteLine($"{type.Name} completed {(end - start).TotalMilliseconds}ms");
+                            Console.WriteLine($"{type.Name} completed in {(end - start).TotalMilliseconds}ms");
                         }
                     }
                     catch (Exception ex)
