@@ -1,4 +1,4 @@
-# Rules
+This is a very early rewrite of the super slow [RulesEngine](https://github.com/microsoft/RulesEngine) and the only maintained [fork](https://github.com/asulwer/RulesEngine).  Rule wrapper for [DynamicExpresso](https://github.com/dynamicexpresso/DynamicExpresso)
 
 ```
 var customers = new List<Customer>
