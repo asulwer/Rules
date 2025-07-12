@@ -17,6 +17,7 @@ jobs:
       packages: read
       actions: read
       contents: read
+      pull_request: read
 
     strategy:
       fail-fast: false
