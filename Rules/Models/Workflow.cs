@@ -9,12 +9,23 @@ namespace Rules.Models
 {
     public class Workflow
     {
-        [Key]
-        public Guid Id { get; private set; } = Guid.NewGuid();
+        [Key] public Guid Id { get; private set; } = Guid.NewGuid();
         public string Description { get; set; } = string.Empty;
         public bool IsActive { get; set; } = true;
 
-        public ICollection<Rule> Rules { get; set; } = new List<Rule>();
+        public IList<Rule> Rules { get; set; } = new List<Rule>();
+
+        public IEnumerable<object> Execute(params Parameter[] parameters)
+        {
+            if (this.IsActive)
+            {
+                foreach (var rule in this.Rules)
+                {
+                    foreach (var del in rule.Execute(parameters))
+                        yield return del;
+                }
+            }
+        }
 
         #region Obsolete
 
@@ -22,7 +33,7 @@ namespace Rules.Models
         {
             foreach (var rule in Rules.Where(r => r.IsActive))
             {
-                foreach(var del in rule.ParseAsDelegate<T>(parameters))
+                foreach (var del in rule.ParseAsDelegate<T>(parameters))
                     yield return del;
             }
         }
@@ -38,15 +49,7 @@ namespace Rules.Models
         {
             foreach (var rule in Rules.Where(r => r.IsActive))
             {
-                foreach(var del in rule.Eval<T>(parameters))
-                    yield return del;
-            }
-        }
-        public IEnumerable<object> Eval(params Parameter[] parameters)
-        {
-            foreach (var rule in Rules.Where(r => r.IsActive))
-            {
-                foreach (var del in rule.Eval(parameters))
+                foreach (var del in rule.Eval<T>(parameters))
                     yield return del;
             }
         }
@@ -60,17 +63,5 @@ namespace Rules.Models
         }
 
         #endregion
-
-        public IEnumerable<object> Execute(params Parameter[] parameters)
-        {
-            if (this.IsActive)
-            {
-                foreach (var rule in this.Rules)
-                {
-                    foreach (var del in rule.Execute(parameters))
-                        yield return del;
-                }
-            }
-        }
     }
 }

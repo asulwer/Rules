@@ -1015,10 +1015,11 @@ namespace Demo
 
             #endregion
 
-            //create Workflow
+            //create a Workflow
             var wf = new Workflow
             {
-                Description = "examples", //used to give a description to the workflow
+                //IsActive = false, //skip this workflow and all its associated Rules
+                Description = "Rules which act upon a Customer", //used to give a description to the workflow
                 Rules = new List<Rule> //rules in workflow
                 {
                     new Rule
@@ -1031,7 +1032,8 @@ namespace Demo
                     {
                         //IsActive = false,
                         Description = "Contains then Replace",
-                        InExp = "Customer.Name.Contains(\"Bridger Wise\")",
+                        LocalParameters = { new Parameter("x", typeof(int), 10) },
+                        InExp = "Customer.Name.Contains(\"Bridger Wise\") && x==10",
                         OutExp = "Customer.Name = Customer.Name.Replace(\"Bridger Wise\", \"Wise\")" //Expression to perform if Rule is successful which is determined by success of InExp
                     },
                     new Rule
@@ -1051,12 +1053,12 @@ namespace Demo
                 }
             };
 
-            //evaluate ONE customer at a time against all rules in workflow
+            //evaluate ONE customer at a time against all enabled rules in workflow
             foreach (Customer customer in customers)
             {
                 Console.WriteLine(customer.Name);
 
-                //pass array of Parameter's to Rules for evaluation
+                //pass array of Parameter's to Workflow for evaluation
                 var parameters = new Parameter[]
                 {
                     new Parameter(nameof(Customer), typeof(Customer), customer)
