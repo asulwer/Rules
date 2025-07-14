@@ -5,13 +5,11 @@ using System.Text.Json;
 
 namespace Demo
 {
-    public class Execute : IDemo
+    public class JsonLoad_Execute : IDemo
     {
         public Task Run(CancellationToken cancellationToken = default)
-        {
-            string file = Path.Combine(Directory.GetParent(Directory.GetCurrentDirectory())!.Parent!.Parent!.Parent!.FullName!, "Customers.json");
-
-            string jsonString = File.ReadAllText(file);
+        {            
+            string jsonString = File.ReadAllText("Data/Customers.json");
             List<Customer> customers = JsonSerializer.Deserialize<List<Customer>>(jsonString)!;
 
             //create a Workflow

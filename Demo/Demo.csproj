@@ -12,4 +12,10 @@
     <ProjectReference Include="..\Rules\Rules.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Data\Customers.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
