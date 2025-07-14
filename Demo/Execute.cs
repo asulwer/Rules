@@ -9,7 +9,9 @@ namespace Demo
     {
         public Task Run(CancellationToken cancellationToken = default)
         {
-            string jsonString = File.ReadAllText("Data/Customers.json");
+            string file = Path.Combine(Directory.GetParent(Directory.GetCurrentDirectory())!.Parent!.Parent!.Parent!.FullName!, "Customers.json");
+
+            string jsonString = File.ReadAllText(file);
             List<Customer> customers = JsonSerializer.Deserialize<List<Customer>>(jsonString)!;
 
             //create a Workflow
