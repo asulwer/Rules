@@ -29,6 +29,42 @@ Workflow
 │       └── Action: "customer.IsAdult = true"
 ```
 
+## Partial Results (Child Rule Traceability)
+
+When a parent rule fails, `RuleResult` includes the full child evaluation tree so you can identify exactly which rule failed:
+
+```csharp
+var result = parentRule.Execute(parameters);
+
+if (!result.Success)
+{
+    Console.WriteLine($"Rule failed: {result.RuleDescription}");
+    
+    // Get the first failing child
+    var failure = result.FirstFailure;
+    Console.WriteLine($"Caused by: {failure?.RuleDescription}");
+    
+    // Or iterate all failures
+    foreach (var fail in result.AllFailures)
+    {
+        Console.WriteLine($"Failed: {fail.RuleDescription} (Id: {fail.RuleId})");
+    }
+}
+```
+
+**RuleResult properties:**
+| Property | Description |
+|----------|-------------|
+| `Success` | True if rule passed |
+| `RuleId` | GUID of the evaluated rule |
+| `RuleDescription` | Human-readable rule name |
+| `IsActive` | Whether rule was active |
+| `Value` | Return value from Action |
+| `Exception` | Exception if execution failed |
+| `ChildResults` | Nested results from child rules |
+| `FirstFailure` | Helper: first failing child (or null) |
+| `AllFailures` | Helper: all failing children |
+
 ## Quick Start
 
 ### 1. Define Your Model

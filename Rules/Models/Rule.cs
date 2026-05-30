@@ -417,7 +417,7 @@ namespace Rules.Models
         private RuleResult ExecuteCore(RuleParameter[] parameters)
         {
             if (!IsActive)
-                return new RuleResult(true);
+                return new RuleResult(true, Id, Description, IsActive);
 
             if (parameters.Length != 1)
                 throw new NotSupportedException(
@@ -430,11 +430,13 @@ namespace Rules.Models
             var paramValue = parameters[0].Value;
 
             // Bottom-up: evaluate all active children first
+            var childResults = new List<RuleResult>();
             foreach (var child in ChildRules.Where(r => r.IsActive))
             {
                 var childResult = child.Execute(parameters);
+                childResults.Add(childResult);
                 if (!childResult.Success)
-                    return new RuleResult(false);
+                return new RuleResult(false, Id, Description, IsActive, childResults: childResults);
             }
 
             // Evaluate compiled Expression if present
@@ -442,17 +444,17 @@ namespace Rules.Models
             {
                 var exprResult = _compiledExpression.Invoke(paramValue);
                 if (!(bool)exprResult!)
-                    return new RuleResult(false);
+                return new RuleResult(false, Id, Description, IsActive, childResults: childResults);
             }
 
             // Execute compiled Action if present
             if (_compiledAction != null)
             {
                 var actionResult = _compiledAction.Invoke(paramValue);
-                return new RuleResult(true, actionResult);
+                return new RuleResult(true, Id, Description, IsActive, actionResult, childResults: childResults);
             }
 
-            return new RuleResult(true);
+                return new RuleResult(true, Id, Description, IsActive, childResults: childResults);
         }
 
         /// <summary>
@@ -503,7 +505,7 @@ namespace Rules.Models
         private async Task<RuleResult> ExecuteCoreAsync(RuleParameter[] parameters)
         {
             if (!IsActive)
-                return new RuleResult(true);
+                return new RuleResult(true, Id, Description, IsActive);
 
             if (parameters.Length != 1)
                 throw new NotSupportedException(
@@ -516,11 +518,13 @@ namespace Rules.Models
             var paramValue = parameters[0].Value;
 
             // Bottom-up: evaluate all active children first (async)
+            var childResults = new List<RuleResult>();
             foreach (var child in ChildRules.Where(r => r.IsActive))
             {
                 var childResult = await child.ExecuteAsync(parameters);
+                childResults.Add(childResult);
                 if (!childResult.Success)
-                    return new RuleResult(false);
+                return new RuleResult(false, Id, Description, IsActive, childResults: childResults);
             }
 
             // Evaluate compiled Expression if present
@@ -537,7 +541,7 @@ namespace Rules.Models
                 }
                 
                 if (!(bool)exprResult!)
-                    return new RuleResult(false);
+                return new RuleResult(false, Id, Description, IsActive, childResults: childResults);
             }
 
             // Execute compiled Action if present
@@ -552,10 +556,10 @@ namespace Rules.Models
                 {
                     actionResult = _compiledAction.Invoke(paramValue);
                 }
-                return new RuleResult(true, actionResult);
+                return new RuleResult(true, Id, Description, IsActive, actionResult, childResults: childResults);
             }
 
-            return new RuleResult(true);
+                return new RuleResult(true, Id, Description, IsActive, childResults: childResults);
         }
     }
 }

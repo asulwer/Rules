@@ -121,6 +121,45 @@ Concurrent async execution using `Task.WhenAll`.
 var results = await workflow.ExecuteParallelAsync(parameters);
 ```
 
+## RuleResult
+
+Result of rule execution. Includes full traceability for debugging rule chains.
+
+```csharp
+public RuleResult(
+    bool success,
+    Guid ruleId = default,
+    string ruleDescription = "",
+    bool isActive = true,
+    object? value = null,
+    Exception? exception = null,
+    IReadOnlyList<RuleResult>? childResults = null)
+```
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `Success` | `bool` | True if rule passed |
+| `RuleId` | `Guid` | ID of the evaluated rule |
+| `RuleDescription` | `string` | Human-readable name |
+| `IsActive` | `bool` | Whether rule was active (inactive = skipped) |
+| `Value` | `object?` | Return value from Action delegate |
+| `Exception` | `Exception?` | Runtime exception, if any |
+| `ChildResults` | `IReadOnlyList<RuleResult>` | Nested child evaluation results |
+| `FirstFailure` | `RuleResult?` | First failing child (null if all passed) |
+| `AllFailures` | `IEnumerable<RuleResult>` | All failing children |
+
+**Example:**
+```csharp
+var result = rule.Execute(parameters);
+
+if (!result.Success)
+{
+    // Drill down to find the exact failure
+    var culprit = result.FirstFailure;
+    Console.WriteLine($"Failed at: {culprit?.RuleDescription}");
+}
+```
+
 ## RuleParameter
 
 Runtime parameter passed to rules.
