@@ -181,4 +181,4 @@ Rules/
 
 ## License
 
-Same as [RulesEngine](https://github.com/microsoft/RulesEngine) — MIT License
+MIT License — see [LICENSE.txt](LICENSE.txt) for details.

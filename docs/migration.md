@@ -64,3 +64,7 @@ var results = workflow.Execute(new[] { param });
 | Thread safety | Immutable rules, no locks |
 | Validation | Catch errors before runtime |
 | Async | Native async/await support |
+
+## License
+
+MIT License — same permissive terms as before.
