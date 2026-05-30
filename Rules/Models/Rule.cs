@@ -169,26 +169,26 @@ namespace Rules.Models
                     $"Rule &apos;{Description}&apos; (Id: {Id}) has no Expression, Action, or active ChildRules.");
             }
 
-            // 2. Validate Expression syntax if present.
+            // 2. Validate no circular references FIRST (before recursing into children).
+            ValidateNoCircularReferences();
+
+            // 3. Validate Expression syntax if present.
             if (!string.IsNullOrEmpty(Expression))
             {
                 ValidateExpressionSyntax(Expression, mustReturnBool: true);
             }
 
-            // 3. Validate Action syntax if present.
+            // 4. Validate Action syntax if present.
             if (!string.IsNullOrEmpty(Action))
             {
                 ValidateExpressionSyntax(Action, mustReturnBool: false);
             }
 
-            // 4. Validate child rules recursively.
+            // 5. Validate child rules recursively (safe now that circular refs are checked).
             foreach (var child in ChildRules.Where(r => r.IsActive))
             {
                 child.Validate();
             }
-
-            // 5. Validate no circular references.
-            ValidateNoCircularReferences();
         }
 
         /// <summary>
@@ -390,6 +390,10 @@ namespace Rules.Models
             {
                 result = ExecuteCore(parameters);
             }
+            catch (InvalidOperationException)
+            {
+                throw; // Re-throw setup/compilation errors
+            }
             catch (Exception ex)
             {
                 exception = ex;
@@ -471,6 +475,10 @@ namespace Rules.Models
             try
             {
                 result = await ExecuteCoreAsync(parameters);
+            }
+            catch (InvalidOperationException)
+            {
+                throw; // Re-throw setup/compilation errors
             }
             catch (Exception ex)
             {
