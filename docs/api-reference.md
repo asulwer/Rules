@@ -148,6 +148,42 @@ public RuleResult(bool success, object? data = null)
 | `Success` | `bool` | True if rule passed |
 | `Data` | `object?` | Optional return data from Action |
 
+## Logging
+
+Rules integrate with `Microsoft.Extensions.Logging` for structured execution events.
+
+### Rule.Logger
+
+```csharp
+rule.Logger = loggerFactory.CreateLogger<Rule>();
+```
+
+### LogRuleExecuted Extension
+
+```csharp
+using Rules.Models;
+
+logger.LogRuleExecuted(new RuleExecutedEvent {
+    RuleId = rule.Id,
+    RuleDescription = rule.Description,
+    IsActive = rule.IsActive,
+    Success = result.Success,
+    ElapsedMilliseconds = 0.042,
+    Exception = null
+});
+```
+
+**Output levels:**
+- `LogDebug` — standard execution (PASS/SKIP)
+- `LogInformation` — via `LogRuleExecutedInfo()` for always-visible output
+- `LogError` — execution exceptions with stack trace
+
+**Event IDs:**
+- `1001` — RuleSkipped
+- `1002` — RulePassed
+- `1003` — RuleFailed
+- `1004` — RuleError
+
 ## ExpressionCompiler
 
 Roslyn-based expression compiler. Results are cached.

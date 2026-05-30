@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Rules.Compiler;
@@ -5,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -133,6 +135,22 @@ namespace Rules.Models
             set { EnsureNotCompiled(nameof(ChildRules)); _childRules = value; }
         }
         private IList<Rule> _childRules = new List<Rule>();
+
+        // ==================== LOGGING ====================
+
+        /// <summary>
+        /// Optional logger for observing rule execution.
+        /// Set this to any ILogger implementation (Serilog, NLog, etc.).
+        /// </summary>
+        [NotMapped] public ILogger? Logger { get; set; }
+
+        /// <summary>
+        /// Logs rule execution via Microsoft.Extensions.Logging if a logger is set.
+        /// </summary>
+        private void LogExecuted(RuleExecutedEvent @event)
+        {
+            Logger?.LogRuleExecuted(@event);
+        }
 
         // ==================== VALIDATION ====================
 
@@ -358,10 +376,44 @@ namespace Rules.Models
         /// Executes the rule bottom-up: children first, then Expression, then Action.
         /// Returns a RuleResult indicating success or failure.
         /// For async expressions, use ExecuteAsync.
+        /// Fires logging events if Logger is set.
         /// </summary>
         /// <param name="parameters">Runtime parameter values.</param>
         /// <returns>Result of the rule evaluation.</returns>
         public RuleResult Execute(params RuleParameter[] parameters)
+        {
+            var sw = Stopwatch.StartNew();
+            RuleResult result;
+            Exception? exception = null;
+
+            try
+            {
+                result = ExecuteCore(parameters);
+            }
+            catch (Exception ex)
+            {
+                exception = ex;
+                result = new RuleResult(false);
+            }
+
+            sw.Stop();
+            LogExecuted(new RuleExecutedEvent
+            {
+                RuleId = Id,
+                RuleDescription = Description,
+                IsActive = IsActive,
+                Success = result.Success,
+                ElapsedMilliseconds = sw.Elapsed.TotalMilliseconds,
+                Exception = exception
+            });
+
+            return result;
+        }
+
+        /// <summary>
+        /// Core execution logic without logging overhead.
+        /// </summary>
+        private RuleResult ExecuteCore(RuleParameter[] parameters)
         {
             if (!IsActive)
                 return new RuleResult(true);
@@ -384,19 +436,19 @@ namespace Rules.Models
                     return new RuleResult(false);
             }
 
-            // Evaluate compiled Expression if present — fast direct invocation, no DynamicInvoke
+            // Evaluate compiled Expression if present
             if (_compiledExpression != null)
             {
-                var result = _compiledExpression.Invoke(paramValue);
-                if (!(bool)result!)
+                var exprResult = _compiledExpression.Invoke(paramValue);
+                if (!(bool)exprResult!)
                     return new RuleResult(false);
             }
 
-            // Execute compiled Action if present — fast direct invocation, no DynamicInvoke
+            // Execute compiled Action if present
             if (_compiledAction != null)
             {
-                var result = _compiledAction.Invoke(paramValue);
-                return new RuleResult(true, result);
+                var actionResult = _compiledAction.Invoke(paramValue);
+                return new RuleResult(true, actionResult);
             }
 
             return new RuleResult(true);
@@ -406,10 +458,44 @@ namespace Rules.Models
         /// Executes the rule asynchronously. Supports async expressions containing await.
         /// Children are executed sequentially (bottom-up dependency), but their internal
         /// async operations are properly awaited.
+        /// Fires logging events if Logger is set.
         /// </summary>
         /// <param name="parameters">Runtime parameter values.</param>
         /// <returns>Task containing the rule evaluation result.</returns>
         public async Task<RuleResult> ExecuteAsync(params RuleParameter[] parameters)
+        {
+            var sw = Stopwatch.StartNew();
+            RuleResult result;
+            Exception? exception = null;
+
+            try
+            {
+                result = await ExecuteCoreAsync(parameters);
+            }
+            catch (Exception ex)
+            {
+                exception = ex;
+                result = new RuleResult(false);
+            }
+
+            sw.Stop();
+            LogExecuted(new RuleExecutedEvent
+            {
+                RuleId = Id,
+                RuleDescription = Description,
+                IsActive = IsActive,
+                Success = result.Success,
+                ElapsedMilliseconds = sw.Elapsed.TotalMilliseconds,
+                Exception = exception
+            });
+
+            return result;
+        }
+
+        /// <summary>
+        /// Core async execution logic without logging overhead.
+        /// </summary>
+        private async Task<RuleResult> ExecuteCoreAsync(RuleParameter[] parameters)
         {
             if (!IsActive)
                 return new RuleResult(true);
@@ -435,33 +521,33 @@ namespace Rules.Models
             // Evaluate compiled Expression if present
             if (_compiledExpression != null)
             {
-                object? result;
+                object? exprResult;
                 if (_compiledExpression is CompiledAsyncFunc<object?, object?> asyncExpr)
                 {
-                    result = await asyncExpr.InvokeAsync(paramValue);
+                    exprResult = await asyncExpr.InvokeAsync(paramValue);
                 }
                 else
                 {
-                    result = _compiledExpression.Invoke(paramValue);
+                    exprResult = _compiledExpression.Invoke(paramValue);
                 }
                 
-                if (!(bool)result!)
+                if (!(bool)exprResult!)
                     return new RuleResult(false);
             }
 
             // Execute compiled Action if present
             if (_compiledAction != null)
             {
-                object? result;
+                object? actionResult;
                 if (_compiledAction is CompiledAsyncAction<object?> asyncAction)
                 {
-                    result = await asyncAction.InvokeAsync(paramValue);
+                    actionResult = await asyncAction.InvokeAsync(paramValue);
                 }
                 else
                 {
-                    result = _compiledAction.Invoke(paramValue);
+                    actionResult = _compiledAction.Invoke(paramValue);
                 }
-                return new RuleResult(true, result);
+                return new RuleResult(true, actionResult);
             }
 
             return new RuleResult(true);

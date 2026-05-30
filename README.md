@@ -143,6 +143,26 @@ wf.Compile(parameters);
 rule.Description = "New name";  // InvalidOperationException!
 ```
 
+## Logging
+
+Rules supports `Microsoft.Extensions.Logging`. Set `rule.Logger` to any `ILogger` implementation (Serilog, NLog, etc.):
+
+```csharp
+// With Serilog
+rule.Logger = new LoggerConfiguration()
+    .WriteTo.Console()
+    .CreateLogger();
+
+// Automatic structured output:
+// [15:35:12.345] [PASS] Adult check (Id: abc-123) — 0.042ms
+```
+
+**Event IDs for log filtering:**
+- `1001` — RuleSkipped
+- `1002` — RulePassed
+- `1003` — RuleFailed
+- `1004` — RuleError
+
 ## Performance
 
 Typical execution for 999 customers:

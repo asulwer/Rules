@@ -9,6 +9,7 @@ High-performance .NET rules engine with Roslyn compilation, typed delegates, and
 - [Examples](examples/) — Sample rules and workflows
 - [Performance](performance.md) — Benchmarks and tuning tips
 - [Migration Guide](migration.md) — Moving from Microsoft RulesEngine
+- [Logging](api-reference.md#logging) — Microsoft.Extensions.Logging integration
 
 ## What Makes It Fast
 

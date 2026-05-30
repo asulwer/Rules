@@ -115,6 +115,56 @@ workflow.Compile(parameters);
 var results = workflow.ExecuteParallel(parameters);
 ```
 
+## Workflow with Multiple Rules
+
+```csharp
+var workflow = new Workflow
+{
+    Description = "Customer processing",
+    Rules = new List<Rule>
+    {
+        new Rule { Expression = "customer.Age >= 18", Description = "Adult" },
+        new Rule { Expression = "customer.Name.StartsWith(\"A\")", Description = "Starts with A" },
+        new Rule { 
+            Expression = "customer.IsActive",
+            Action = "customer.Processed = true",
+            Description = "Process active"
+        }
+    }
+};
+
+workflow.Validate();
+workflow.Compile(parameters);
+
+// All rules evaluated, results in order
+var results = workflow.ExecuteParallel(parameters);
+```
+
+## Logging with Serilog
+
+```csharp
+using Serilog;
+using Microsoft.Extensions.Logging;
+
+// Create a Serilog logger
+var serilog = new LoggerConfiguration()
+    .WriteTo.Console()
+    .CreateLogger();
+
+var logger = new SerilogLoggerFactory(serilog).CreateLogger<Rule>();
+
+// Attach to any rule
+var rule = new Rule
+{
+    Description = "Check adult",
+    Expression = "customer.Age >= 18",
+    Logger = logger
+};
+
+// Execute — output appears in console:
+// [15:42:10.123] [PASS] Check adult (Id: ...) — 0.031ms
+```
+
 ## Validation Before Compile
 
 ```csharp
