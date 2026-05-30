@@ -2,6 +2,8 @@
 
 A high-performance rewrite of [Microsoft RulesEngine](https://github.com/microsoft/RulesEngine) and its maintained [fork](https://github.com/asulwer/RulesEngine). Built for speed, with a focus on zero-overhead execution, compile-time validation, and modern .NET patterns.
 
+📖 **Documentation:** [https://asulwer.github.io/Rules/](https://asulwer.github.io/Rules/)
+
 ## Key Differences
 
 | Feature | RulesEngine | This Rewrite |
