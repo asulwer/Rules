@@ -20,7 +20,7 @@ namespace Rules.Tests
         }
 
         [Fact]
-        public void Validate_EmptyWorkflow_ThrowsInvalidOperationException()
+        public void Validate_EmptyWorkflow_ThrowsWorkflowException()
         {
             var workflow = new Workflow
             {
@@ -29,7 +29,7 @@ namespace Rules.Tests
             };
 
             var act = () => workflow.Validate();
-            act.Should().Throw<InvalidOperationException>()
+            act.Should().Throw<Rules.Exceptions.WorkflowException>()
                 .WithMessage("*has no active rules*");
         }
 
@@ -50,7 +50,7 @@ namespace Rules.Tests
         }
 
         [Fact]
-        public void Validate_DuplicateRuleIds_ThrowsInvalidOperationException()
+        public void Validate_DuplicateRuleIds_ThrowsWorkflowException()
         {
             var sharedId = Guid.NewGuid();
             var rule1 = new Rule { Description = "Rule1", Expression = "true", IsActive = true };
@@ -67,7 +67,7 @@ namespace Rules.Tests
             };
 
             var act = () => workflow.Validate();
-            act.Should().Throw<InvalidOperationException>()
+            act.Should().Throw<Rules.Exceptions.WorkflowException>()
                 .WithMessage("*duplicate rule IDs*");
         }
 

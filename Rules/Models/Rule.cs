@@ -2,6 +2,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Rules.Compiler;
+using Rules.Exceptions;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -33,7 +34,7 @@ namespace Rules.Models
         private void EnsureNotCompiled(string propertyName)
         {
             if (_isCompiled)
-                throw new InvalidOperationException($"Cannot modify {propertyName} after rule has been compiled.");
+                throw new RuleCompilationException($"Cannot modify {propertyName} after rule has been compiled.");
         }
                 
         /// <summary>
@@ -159,13 +160,13 @@ namespace Rules.Models
         /// Checks that the rule has valid content, that expressions are syntactically
         /// correct C#, and that child rules are valid.
         /// </summary>
-        /// <exception cref="InvalidOperationException">Thrown when structural or syntax validation fails.</exception>
+        /// <exception cref="RuleValidationException">Thrown when structural or syntax validation fails.</exception>
         public void Validate()
         {
             // 1. Structural validation: a rule must have something to do.
             if (string.IsNullOrEmpty(Expression) && string.IsNullOrEmpty(Action) && !ChildRules.Any(r => r.IsActive))
             {
-                throw new InvalidOperationException(
+                throw new RuleValidationException(
                     $"Rule &apos;{Description}&apos; (Id: {Id}) has no Expression, Action, or active ChildRules.");
             }
 
@@ -208,9 +209,7 @@ namespace Rules.Models
             var errors = diagnostics.Where(d => d.Severity == DiagnosticSeverity.Error).ToList();
             if (errors.Any())
             {
-                var errorMessages = string.Join("; ", errors.Select(e => e.GetMessage()));
-                throw new InvalidOperationException(
-                    $"Syntax error in {(mustReturnBool ? "Expression" : "Action")}: {errorMessages}");
+                throw new SyntaxErrorException(expression, errors.Select(e => e.GetMessage()).ToArray());
             }
         }
 
@@ -333,7 +332,7 @@ namespace Rules.Models
             var method = compiler.GetType().GetMethod("Compile")!.MakeGenericMethod(delegateType);
             var result = method.Invoke(compiler, new object[] { expression, paramNames, additionalNamespaces ?? Array.Empty<string>() });
             if (result is not Delegate delegateResult)
-                throw new InvalidOperationException("Compiler did not return a valid delegate.");
+                throw new RuleCompilationException("Compiler did not return a valid delegate.");
             return delegateResult;
         }
 
@@ -357,9 +356,7 @@ namespace Rules.Models
         {
             if (!visited.Add(current.Id))
             {
-                throw new InvalidOperationException(
-                    $"Circular child rule reference detected at rule &apos;{current.Description}&apos; (Id: {current.Id}). " +
-                    "A rule cannot contain itself or an ancestor as a child.");
+                throw new CircularReferenceException(current.Id, current.Description);
             }
 
             foreach (var child in current.ChildRules.Where(r => r.IsActive))
@@ -390,7 +387,7 @@ namespace Rules.Models
             {
                 result = ExecuteCore(parameters);
             }
-            catch (InvalidOperationException)
+            catch (RulesException)
             {
                 throw; // Re-throw setup/compilation errors
             }
@@ -428,7 +425,7 @@ namespace Rules.Models
                     "Wrap multiple values in a struct/class.");
 
             if (_compiledExpression == null && _compiledAction == null && !ChildRules.Any())
-                throw new InvalidOperationException("Rule must be compiled before execution or have ChildRules defined.");
+                throw new NotCompiledException(Id);
 
             var paramValue = parameters[0].Value;
 
@@ -476,7 +473,7 @@ namespace Rules.Models
             {
                 result = await ExecuteCoreAsync(parameters);
             }
-            catch (InvalidOperationException)
+            catch (RulesException)
             {
                 throw; // Re-throw setup/compilation errors
             }
@@ -514,7 +511,7 @@ namespace Rules.Models
                     "Wrap multiple values in a struct/class.");
 
             if (_compiledExpression == null && _compiledAction == null && !ChildRules.Any())
-                throw new InvalidOperationException("Rule must be compiled before execution or have ChildRules defined.");
+                throw new NotCompiledException(Id);
 
             var paramValue = parameters[0].Value;
 

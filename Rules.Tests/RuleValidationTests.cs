@@ -16,7 +16,7 @@ namespace Rules.Tests
             };
 
             var act = () => rule.Validate();
-            act.Should().Throw<InvalidOperationException>()
+            act.Should().Throw<Rules.Exceptions.RuleValidationException>()
                 .WithMessage("*has no Expression, Action, or active ChildRules*");
         }
 
@@ -81,7 +81,7 @@ namespace Rules.Tests
             };
 
             var act = () => rule.Validate();
-            act.Should().Throw<InvalidOperationException>()
+            act.Should().Throw<Rules.Exceptions.RuleValidationException>()
                 .WithMessage("*Syntax error*");
         }
 
@@ -95,7 +95,7 @@ namespace Rules.Tests
             ruleB.ChildRules.Add(ruleA); // Circular!
 
             var act = () => ruleA.Validate();
-            act.Should().Throw<InvalidOperationException>()
+            act.Should().Throw<Rules.Exceptions.RuleValidationException>()
                 .WithMessage("*Circular child rule reference*");
         }
 
@@ -110,7 +110,7 @@ namespace Rules.Tests
 
             // Inactive rules don't need validation — they get skipped
             var act = () => rule.Validate();
-            act.Should().Throw<InvalidOperationException>()
+            act.Should().Throw<Rules.Exceptions.RuleValidationException>()
                 .WithMessage("*has no Expression, Action, or active ChildRules*");
         }
     }

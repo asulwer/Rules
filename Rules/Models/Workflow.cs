@@ -1,4 +1,5 @@
 using Rules.Compiler;
+using Rules.Exceptions;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -51,7 +52,7 @@ namespace Rules.Models
             var activeRules = Rules.Where(r => r.IsActive).ToList();
             if (activeRules.Count == 0)
             {
-                throw new InvalidOperationException(
+                throw new WorkflowException(
                     $"Workflow &apos;{Description}&apos; (Id: {Id}) has no active rules.");
             }
 
@@ -66,8 +67,8 @@ namespace Rules.Models
             var duplicates = ids.GroupBy(id => id).Where(g => g.Count() > 1).Select(g => g.Key).ToList();
             if (duplicates.Any())
             {
-                throw new InvalidOperationException(
-                    $"Workflow &apos;{Description}&apos; contains duplicate rule IDs: {string.Join(", ", duplicates)}.");
+                throw new DuplicateRuleIdException(duplicates.ToArray());
+
             }
         }
 

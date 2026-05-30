@@ -178,7 +178,7 @@ namespace Rules.Tests
         }
 
         [Fact]
-        public void Execute_NotCompiled_ThrowsInvalidOperationException()
+        public void Execute_NotCompiled_ThrowsNotCompiledException()
         {
             var rule = new Rule
             {
@@ -188,7 +188,7 @@ namespace Rules.Tests
             };
 
             var act = () => rule.Execute(_parameters);
-            act.Should().Throw<InvalidOperationException>()
+            act.Should().Throw<Rules.Exceptions.NotCompiledException>()
                 .WithMessage("*must be compiled before execution*");
         }
     }
