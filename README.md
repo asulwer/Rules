@@ -165,6 +165,36 @@ rule.Logger = new LoggerConfiguration()
 - `1003` — RuleFailed
 - `1004` — RuleError
 
+## ExpandoObject Support
+
+Rules supports `ExpandoObject` via `dynamic` expressions. Useful when the data shape is not known at compile time.
+
+```csharp
+dynamic customer = new ExpandoObject();
+customer.Name = "Alice";
+customer.Age = 25;
+
+var parameters = new[]
+{
+    new RuleParameter("customer", typeof(object), customer)
+};
+
+var rule = new Rule
+{
+    Expression = "((dynamic)customer).Age >= 18",
+    Action = "((dynamic)customer).Processed = true"
+};
+
+workflow.Compile(parameters, new[] { "System.Dynamic" });
+```
+
+**Trade-offs:**
+| | Typed Object | ExpandoObject |
+|--|-------------|---------------|
+| Speed | Native IL (~2ms/999) | Dynamic dispatch (~20-50ms) |
+| Validation | Compile-time | Runtime only |
+| Safety | Property must exist | Returns null if missing |
+
 ## Performance
 
 Typical execution for 999 customers:

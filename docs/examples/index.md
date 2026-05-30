@@ -165,6 +165,41 @@ var rule = new Rule
 // [15:42:10.123] [PASS] Check adult (Id: ...) — 0.031ms
 ```
 
+## ExpandoObject (Dynamic)
+
+Use when the data shape is not known at compile time. Slower but flexible.
+
+```csharp
+using System.Dynamic;
+
+dynamic customer = new ExpandoObject();
+customer.Name = "Alice";
+customer.Age = 25;
+
+var parameters = new[]
+{
+    new RuleParameter("customer", typeof(object), customer)
+};
+
+var rule = new Rule
+{
+    Description = "Check adult",
+    Expression = "((dynamic)customer).Age >= 18",
+    IsActive = true
+};
+
+var compiler = new ExpressionCompiler();
+rule.Compile(compiler, parameters, new[] { "System.Dynamic" });
+
+var result = rule.Execute(parameters);
+// result.Success = true
+```
+
+**Caveat:** Missing properties return `null`, not throw. Test for existence if needed:
+```csharp
+Expression = "((dynamic)customer).Age != null && ((dynamic)customer).Age >= 18"
+```
+
 ## Validation Before Compile
 
 ```csharp
