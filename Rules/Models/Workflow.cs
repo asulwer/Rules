@@ -29,6 +29,7 @@ namespace Rules.Models
 
         #region Obsolete
 
+        [Obsolete("Use Execute instead.")]
         public IEnumerable<T> ParseAsDelegate<T>(params string[] parameters)
         {
             foreach (var rule in Rules.Where(r => r.IsActive))
@@ -37,6 +38,7 @@ namespace Rules.Models
                     yield return del;
             }
         }
+        [Obsolete("Use Execute instead.")]
         public IEnumerable<Expression<T>> ParseAsExpression<T>(params string[] parameters)
         {
             foreach (var rule in Rules.Where(r => r.IsActive))
@@ -45,6 +47,7 @@ namespace Rules.Models
                     yield return del;
             }
         }
+        [Obsolete("Use Execute instead.")]
         public IEnumerable<T> Eval<T>(params Parameter[] parameters)
         {
             foreach (var rule in Rules.Where(r => r.IsActive))
@@ -53,6 +56,7 @@ namespace Rules.Models
                     yield return del;
             }
         }
+        [Obsolete("Use Execute instead.")]
         public IEnumerable<object> Invoke<T>(T t)
         {
             foreach (var rule in Rules.Where(r => r.IsActive))
