@@ -1,9 +1,17 @@
-﻿using System.Reflection;
+using System.Reflection;
 
 namespace Demo
 {
+    /// <summary>
+    /// Entry point that discovers and runs all IDemo implementations in the assembly.
+    /// </summary>
     internal class Program
     {
+        /// <summary>
+        /// Main entry point. Scans the assembly for IDemo implementations,
+        /// instantiates each, runs it, and reports execution time.
+        /// </summary>
+        /// <param name="args">Command line arguments (unused).</param>
         static async Task Main(string[] args)
         {
             using (var cts = new CancellationTokenSource())
