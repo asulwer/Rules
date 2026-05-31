@@ -9,24 +9,7 @@ has_children: false
 
 High-performance .NET rules engine with Roslyn compilation, typed delegates, and async support.
 
-## Menu
-
-| Guide | Description |
-|-------|-------------|
-| [Getting Started](getting-started.md) | Your first rule in 5 minutes |
-| [API Reference](api-reference.md) | Complete class and method documentation |
-| [Examples](examples/) | Code samples and real-world scenarios |
-| [Performance](performance.md) | Benchmarks and tuning tips |
-| [Migration Guide](migration.md) | Moving from Microsoft RulesEngine |
-
-## Quick Links
-
-- [Getting Started](getting-started.md) — Your first rule in 5 minutes
-- [API Reference](api-reference.md) — Complete class documentation
-- [Examples](examples/) — Sample rules and workflows
-- [Performance](performance.md) — Benchmarks and tuning tips
-- [Migration Guide](migration.md) — Moving from Microsoft RulesEngine
-- [Logging](api-reference.md#logging) — Microsoft.Extensions.Logging integration
+### [Migration Guide](migration.md) — Moving from Microsoft.RulesEngine
 
 ## What Makes It Fast
 
