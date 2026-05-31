@@ -1,3 +1,4 @@
+using RoslynRules.Abstractions;
 using RoslynRules.Compiler;
 using RoslynRules.Exceptions;
 using System;
@@ -18,7 +19,7 @@ namespace RoslynRules.Models
     /// Supports both synchronous and asynchronous expressions.
     /// Supports rule action chaining via DependsOnRuleId for data-flow dependencies.
     /// </summary>
-    public class Workflow
+    public class Workflow : IRuleEngine
     {
         private ExpressionCompiler _compiler = new ExpressionCompiler();
 

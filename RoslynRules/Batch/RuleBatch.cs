@@ -1,3 +1,4 @@
+using RoslynRules.Abstractions;
 using RoslynRules.Compiler;
 using RoslynRules.Exceptions;
 using RoslynRules.Models;
@@ -14,7 +15,7 @@ namespace RoslynRules.Batch
     /// A batch of rules compiled and evaluated together as a unit.
     /// Useful when evaluating 10+ rules against the same input with shared context.
     /// </summary>
-    public class RuleBatch
+    public class RuleBatch : IRuleEngine
     {
         private readonly List<Rule> _rules = new List<Rule>();
         private readonly ExpressionCompiler _compiler = new ExpressionCompiler();
@@ -164,5 +165,27 @@ namespace RoslynRules.Batch
             if (!_isCompiled)
                 throw new NotCompiledException(Guid.Empty);
         }
+
+        // ==================== IRuleEngine Aliases ====================
+
+        /// <summary>
+        /// Alias for <see cref="Evaluate"/>. Implements <see cref="IRuleEngine"/>.
+        /// </summary>
+        IEnumerable<RuleResult> IRuleEngine.Execute(params RuleParameter[] parameters) => Evaluate(parameters);
+
+        /// <summary>
+        /// Alias for <see cref="EvaluateAsync"/>. Implements <see cref="IRuleEngine"/>.
+        /// </summary>
+        IAsyncEnumerable<RuleResult> IRuleEngine.ExecuteAsync(RuleParameter[] parameters, CancellationToken cancellationToken) => EvaluateAsync(parameters, cancellationToken);
+
+        /// <summary>
+        /// Alias for <see cref="EvaluateParallel"/>. Implements <see cref="IRuleEngine"/>.
+        /// </summary>
+        RuleResult[] IRuleEngine.ExecuteParallel(params RuleParameter[] parameters) => EvaluateParallel(parameters);
+
+        /// <summary>
+        /// Alias for <see cref="EvaluateParallelAsync"/>. Implements <see cref="IRuleEngine"/>.
+        /// </summary>
+        Task<RuleResult[]> IRuleEngine.ExecuteParallelAsync(RuleParameter[] parameters, CancellationToken cancellationToken) => EvaluateParallelAsync(parameters, cancellationToken);
     }
 }
