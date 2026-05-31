@@ -46,7 +46,9 @@ jobs:
           dotnet pack --configuration Release --no-build --output ./nuget_packages /p:PackageVersion=$VERSION
 
       - name: Publish NuGet package to NuGet.org
-        run: dotnet nuget push ./nuget_packages/*.nupkg -s https://api.nuget.org/v3/index.json
+        env:
+          NUGET_API_KEY: *** secrets.NUGET_API_KEY }}
+        run: dotnet nuget push ./nuget_packages/*.nupkg -k $NUGET_API_KEY -s https://api.nuget.org/v3/index.json
 
       - name: Create source code zip
         run: |
