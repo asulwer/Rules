@@ -1,3 +1,5 @@
+[← Back to Documentation Index](index.md)
+
 # Getting Started
 
 ## Installation

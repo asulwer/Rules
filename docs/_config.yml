@@ -1,0 +1,16 @@
+# GitHub Pages Jekyll Configuration
+theme: minima
+title: Rules Engine Documentation
+description: High-performance .NET rules engine with Roslyn compilation
+
+header_pages:
+  - index.md
+  - getting-started.md
+  - api-reference.md
+  - examples/index.md
+  - migration.md
+  - performance.md
+
+plugins:
+  - jekyll-feed
+  - jekyll-seo-tag
