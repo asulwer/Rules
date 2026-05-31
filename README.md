@@ -1,4 +1,8 @@
-# Rules
+# RoslynRules
+
+```bash
+dotnet add package RoslynRules
+```
 
 A high-performance rewrite of [Microsoft RulesEngine](https://github.com/microsoft/RulesEngine) and its maintained [fork](https://github.com/asulwer/RulesEngine). Built for speed, with a focus on zero-overhead execution, compile-time validation, and modern .NET patterns.
 
@@ -71,7 +75,7 @@ if (!result.Success)
 Rules and workflows can be serialized to/from JSON for configuration-driven setups:
 
 ```csharp
-using Rules.Extensions;
+using RoslynRules.Extensions;
 
 // Save workflow to JSON
 var json = JsonRuleLoader.Serialize(workflow);
@@ -108,7 +112,7 @@ loaded.Compile(parameters);
 
 ## Custom Exceptions
 
-Rules uses typed exceptions for clear error handling:
+RoslynRules uses typed exceptions for clear error handling:
 
 | Exception | When Thrown |
 |-----------|-------------|
@@ -128,7 +132,7 @@ All inherit from `RulesException`.
 Evaluate multiple rules as a unit with shared compilation context. Useful when you need to run 10+ checks against the same input.
 
 ```csharp
-using Rules.Batch;
+using RoslynRules.Batch;
 
 var batch = new RuleBatch()
     .AddRule(new Rule { Expression = "customer.Age >= 18", Description = "Adult" })
@@ -356,7 +360,7 @@ await foreach (var chunk in wf.ExecuteBufferedAsync(parameters, bufferSize: 10))
 
 ## Supported Delegate Signatures
 
-Rules support exactly **one input parameter**. Return multiple values by wrapping them in a struct or class.
+RoslynRules supports exactly **one input parameter**. Return multiple values by wrapping them in a struct or class.
 
 | Type | Signature | Example |
 |------|-----------|---------|
@@ -368,7 +372,7 @@ Rules support exactly **one input parameter**. Return multiple values by wrappin
 
 ## Async Expressions
 
-Rules automatically detect `await` in expressions and compile to async delegates.
+RoslynRules automatically detects `await` in expressions and compiles to async delegates.
 
 ```csharp
 var rule = new Rule
@@ -405,7 +409,7 @@ rule.Description = "New name";  // InvalidOperationException!
 
 ## Logging
 
-Rules supports `Microsoft.Extensions.Logging`. Set `rule.Logger` to any `ILogger` implementation (Serilog, NLog, etc.):
+RoslynRules supports `Microsoft.Extensions.Logging`. Set `rule.Logger` to any `ILogger` implementation (Serilog, NLog, etc.):
 
 ```csharp
 // With Serilog
@@ -425,7 +429,7 @@ rule.Logger = new LoggerConfiguration()
 
 ## ExpandoObject Support
 
-Rules supports `ExpandoObject` via `dynamic` expressions. Useful when the data shape is not known at compile time.
+RoslynRules supports `ExpandoObject` via `dynamic` expressions. Useful when the data shape is not known at compile time.
 
 ```csharp
 dynamic customer = new ExpandoObject();
@@ -458,7 +462,7 @@ workflow.Compile(parameters, new[] { "System.Dynamic" });
 Built-in assertions for testing rules without external test libraries.
 
 ```csharp
-using Rules.Testing;
+using RoslynRules.Testing;
 
 // Test an individual rule
 var test = RuleTest.For(rule)
@@ -546,7 +550,7 @@ Typical execution for 999 customers:
 ## Project Structure
 
 ```
-Rules/
+RoslynRules/
 ├── Models/
 │   ├── Rule.cs              # Individual rule with Expression/Action/Children
 │   ├── Workflow.cs          # Container with sequential/parallel/async execution
