@@ -1,5 +1,13 @@
 # Work Queue
 
+## 🔴 Critical Gaps
+
+| # | Gap | Why It Matters | Effort |
+|---|-----|---------------|--------|
+| 1 | **Shared `ExpressionCompiler` cache** | Each `Workflow`/`RuleBatch` creates its own compiler — same expressions compile multiple times, wasting ~800ms per compile | Low |
+| 2 | **`CompiledDelegate.Invoke()` deadlocks async** | `.GetAwaiter().GetResult()` on async delegates = deadlock risk in UI/ASP.NET synchronization contexts | Medium |
+| 3 | **No per-rule timeout** | Infinite loops or blocking I/O in rule expressions hang forever — no way to recover | Medium |
+
 ## ❌ Excluded / Won't Implement
 
 | Feature | Reason |
