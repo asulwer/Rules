@@ -30,3 +30,4 @@ footer_content: "MIT License. Built with Roslyn + Typed Delegates."
 plugins:
   - jekyll-feed
   - jekyll-seo-tag
+  - jekyll-remote-theme
