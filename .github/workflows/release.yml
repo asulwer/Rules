@@ -29,12 +29,12 @@ jobs:
         env:
           SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
         run: |
-          $directory = Split-Path './Rules/Rules.csproj';
+          $directory = Split-Path './RoslynRules/RoslynRules.csproj';
           $signKeyFile = Join-Path $directory "signKey.snk";
           $signKeyFile = [System.IO.Path]::GetFullPath($signKeyFile)
           $bytes = [Convert]::FromBase64String($env:SIGNING_KEY)
           [IO.File]::WriteAllBytes($signKeyFile, $bytes)
-          dotnet build './Rules/Rules.csproj' -c Release -p:ContinuousIntegrationBuild=true -p:DelaySign=false -p:AssemblyOriginatorKeyFile=$signKeyFile
+          dotnet build './RoslynRules/RoslynRules.csproj' -c Release -p:ContinuousIntegrationBuild=true -p:DelaySign=false -p:AssemblyOriginatorKeyFile=$signKeyFile
           Remove-Item $signKeyFile -Force
         shell: pwsh
 
