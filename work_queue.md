@@ -1,15 +1,27 @@
-# Work Queue & Backlog
-
-Merged backlog and active work queue for the Rules engine project.
+# Work Queue
 
 ## ✅ Completed
 
 | # | Feature | Status |
 |---|---------|--------|
 | 1 | Rule result streaming | Done — CancellationToken, IAsyncEnumerable, ExecuteBufferedAsync |
+| 2 | Rename to RoslynRules | Done — solution, projects, namespaces, package ID |
+| 3 | NuGet packaging | Done — README, LICENSE, metadata, v1.0.1 published |
+| 4 | Docs site | Done — Jekyll config, all docs updated to RoslynRules |
 | 7 | Rule action chaining | Done — DependsOnRuleId, topological sort, cycle detection, RuleContext |
 | 12 | Rule testing framework | Done — 15 fluent assertions, RuleTest builder, test suites |
 | 13 | Examples, use cases & docs | Done — 6 detailed guides |
+
+## 🔄 Active
+
+| Priority | Task | Description |
+|----------|------|-------------|
+| **1** | Fix all build/test warnings | CI warnings, nullable refs, xUnit analyzers |
+| **2** | Update git remote | Local repo still pushes to old `asulwer/Rules` URL |
+| **3** | XML doc comments | Public APIs need IntelliSense documentation |
+| **4** | README polish | Installation section, NuGet badge, remaining `Rules` refs |
+| **5** | Benchmarks | BenchmarkDotNet vs Microsoft RulesEngine |
+| **6** | Strong-name signing | Verify signing actually works or remove |
 
 ## ❌ Excluded / Won't Implement
 
@@ -20,32 +32,13 @@ Merged backlog and active work queue for the Rules engine project.
 
 ## 📋 Backlog (Future Ideas)
 
-### Rule Result Caching (Memoization)
-Cache rule evaluation results by `(ruleId, parameterHash)` to skip re-evaluation when the same inputs are seen again.
-
-**Use case:** High-frequency evaluation of the same customer/transaction against unchanged rules.
-
-### Expression Compilation Cache
-Cache compiled delegates by `(expressionString, parameterType)` key to avoid recompiling identical expressions.
-
-**Use case:** Multiple rules or workflows share the same expression. Compile once, reuse everywhere.
-
-### BenchmarkDotNet Suite
-Performance measurement harness.
-
-**Metrics:** Compilation time, execution throughput, memory allocations, parallel vs sequential speedup, async overhead.
-
-### Rule Dependency Graph
-Visualize rule relationships (structural parent-child + data-flow dependencies). Generate DOT format for Graphviz.
-
-### Hot-Reload Rules
-Swap rule expressions at runtime without restarting the application.
-
-### Rule Metrics
-Track evaluation count, average execution time, failure rate per rule.
-
-### Pre-Compiled Rule Library
-Ship common rules (age validation, email format, etc.) as pre-compiled assemblies.
+- Expression compilation cache (reuse compiled delegates)
+- Rule result caching (memoization by parameter hash)
+- BenchmarkDotNet performance suite
+- Rule dependency graph visualization (Graphviz DOT)
+- Hot-reload rules at runtime
+- Rule metrics (eval count, avg time, failure rate)
+- Pre-compiled rule library (common validations)
 
 ## Status Legend
 
