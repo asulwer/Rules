@@ -2,13 +2,51 @@
 layout: default
 title: Examples
 nav_order: 4
+has_children: true
 ---
 
 [← Back to Documentation Index](../index.md)
 
 # Examples
 
+Quick-reference code snippets for common scenarios.
+
+## On This Page
+- [Basic Boolean Rule](#basic-boolean-rule)
+- [Rule with Action](#rule-with-action)
+- [Parent with Child Rules](#parent-with-child-rules)
+- [Async Rule](#async-rule)
+- [Returning Multiple Values](#returning-multiple-values)
+- [Workflow with Multiple Rules](#workflow-with-multiple-rules)
+- [Logging with Serilog](#logging-with-serilog)
+- [ExpandoObject](#expandoobject-dynamic)
+- [JSON Configuration](#json-configuration)
+- [Loading Rules into a Batch](#loading-rules-into-a-batch)
+- [Batch Evaluation](#batch-evaluation-10-rules)
+- [Rule Priority](#rule-priority)
+- [Validation Before Compile](#validation-before-compile)
+
+## Detailed Guides
+
+| Guide | What It Covers |
+|-------|---------------|
+| [Rule Action Chaining](rule-action-chaining.md) | Parent-Child vs DependsOn, multi-stage pipelines, RuleContext |
+| [Streaming and Cancellation](streaming-and-cancellation.md) | ExecuteAsync, ExecuteBufferedAsync, CancellationToken patterns |
+| [Testing Framework](testing-framework.md) | RuleTest, RuleResult assertions, test suites, custom assertions |
+| [Real-World Use Cases](real-world-use-cases.md) | Form validation, fraud detection, feature flags, compliance, pricing |
+| [EF Core Serialization](ef-serialization.md) | DbContext setup, storing/loading rules, temporal tables |
+| [When to Use What](when-to-use-what.md) | Decision matrix, execution modes, choosing by rule count |
+
 ## Basic Boolean Rule
+
+```csharp
+var rule = new Rule
+{
+    Description = "Adult check",
+    Expression = "customer.Age >= 18",
+    IsActive = true
+};
+```
 
 ```csharp
 var rule = new Rule
