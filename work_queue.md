@@ -20,7 +20,7 @@ Date: 2026-05-31
 
 ## Documentation & Examples
 
-13. **Examples, use cases & docs** — Real-world examples (form validation, transaction screening, feature flags, compliance checks), EF serialization guide, when to use Workflow vs RuleBatch vs individual Rule
+13. ~~Examples, use cases & docs~~ ✅ Implemented — 6 detailed guides covering chaining, streaming, testing, real-world scenarios, EF, and decision matrix
 
 ## Deferred / Excluded
 
