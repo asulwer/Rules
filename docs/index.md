@@ -47,4 +47,15 @@ wf.Compile(new[] { param });
 var results = wf.Execute(new[] { param });
 ```
 
+## Dependency Injection
+
+Register `IRuleEngine` in your DI container:
+
+```csharp
+using RoslynRules.Abstractions;
+
+services.AddSingleton<IRuleEngine, Workflow>();
+```
+
 [Get Started →](getting-started.md)
+[API Reference →](api-reference.md)

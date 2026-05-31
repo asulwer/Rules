@@ -332,6 +332,68 @@ var workflow = new Workflow
 
 Applies to all execution modes: `Execute`, `ExecuteParallel`, `ExecuteAsync`, `ExecuteParallelAsync`.
 
+## IRuleEngine
+
+Abstraction implemented by `Workflow` and `RuleBatch`. Enables dependency injection and mocking.
+
+### Interface Methods
+
+| Method | Returns | Purpose |
+|--------|---------|---------|
+| `Compile(params, namespaces?)` | `void` | One-time compilation |
+| `Execute(params)` | `IEnumerable<RuleResult>` | Sequential execution |
+| `ExecuteAsync(params, ct)` | `IAsyncEnumerable<RuleResult>` | Streaming async |
+| `ExecuteParallel(params)` | `RuleResult[]` | CPU-bound parallel |
+| `ExecuteParallelAsync(params, ct)` | `Task<RuleResult[]>` | Async parallel |
+| `Validate()` | `void` | Pre-compile validation |
+
+### Dependency Injection
+
+```csharp
+using RoslynRules.Abstractions;
+
+// Register Workflow as singleton
+services.AddSingleton<IRuleEngine, Workflow>();
+
+// Or use RuleBatch for throughput-focused scenarios
+services.AddSingleton<IRuleEngine, RuleBatch>();
+
+// Inject into your service
+public class OrderService
+{
+    private readonly IRuleEngine _rules;
+    public OrderService(IRuleEngine rules) => _rules = rules;
+
+    public async Task<bool> ValidateOrderAsync(Order order)
+    {
+        var parameters = new[] { new RuleParameter("order", typeof(Order), order) };
+        _rules.Compile(new[] { new RuleParameter("order", typeof(Order)) });
+        var results = await _rules.ExecuteParallelAsync(parameters);
+        return results.All(r => r.Success);
+    }
+}
+```
+
+### Mocking with Moq
+
+```csharp
+var mockEngine = new Mock<IRuleEngine>();
+mockEngine.Setup(x => x.Execute(It.IsAny<RuleParameter[]>()>()))
+    .Returns(new[] { new RuleResult { Success = true } });
+
+var service = new OrderService(mockEngine.Object);
+```
+
+### Swapping Implementations
+
+```csharp
+// Test with lightweight RuleBatch
+IRuleEngine engine = new RuleBatch();
+
+// Production with full Workflow
+IRuleEngine engine = new Workflow { Description = "Production" };
+```
+
 ## RuleBatch
 
 Evaluate multiple rules together as a unit. Shared compilation context, single validation pass.
