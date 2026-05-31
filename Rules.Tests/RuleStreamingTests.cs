@@ -153,7 +153,7 @@ namespace Rules.Tests
             workflow.Compile(_parameters);
 
             var chunks = new List<RuleResult[]>();
-            await foreach (var chunk in workflow.ExecuteBufferedAsync(_parameters, bufferSize: 2))
+            await foreach (var chunk in workflow.ExecuteBufferedAsync(_parameters, bufferSize: 2, cancellationToken: TestContext.Current.CancellationToken))
             {
                 chunks.Add(chunk);
             }
@@ -237,7 +237,7 @@ namespace Rules.Tests
             workflow.Compile(_parameters);
 
             var chunks = new List<RuleResult[]>();
-            await foreach (var chunk in workflow.ExecuteBufferedAsync(_parameters, bufferSize: 1))
+            await foreach (var chunk in workflow.ExecuteBufferedAsync(_parameters, bufferSize: 1, cancellationToken: TestContext.Current.CancellationToken))
             {
                 chunks.Add(chunk);
             }
@@ -258,7 +258,7 @@ namespace Rules.Tests
             batch.Compile(_parameters);
 
             var results = new List<RuleResult>();
-            await foreach (var result in batch.EvaluateAsync(_parameters))
+            await foreach (var result in batch.EvaluateAsync(_parameters, TestContext.Current.CancellationToken))
             {
                 results.Add(result);
             }
@@ -318,7 +318,7 @@ namespace Rules.Tests
             };
 
             var results = new List<RuleResult>();
-            await foreach (var result in workflow.ExecuteAsync(_parameters))
+            await foreach (var result in workflow.ExecuteAsync(_parameters, TestContext.Current.CancellationToken))
             {
                 results.Add(result);
             }
@@ -337,7 +337,7 @@ namespace Rules.Tests
             };
 
             var results = new List<RuleResult[]>();
-            await foreach (var chunk in workflow.ExecuteBufferedAsync(_parameters))
+            await foreach (var chunk in workflow.ExecuteBufferedAsync(_parameters, cancellationToken: TestContext.Current.CancellationToken))
             {
                 results.Add(chunk);
             }
