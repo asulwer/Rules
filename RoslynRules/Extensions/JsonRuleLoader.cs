@@ -101,8 +101,11 @@ namespace RoslynRules.Extensions
             public Guid Id { get; set; }
             public string Description { get; set; } = "";
             public bool IsActive { get; set; } = true;
+            public int Priority { get; set; } = 0;
             public string Expression { get; set; } = "";
             public string Action { get; set; } = "";
+            public Guid? DependsOnRuleId { get; set; }
+            public Guid? ParentRuleId { get; set; }
             public List<RuleDto>? ChildRules { get; set; }
         }
 
@@ -113,8 +116,11 @@ namespace RoslynRules.Extensions
                 Id = rule.Id,
                 Description = rule.Description,
                 IsActive = rule.IsActive,
+                Priority = rule.Priority,
                 Expression = rule.Expression,
                 Action = rule.Action,
+                DependsOnRuleId = rule.DependsOnRuleId,
+                ParentRuleId = rule.ParentRuleId,
                 ChildRules = rule.ChildRules?.Any() == true
                     ? rule.ChildRules.Select(ToRuleDto).ToList()
                     : null
@@ -126,8 +132,11 @@ namespace RoslynRules.Extensions
             var rule = new Rule();
             rule.Description = dto.Description;
             rule.IsActive = dto.IsActive;
+            rule.Priority = dto.Priority;
             rule.Expression = dto.Expression;
             rule.Action = dto.Action;
+            rule.DependsOnRuleId = dto.DependsOnRuleId;
+            rule.ParentRuleId = dto.ParentRuleId;
 
             // Set Id via reflection if non-default
             if (dto.Id != default)
@@ -139,7 +148,9 @@ namespace RoslynRules.Extensions
             {
                 foreach (var childDto in dto.ChildRules)
                 {
-                    rule.ChildRules.Add(ToRule(childDto));
+                    var child = ToRule(childDto);
+                    child.ParentRuleId = rule.Id;
+                    rule.ChildRules.Add(child);
                 }
             }
 
