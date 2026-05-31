@@ -1,42 +1,42 @@
 Summary
-  Generated on: 5/30/2026 - 5:45:05 PM
-  Coverage date: 5/30/2026 - 5:44:58 PM
+  Generated on: 5/30/2026 - 5:50:28 PM
+  Coverage date: 5/30/2026 - 5:50:28 PM
   Parser: Cobertura
   Assemblies: 1
   Classes: 26
   Files: 13
-  Line coverage: 82.9%
-  Covered lines: 627
-  Uncovered lines: 129
+  Line coverage: 88.0%
+  Covered lines: 666
+  Uncovered lines: 90
   Coverable lines: 756
   Total lines: 1846
-  Branch coverage: 72.6% (167 of 230)
-  Covered branches: 167
+  Branch coverage: 73.9% (170 of 230)
+  Covered branches: 170
   Total branches: 230
-  Method coverage: 78.2% (101 of 129)
-  Covered methods: 101
+  Method coverage: 89.9% (116 of 129)
+  Covered methods: 116
   Total methods: 129
 
-Rules                                           82.9%
+Rules                                           88.0%
   Rules.Compiler.AssemblyCompiler              100.0%
   Rules.Compiler.CodeGenerator                  96.7%
   Rules.Compiler.DelegateFactory               100.0%
   Rules.Compiler.ExpressionCompiler             97.2%
   Rules.Compiler.TypeNameResolver               66.6%
-  Rules.Exceptions.CircularReferenceException   71.4%
-  Rules.Exceptions.DuplicateRuleIdException     80.0%
-  Rules.Exceptions.NotCompiledException         80.0%
-  Rules.Exceptions.RuleCompilationException     50.0%
-  Rules.Exceptions.RuleExecutionException        0.0%
-  Rules.Exceptions.RulesException               50.0%
+  Rules.Exceptions.CircularReferenceException  100.0%
+  Rules.Exceptions.DuplicateRuleIdException    100.0%
+  Rules.Exceptions.NotCompiledException        100.0%
+  Rules.Exceptions.RuleCompilationException    100.0%
+  Rules.Exceptions.RuleExecutionException      100.0%
+  Rules.Exceptions.RulesException              100.0%
   Rules.Exceptions.RuleValidationException     100.0%
-  Rules.Exceptions.SyntaxErrorException         71.4%
+  Rules.Exceptions.SyntaxErrorException        100.0%
   Rules.Exceptions.WorkflowException           100.0%
   Rules.Extensions.JsonRuleLoader               98.7%
-  Rules.Models.CompiledAction<T>                 0.0%
-  Rules.Models.CompiledAsyncAction<T>            0.0%
+  Rules.Models.CompiledAction<T>               100.0%
+  Rules.Models.CompiledAsyncAction<T>          100.0%
   Rules.Models.CompiledAsyncFunc<T1, T2>        54.5%
-  Rules.Models.CompiledDelegateFactory          66.6%
+  Rules.Models.CompiledDelegateFactory         100.0%
   Rules.Models.CompiledFunc<T1, T2>            100.0%
   Rules.Models.Rule                             87.0%
   Rules.Models.RuleExecutedEvent               100.0%
