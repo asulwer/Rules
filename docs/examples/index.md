@@ -287,6 +287,59 @@ var passCount = results.Count(r => r.Success);
 Console.WriteLine($"Passed: {passCount}/{results.Length}");
 ```
 
+## Rule Priority
+
+Control execution order when some checks must run before others:
+
+```csharp
+var workflow = new Workflow
+{
+    Rules =
+    {
+        // Critical checks run first
+        new Rule
+        {
+            Description = "Check authentication",
+            Expression = "customer.IsAuthenticated",
+            Priority = 100
+        },
+        new Rule
+        {
+            Description = "Check authorization",
+            Expression = "customer.HasPermission",
+            Priority = 90
+        },
+        // Standard validation
+        new Rule
+        {
+            Description = "Validate email",
+            Expression = "customer.Email.Contains(\"@\")",
+            Priority = 0 // Default
+        },
+        // Cleanup / logging runs last
+        new Rule
+        {
+            Description = "Audit log",
+            Expression = "true",
+            Action = "Log(customer.Id)",
+            Priority = -10
+        }
+    }
+};
+
+workflow.Compile(parameters);
+
+// Order: Auth (100) → AuthZ (90) → Email (0) → Audit (-10)
+var results = workflow.Execute(parameters);
+```
+
+**Priority rules:**
+- Higher number = earlier execution
+- `0` is default
+- Negative numbers = after defaults
+- Same priority = original order preserved
+- Immutable after `Compile()`
+
 ## Validation Before Compile
 
 ```csharp

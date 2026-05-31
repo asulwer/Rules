@@ -154,6 +154,34 @@ foreach (var result in results)
 | JSON | `batch.AddRules(JsonRuleLoader.LoadFromFile("rules.json").Rules)` |
 | Database | `batch.AddRules(dbContext.Rules.Where(r => r.IsActive).ToList())` |
 
+## Rule Priority
+
+Control execution order with the `Priority` property. Higher values execute first.
+
+```csharp
+var workflow = new Workflow
+{
+    Rules =
+    {
+        new Rule { Expression = "true", Description = "Low", Priority = 0 },
+        new Rule { Expression = "true", Description = "High", Priority = 10 },
+        new Rule { Expression = "true", Description = "Medium", Priority = 5 }
+    }
+};
+
+// Execution order: High → Medium → Low
+var results = workflow.Execute(parameters);
+```
+
+| Priority | Execution Order |
+|----------|-----------------|
+| `10` | First |
+| `5` | Second |
+| `0` | Third (default) |
+| `-5` | After defaults |
+
+Priority is immutable after `Compile()`. Works in Workflow and RuleBatch.
+
 ## Quick Start
 
 ### 1. Define Your Model

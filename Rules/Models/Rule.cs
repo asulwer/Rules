@@ -71,6 +71,17 @@ namespace Rules.Models
         private bool _isActive = true;
 
         /// <summary>
+        /// Execution priority. Higher values execute first.
+        /// Default is 0. Negative values execute after default priority rules.
+        /// </summary>
+        public int Priority
+        {
+            get => _priority;
+            set { EnsureNotCompiled(nameof(Priority)); _priority = value; }
+        }
+        private int _priority = 0;
+
+        /// <summary>
         /// C# boolean expression evaluated during execution.
         /// Can contain async code (await) if the expression is marked async.
         /// If empty, the expression is treated as passing.

@@ -110,7 +110,7 @@ namespace Rules.Models
             if (!IsActive)
                 yield break;
 
-            foreach (var rule in Rules.Where(r => r.IsActive))
+            foreach (var rule in Rules.Where(r => r.IsActive).OrderByDescending(r => r.Priority))
             {
                 yield return rule.Execute(parameters);
             }
@@ -129,7 +129,7 @@ namespace Rules.Models
             if (!IsActive)
                 return Array.Empty<RuleResult>();
 
-            var activeRules = Rules.Where(r => r.IsActive).ToArray();
+            var activeRules = Rules.Where(r => r.IsActive).OrderByDescending(r => r.Priority).ToArray();
             if (activeRules.Length == 0)
                 return Array.Empty<RuleResult>();
 
@@ -159,7 +159,7 @@ namespace Rules.Models
             if (!IsActive)
                 yield break;
 
-            foreach (var rule in Rules.Where(r => r.IsActive))
+            foreach (var rule in Rules.Where(r => r.IsActive).OrderByDescending(r => r.Priority))
             {
                 yield return await rule.ExecuteAsync(parameters);
             }
@@ -178,7 +178,7 @@ namespace Rules.Models
             if (!IsActive)
                 return Array.Empty<RuleResult>();
 
-            var activeRules = Rules.Where(r => r.IsActive).ToArray();
+            var activeRules = Rules.Where(r => r.IsActive).OrderByDescending(r => r.Priority).ToArray();
             if (activeRules.Length == 0)
                 return Array.Empty<RuleResult>();
 

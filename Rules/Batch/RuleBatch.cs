@@ -87,7 +87,7 @@ namespace Rules.Batch
         {
             EnsureCompiled();
 
-            foreach (var rule in _rules.Where(r => r.IsActive))
+            foreach (var rule in _rules.Where(r => r.IsActive).OrderByDescending(r => r.Priority))
             {
                 yield return rule.Execute(parameters);
             }
@@ -100,7 +100,7 @@ namespace Rules.Batch
         {
             EnsureCompiled();
 
-            var activeRules = _rules.Where(r => r.IsActive).ToArray();
+            var activeRules = _rules.Where(r => r.IsActive).OrderByDescending(r => r.Priority).ToArray();
             var results = new RuleResult[activeRules.Length];
 
             System.Threading.Tasks.Parallel.For(0, activeRules.Length, i =>
@@ -118,7 +118,7 @@ namespace Rules.Batch
         {
             EnsureCompiled();
 
-            foreach (var rule in _rules.Where(r => r.IsActive))
+            foreach (var rule in _rules.Where(r => r.IsActive).OrderByDescending(r => r.Priority))
             {
                 yield return await rule.ExecuteAsync(parameters);
             }
@@ -131,7 +131,7 @@ namespace Rules.Batch
         {
             EnsureCompiled();
 
-            var activeRules = _rules.Where(r => r.IsActive).ToArray();
+            var activeRules = _rules.Where(r => r.IsActive).OrderByDescending(r => r.Priority).ToArray();
             var tasks = activeRules.Select(rule => rule.ExecuteAsync(parameters));
             var results = await Task.WhenAll(tasks);
 

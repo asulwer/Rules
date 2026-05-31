@@ -293,6 +293,45 @@ Rules compile to one of these signatures:
 | Async returning custom | `Func<TParam, Task<TReturn>>` | `Func<Customer, Task<Result>>` |
 | Async void | `Func<TParam, Task>` | `Func<Customer, Task>` |
 
+## Rule Priority
+
+Control execution order with the `Priority` property. Higher values execute first.
+
+### Priority Property
+
+```csharp
+public int Priority { get; set; } // Default: 0
+```
+
+Higher values execute first. Negative values execute after default (0) priority rules. Immutable after `Compile()`.
+
+```csharp
+var rule = new Rule
+{
+    Description = "Critical check",
+    Expression = "customer.IsVIP",
+    Priority = 100 // Runs first
+};
+```
+
+### Execution Order
+
+Workflow and RuleBatch automatically sort active rules by priority (descending) before evaluation:
+
+```csharp
+var workflow = new Workflow
+{
+    Rules =
+    {
+        new Rule { Expression = "true", Priority = 0 },   // Runs third
+        new Rule { Expression = "true", Priority = 10 }, // Runs first
+        new Rule { Expression = "true", Priority = 5 }    // Runs second
+    }
+};
+```
+
+Applies to all execution modes: `Execute`, `ExecuteParallel`, `ExecuteAsync`, `ExecuteParallelAsync`.
+
 ## RuleBatch
 
 Evaluate multiple rules together as a unit. Shared compilation context, single validation pass.
