@@ -2,9 +2,7 @@
 
 ## 🔴 Critical Gaps
 
-| # | Gap | Why It Matters | Effort |
-|---|-----|---------------|--------|
-| 1 | **`CompiledDelegate.Invoke()` deadlocks async** | `.GetAwaiter().GetResult()` on async delegates = deadlock risk in UI/ASP.NET synchronization contexts | Medium |
+All critical gaps resolved. See backlog for future ideas.
 
 ## ❌ Excluded / Won't Implement
 
