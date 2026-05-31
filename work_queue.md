@@ -5,7 +5,6 @@
 | # | Gap | Why It Matters | Effort |
 |---|-----|---------------|--------|
 | 1 | **`CompiledDelegate.Invoke()` deadlocks async** | `.GetAwaiter().GetResult()` on async delegates = deadlock risk in UI/ASP.NET synchronization contexts | Medium |
-| 2 | **No per-rule timeout** | Infinite loops or blocking I/O in rule expressions hang forever — no way to recover | Medium |
 
 ## ❌ Excluded / Won't Implement
 
