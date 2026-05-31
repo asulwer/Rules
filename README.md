@@ -536,6 +536,42 @@ var test = RuleTest.For(rule)
     });
 ```
 
+## Dependency Injection & Mocking
+
+`IRuleEngine` abstraction enables DI registration and unit testing with mocks.
+
+```csharp
+using RoslynRules.Abstractions;
+
+// Register in DI container
+services.AddSingleton<IRuleEngine, Workflow>();
+
+// Or use RuleBatch for high-throughput scenarios
+services.AddSingleton<IRuleEngine, RuleBatch>();
+```
+
+**Mocking with Moq:**
+
+```csharp
+var mockEngine = new Mock<IRuleEngine>();
+mockEngine.Setup(x => x.Execute(It.IsAny<RuleParameter[]>()))
+    .Returns(new[] { new RuleResult { Success = true } });
+
+// Use mock in your service tests
+var service = new MyService(mockEngine.Object);
+```
+
+**Available methods on `IRuleEngine`:**
+
+| Method | Returns | Use Case |
+|--------|---------|----------|
+| `Compile(params, namespaces?)` | `void` | One-time compilation |
+| `Execute(params)` | `IEnumerable<RuleResult>` | Sequential execution |
+| `ExecuteAsync(params, ct)` | `IAsyncEnumerable<RuleResult>` | Streaming async |
+| `ExecuteParallel(params)` | `RuleResult[]` | CPU-bound parallel |
+| `ExecuteParallelAsync(params, ct)` | `Task<RuleResult[]>` | Async parallel |
+| `Validate()` | `void` | Pre-compile validation |
+
 ## Performance
 
 Typical execution for 999 customers:
@@ -551,6 +587,8 @@ Typical execution for 999 customers:
 
 ```
 RoslynRules/
+├── Abstractions/
+│   └── IRuleEngine.cs       # Interface for DI and mocking
 ├── Models/
 │   ├── Rule.cs              # Individual rule with Expression/Action/Children
 │   ├── Workflow.cs          # Container with sequential/parallel/async execution
