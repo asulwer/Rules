@@ -10,6 +10,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace RoslynRules.Models
@@ -135,6 +136,17 @@ namespace RoslynRules.Models
             set { EnsureNotCompiled(nameof(ParentRuleId)); _parentRuleId = value; }
         }
         private Guid? _parentRuleId;
+
+        /// <summary>
+        /// Maximum time allowed for rule execution. Null means no timeout.
+        /// Applies to both Expression and Action execution.
+        /// </summary>
+        public TimeSpan? Timeout
+        {
+            get => _timeout;
+            set { EnsureNotCompiled(nameof(Timeout)); _timeout = value; }
+        }
+        private TimeSpan? _timeout;
 
         /// <summary>
         /// Navigation property to the parent rule.
@@ -469,10 +481,47 @@ namespace RoslynRules.Models
 
         /// <summary>
         /// Core execution logic without logging overhead.
+        /// Enforces per-rule timeout if configured.
         /// </summary>
         /// <param name="context">Optional context for accessing dependency results.</param>
         /// <param name="parameters">Runtime parameter values.</param>
         private RuleResult ExecuteCore(RuleContext? context, RuleParameter[] parameters)
+        {
+            if (!IsActive)
+                return new RuleResult(true, Id, Description, IsActive);
+
+            if (parameters.Length != 1)
+                throw new NotSupportedException(
+                    $"Rules support exactly one parameter. You provided {parameters.Length}. " +
+                    "Wrap multiple values in a struct/class.");
+
+            if (_compiledExpression == null && _compiledAction == null && !ChildRules.Any())
+                throw new NotCompiledException(Id);
+
+            // If timeout is configured, wrap execution in a timed task
+            if (Timeout.HasValue)
+            {
+                var cts = new CancellationTokenSource((int)Timeout.Value.TotalMilliseconds);
+                try
+                {
+                    var task = Task.Run(() => ExecuteCoreInternal(context, parameters), cts.Token);
+                    if (!task.Wait((int)Timeout.Value.TotalMilliseconds, cts.Token))
+                        throw new RuleTimeoutException(Id, Timeout.Value);
+                    return task.Result;
+                }
+                catch (OperationCanceledException) when (cts.IsCancellationRequested)
+                {
+                    throw new RuleTimeoutException(Id, Timeout.Value);
+                }
+            }
+
+            return ExecuteCoreInternal(context, parameters);
+        }
+
+        /// <summary>
+        /// Core execution logic without timeout or logging.
+        /// </summary>
+        private RuleResult ExecuteCoreInternal(RuleContext? context, RuleParameter[] parameters)
         {
             if (!IsActive)
                 return new RuleResult(true, Id, Description, IsActive);
@@ -572,10 +621,41 @@ namespace RoslynRules.Models
 
         /// <summary>
         /// Core async execution logic without logging overhead.
+        /// Enforces per-rule timeout if configured.
         /// </summary>
         /// <param name="context">Optional context for accessing dependency results.</param>
         /// <param name="parameters">Runtime parameter values.</param>
         private async Task<RuleResult> ExecuteCoreAsync(RuleContext? context, RuleParameter[] parameters)
+        {
+            if (!IsActive)
+                return new RuleResult(true, Id, Description, IsActive);
+
+            if (parameters.Length != 1)
+                throw new NotSupportedException(
+                    $"Rules support exactly one parameter. You provided {parameters.Length}. " +
+                    "Wrap multiple values in a struct/class.");
+
+            if (_compiledExpression == null && _compiledAction == null && !ChildRules.Any())
+                throw new NotCompiledException(Id);
+
+            // If timeout is configured, wrap execution in a timed task
+            if (Timeout.HasValue)
+            {
+                using var cts = new CancellationTokenSource((int)Timeout.Value.TotalMilliseconds);
+                var task = ExecuteCoreAsyncInternal(context, parameters, cts.Token);
+                var completed = await Task.WhenAny(task, Task.Delay(Timeout.Value, cts.Token));
+                if (completed != task)
+                    throw new RuleTimeoutException(Id, Timeout.Value);
+                return await task;
+            }
+
+            return await ExecuteCoreAsyncInternal(context, parameters, CancellationToken.None);
+        }
+
+        /// <summary>
+        /// Core async execution logic without timeout or logging.
+        /// </summary>
+        private async Task<RuleResult> ExecuteCoreAsyncInternal(RuleContext? context, RuleParameter[] parameters, CancellationToken cancellationToken)
         {
             if (!IsActive)
                 return new RuleResult(true, Id, Description, IsActive);

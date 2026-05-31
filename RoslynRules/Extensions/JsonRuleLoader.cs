@@ -104,6 +104,7 @@ namespace RoslynRules.Extensions
             public int Priority { get; set; } = 0;
             public string Expression { get; set; } = "";
             public string Action { get; set; } = "";
+            public double? TimeoutSeconds { get; set; }
             public Guid? DependsOnRuleId { get; set; }
             public Guid? ParentRuleId { get; set; }
             public List<RuleDto>? ChildRules { get; set; }
@@ -119,6 +120,7 @@ namespace RoslynRules.Extensions
                 Priority = rule.Priority,
                 Expression = rule.Expression,
                 Action = rule.Action,
+                TimeoutSeconds = rule.Timeout?.TotalSeconds,
                 DependsOnRuleId = rule.DependsOnRuleId,
                 ParentRuleId = rule.ParentRuleId,
                 ChildRules = rule.ChildRules?.Any() == true
@@ -135,6 +137,7 @@ namespace RoslynRules.Extensions
             rule.Priority = dto.Priority;
             rule.Expression = dto.Expression;
             rule.Action = dto.Action;
+            rule.Timeout = dto.TimeoutSeconds.HasValue ? TimeSpan.FromSeconds(dto.TimeoutSeconds.Value) : null;
             rule.DependsOnRuleId = dto.DependsOnRuleId;
             rule.ParentRuleId = dto.ParentRuleId;
 

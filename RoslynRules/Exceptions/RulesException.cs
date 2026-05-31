@@ -92,6 +92,20 @@ namespace RoslynRules.Exceptions
     }
 
     /// <summary>
+    /// Thrown when a rule exceeds its configured timeout during execution.
+    /// </summary>
+    public class RuleTimeoutException : RuleExecutionException
+    {
+        public TimeSpan Timeout { get; }
+
+        public RuleTimeoutException(Guid ruleId, TimeSpan timeout)
+            : base(ruleId, new TimeoutException($"Rule (Id: {ruleId}) exceeded timeout of {timeout.TotalSeconds}s."))
+        {
+            Timeout = timeout;
+        }
+    }
+
+    /// <summary>
     /// Thrown when a workflow is invalid (empty, duplicate IDs, etc.).
     /// </summary>
     public class WorkflowException : RulesException
