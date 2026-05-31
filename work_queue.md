@@ -12,22 +12,24 @@ Date: 2026-05-31
 
 ## Rules Engine Features (Remaining)
 
-1. ~~Rule result streaming~~ ✅ Implemented — CancellationToken support, IAsyncEnumerable on RuleBatch, ExecuteBufferedAsync
+1. ~~Rule result streaming~~ ✅ Implemented
 2. ~~Hot-reload rules~~ — Deferred to future
-3. **Rule serialization to EF** — Example showing how to store rules in database
-4. ~~Distributed evaluation~~ — **Permanently excluded**
-5. ~~Rule templates~~ — Deferred to future
-6. **Rule versioning** — Track rule changes over time
-7. **Rule action chaining** — Output of one rule feeds into next
-8. ~~Conditional child rules~~ — Deferred to future (child execution stays bottom-up)
-9. ~~Rule metrics~~ — Deferred to future
+6. ~~Rule versioning~~ — **Excluded** — SQL Server temporal tables + EF Core handle this natively when rules are stored in DB
+7. ~~Rule action chaining~~ ✅ Implemented — DependsOnRuleId, topological sort, cycle detection, RuleContext
 10. **Rule dependency graph** — Visualize rule relationships
-11. ~~Pre-compiled rule library~~ — Deferred to future
-12. ~~Rule testing framework~~ ✅ Implemented
 
 ## Documentation & Examples
 
-13. **Extensive examples, use cases & documentation** — Real-world examples (form validation, transaction screening, feature flags, compliance checks), when to use Workflow vs RuleBatch vs individual Rule, and EF serialization guide
+13. **Examples, use cases & docs** — Real-world examples (form validation, transaction screening, feature flags, compliance checks), EF serialization guide, when to use Workflow vs RuleBatch vs individual Rule
+
+## Deferred / Excluded
+
+- ~~Rule serialization to EF~~ — Consolidated into #13
+- ~~Distributed evaluation~~ — **Permanently excluded**
+- ~~Rule templates~~ — Deferred to future
+- ~~Conditional child rules~~ — Deferred to future (child execution stays bottom-up)
+- ~~Rule metrics~~ — Deferred to future
+- ~~Pre-compiled rule library~~ — Deferred to future
 
 ## Status
 

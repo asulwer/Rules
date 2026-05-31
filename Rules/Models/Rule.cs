@@ -3,6 +3,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Rules.Compiler;
 using Rules.Exceptions;
+using Rules.Execution;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -155,6 +156,29 @@ namespace Rules.Models
             set { EnsureNotCompiled(nameof(ChildRules)); _childRules = value; }
         }
         private IList<Rule> _childRules = new List<Rule>();
+
+        /// <summary>
+        /// Foreign key referencing another rule that this rule depends on.
+        /// When set, the dependency rule&apos;s result is made available during execution.
+        /// The dependent rule executes after its dependency.
+        /// </summary>
+        public Guid? DependsOnRuleId
+        {
+            get => _dependsOnRuleId;
+            set { EnsureNotCompiled(nameof(DependsOnRuleId)); _dependsOnRuleId = value; }
+        }
+        private Guid? _dependsOnRuleId;
+
+        /// <summary>
+        /// Navigation property to the rule this rule depends on.
+        /// </summary>
+        [NotMapped]
+        public Rule? DependsOnRule
+        {
+            get => _dependsOnRule;
+            set { EnsureNotCompiled(nameof(DependsOnRule)); _dependsOnRule = value; }
+        }
+        private Rule? _dependsOnRule;
 
         // ==================== LOGGING ====================
 
@@ -397,6 +421,16 @@ namespace Rules.Models
         /// <param name="parameters">Runtime parameter values.</param>
         /// <returns>Result of the rule evaluation.</returns>
         public RuleResult Execute(params RuleParameter[] parameters)
+            => ExecuteWithContext(null, parameters);
+
+        /// <summary>
+        /// Executes the rule with access to dependency results via a RuleContext.
+        /// The context provides access to the outputs of rules this rule depends on.
+        /// </summary>
+        /// <param name="context">Context containing results of previously executed rules.</param>
+        /// <param name="parameters">Runtime parameter values.</param>
+        /// <returns>Result of the rule evaluation.</returns>
+        public RuleResult ExecuteWithContext(RuleContext? context, params RuleParameter[] parameters)
         {
             var sw = Stopwatch.StartNew();
             RuleResult result;
@@ -404,7 +438,7 @@ namespace Rules.Models
 
             try
             {
-                result = ExecuteCore(parameters);
+                result = ExecuteCore(context, parameters);
             }
             catch (RulesException)
             {
@@ -427,13 +461,18 @@ namespace Rules.Models
                 Exception = exception
             });
 
+            // Store result in context for dependent rules
+            context?.StoreResult(Id, result);
+
             return result;
         }
 
         /// <summary>
         /// Core execution logic without logging overhead.
         /// </summary>
-        private RuleResult ExecuteCore(RuleParameter[] parameters)
+        /// <param name="context">Optional context for accessing dependency results.</param>
+        /// <param name="parameters">Runtime parameter values.</param>
+        private RuleResult ExecuteCore(RuleContext? context, RuleParameter[] parameters)
         {
             if (!IsActive)
                 return new RuleResult(true, Id, Description, IsActive);
@@ -452,7 +491,7 @@ namespace Rules.Models
             var childResults = new List<RuleResult>();
             foreach (var child in ChildRules.Where(r => r.IsActive))
             {
-                var childResult = child.Execute(parameters);
+                var childResult = child.ExecuteWithContext(context, parameters);
                 childResults.Add(childResult);
                 if (!childResult.Success)
                 return new RuleResult(false, Id, Description, IsActive, childResults: childResults);
@@ -484,7 +523,17 @@ namespace Rules.Models
         /// </summary>
         /// <param name="parameters">Runtime parameter values.</param>
         /// <returns>Task containing the rule evaluation result.</returns>
-        public async Task<RuleResult> ExecuteAsync(params RuleParameter[] parameters)
+        public Task<RuleResult> ExecuteAsync(params RuleParameter[] parameters)
+            => ExecuteWithContextAsync(null, parameters);
+
+        /// <summary>
+        /// Executes the rule asynchronously with access to dependency results via a RuleContext.
+        /// The context provides access to the outputs of rules this rule depends on.
+        /// </summary>
+        /// <param name="context">Context containing results of previously executed rules.</param>
+        /// <param name="parameters">Runtime parameter values.</param>
+        /// <returns>Task containing the rule evaluation result.</returns>
+        public async Task<RuleResult> ExecuteWithContextAsync(RuleContext? context, params RuleParameter[] parameters)
         {
             var sw = Stopwatch.StartNew();
             RuleResult result;
@@ -492,7 +541,7 @@ namespace Rules.Models
 
             try
             {
-                result = await ExecuteCoreAsync(parameters);
+                result = await ExecuteCoreAsync(context, parameters);
             }
             catch (RulesException)
             {
@@ -515,13 +564,18 @@ namespace Rules.Models
                 Exception = exception
             });
 
+            // Store result in context for dependent rules
+            context?.StoreResult(Id, result);
+
             return result;
         }
 
         /// <summary>
         /// Core async execution logic without logging overhead.
         /// </summary>
-        private async Task<RuleResult> ExecuteCoreAsync(RuleParameter[] parameters)
+        /// <param name="context">Optional context for accessing dependency results.</param>
+        /// <param name="parameters">Runtime parameter values.</param>
+        private async Task<RuleResult> ExecuteCoreAsync(RuleContext? context, RuleParameter[] parameters)
         {
             if (!IsActive)
                 return new RuleResult(true, Id, Description, IsActive);
@@ -540,7 +594,7 @@ namespace Rules.Models
             var childResults = new List<RuleResult>();
             foreach (var child in ChildRules.Where(r => r.IsActive))
             {
-                var childResult = await child.ExecuteAsync(parameters);
+                var childResult = await child.ExecuteWithContextAsync(context, parameters);
                 childResults.Add(childResult);
                 if (!childResult.Success)
                 return new RuleResult(false, Id, Description, IsActive, childResults: childResults);

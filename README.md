@@ -16,6 +16,7 @@ A high-performance rewrite of [Microsoft RulesEngine](https://github.com/microso
 | Circular reference guard | No | **Built-in tree validation** |
 | Thread safety | Mutable rules | **Immutable after compilation** |
 | Execution modes | Sequential | **Sequential + Parallel + Async + Streaming** |
+| Rule chaining | No | **DependsOnRuleId with topological sort** |
 
 ## Architecture
 
@@ -153,6 +154,74 @@ foreach (var result in results)
 | List | `batch.AddRules(existingRules)` |
 | JSON | `batch.AddRules(JsonRuleLoader.LoadFromFile("rules.json").Rules)` |
 | Database | `batch.AddRules(dbContext.Rules.Where(r => r.IsActive).ToList())` |
+
+## Rule Action Chaining
+
+Chain rules so the output of one rule feeds into the next. Use `DependsOnRuleId` to create dependencies.
+
+```csharp
+var validateAge = new Rule
+{
+    Description = "Validate age",
+    Expression = "customer.Age >= 18",
+    IsActive = true
+};
+
+var checkDiscount = new Rule
+{
+    Description = "Check discount",
+    DependsOnRuleId = validateAge.Id,  // Only runs after validateAge
+    Expression = "customer.Age >= 65", // Senior discount
+    IsActive = true
+};
+
+var workflow = new Workflow
+{
+    Rules = new List<Rule> { checkDiscount, validateAge } // Any order
+} };
+
+workflow.Validate();  // Validates dependencies exist and no cycles
+workflow.Compile(parameters);
+
+// Execute: validateAge runs first, then checkDiscount
+var results = workflow.Execute(parameters).ToList();
+// results[0] = validateAge, results[1] = checkDiscount
+```
+
+**Features:**
+- Automatic topological sort — dependencies always execute first
+- Cycle detection — throws `CircularReferenceException` if rules form a loop
+- Missing dependency detection — validates all `DependsOnRuleId` references exist
+- Works with all execution modes (sequential, parallel, async, buffered)
+- Priority is respected within the same dependency level
+
+**Accessing dependency results via RuleContext:**
+
+```csharp
+var ruleA = new Rule
+{
+    Description = "Calculate tax",
+    Expression = "customer.Amount * 0.08",
+    IsActive = true
+};
+
+var ruleB = new Rule
+{
+    Description = "Total with tax",
+    DependsOnRuleId = ruleA.Id,
+    Expression = "customer.Amount + context.GetResult(taxRuleId).Value", // Access dependency output
+    IsActive = true
+};
+```
+
+**Execution with dependencies:**
+
+| Mode | Behavior |
+|------|----------|
+| `Execute()` | Sequential, dependency-first |
+| `ExecuteAsync()` | Async sequential, dependency-first |
+| `ExecuteParallelAsync()` | Independent rules parallel, dependencies sequential |
+| `ExecuteBufferedAsync()` | Batches respect dependencies |
 
 ## Rule Priority
 
