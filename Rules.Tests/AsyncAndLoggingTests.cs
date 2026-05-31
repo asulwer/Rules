@@ -38,6 +38,111 @@ namespace Rules.Tests
         
 
         [Fact]
+        public async Task ExecuteAsync_AsyncExpression_ReturnsTrue()
+        {
+            var rule = new Rule
+            {
+                Description = "Async expression",
+                Expression = "await Task.FromResult(customer.Age >= 18)",
+                IsActive = true
+            };
+
+            var compiler = new ExpressionCompiler();
+            rule.Compile(compiler, _parameters, _namespaces);
+
+            var result = await rule.ExecuteAsync(_parameters);
+
+            result.Success.Should().BeTrue();
+        }
+
+        [Fact]
+        public async Task ExecuteAsync_AsyncExpression_ReturnsFalse()
+        {
+            var rule = new Rule
+            {
+                Description = "Async expression false",
+                Expression = "await Task.FromResult(customer.Age >= 100)",
+                IsActive = true
+            };
+
+            var compiler = new ExpressionCompiler();
+            rule.Compile(compiler, _parameters, _namespaces);
+
+            var result = await rule.ExecuteAsync(_parameters);
+
+            result.Success.Should().BeFalse();
+        }
+
+        [Fact]
+        public async Task ExecuteAsync_AsyncAction_Executes()
+        {
+            var rule = new Rule
+            {
+                Description = "Async action",
+                Expression = "true",
+                Action = "await Task.Run(() => customer.IsAdult = true)",
+                IsActive = true
+            };
+
+            var compiler = new ExpressionCompiler();
+            rule.Compile(compiler, _parameters, _namespaces);
+
+            var result = await rule.ExecuteAsync(_parameters);
+
+            result.Success.Should().BeTrue();
+            var customer = (TestCustomer)_parameters[0].Value;
+            customer.IsAdult.Should().BeTrue();
+        }
+
+        [Fact]
+        public async Task ExecuteAsync_ChildAsync_ParentAwaits()
+        {
+            var parent = new Rule
+            {
+                Description = "Parent",
+                Expression = "true",
+                IsActive = true
+            };
+
+            var child = new Rule
+            {
+                Description = "Async child",
+                Expression = "await Task.FromResult(customer.Age > 0)",
+                IsActive = true
+            };
+
+            parent.ChildRules.Add(child);
+
+            var compiler = new ExpressionCompiler();
+            parent.Compile(compiler, _parameters, _namespaces);
+
+            var result = await parent.ExecuteAsync(_parameters);
+
+            result.Success.Should().BeTrue();
+            result.ChildResults.Should().HaveCount(1);
+            result.ChildResults[0].Success.Should().BeTrue();
+        }
+
+        [Fact]
+        public async Task ExecuteAsync_RuntimeException_ReturnsFailureWithException()
+        {
+            var rule = new Rule
+            {
+                Description = "Async runtime error",
+                Expression = "await Task.Run(() => 1 / (customer.Age - 25) == 1)",
+                IsActive = true
+            };
+
+            var compiler = new ExpressionCompiler();
+            rule.Compile(compiler, _parameters, _namespaces);
+
+            var result = await rule.ExecuteAsync(_parameters);
+
+            result.Success.Should().BeFalse();
+            result.Exception.Should().NotBeNull();
+        }
+
+        [Fact]
         public void Execute_WithLogger_FiresEvent()
         {
             var logger = new TestLogger<Rule>();
