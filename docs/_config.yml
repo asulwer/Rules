@@ -1,7 +1,7 @@
 # GitHub Pages Jekyll Configuration
-title: Rules Engine
+title: RoslynRules
 description: High-performance .NET rules engine with Roslyn compilation
-baseurl: "/Rules"
+baseurl: "/RoslynRules"
 url: "https://asulwer.github.io"
 
 # Use just-the-docs via remote_theme (GitHub Pages supports this)
@@ -10,7 +10,7 @@ remote_theme: just-the-docs/just-the-docs@v0.10.0
 # Navigation structure
 nav_external_links:
   - title: GitHub
-    url: https://github.com/asulwer/Rules
+    url: https://github.com/asulwer/RoslynRules
     hide_icon: false
 
 # Search enabled
