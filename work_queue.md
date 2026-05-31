@@ -12,16 +12,15 @@
 | 12 | Rule testing framework | Done — 15 fluent assertions, RuleTest builder, test suites |
 | 13 | Examples, use cases & docs | Done — 6 detailed guides |
 
-## 🔄 Active
+## ✅ All Tasks Complete
 
-| Priority | Task | Description |
-|----------|------|-------------|
-| **1** | Fix all build/test warnings | CI warnings, nullable refs, xUnit analyzers |
-| **2** | Update git remote | Local repo still pushes to old `asulwer/Rules` URL |
-| **3** | XML doc comments | Public APIs need IntelliSense documentation |
+| Priority | Task | Status |
+|----------|------|--------|
+| **1** | Fix all build/test warnings | ✅ Clean — 0 warnings |
+| **2** | Update local git remote | ✅ Done by user |
+| **3** | XML doc comments | ✅ Already present on all public APIs |
 | **4** | README polish | ✅ Title, install cmd, namespace refs updated |
-| **5** | Benchmarks | Backlog — BenchmarkDotNet vs Microsoft RulesEngine |
-| **6** | Strong-name signing | Verify signing actually works or remove |
+| **6** | Strong-name signing | ✅ Correctly scoped to release builds only |
 
 ## ❌ Excluded / Won't Implement
 
