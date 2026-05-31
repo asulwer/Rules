@@ -115,31 +115,6 @@ workflow.Compile(parameters);
 var results = workflow.ExecuteParallel(parameters);
 ```
 
-## Workflow with Multiple Rules
-
-```csharp
-var workflow = new Workflow
-{
-    Description = "Customer processing",
-    Rules = new List<Rule>
-    {
-        new Rule { Expression = "customer.Age >= 18", Description = "Adult" },
-        new Rule { Expression = "customer.Name.StartsWith(\"A\")", Description = "Starts with A" },
-        new Rule { 
-            Expression = "customer.IsActive",
-            Action = "customer.Processed = true",
-            Description = "Process active"
-        }
-    }
-};
-
-workflow.Validate();
-workflow.Compile(parameters);
-
-// All rules evaluated, results in order
-var results = workflow.ExecuteParallel(parameters);
-```
-
 ## Logging with Serilog
 
 ```csharp

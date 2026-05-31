@@ -174,20 +174,24 @@ public RuleParameter(string name, Type type, object? value)
 | `Type` | `Type` | CLR type for compilation |
 | `Value` | `object?` | Runtime value |
 
-## RuleResult
+## Exceptions
 
-Result of rule execution.
+Rules uses a custom exception hierarchy for clear error handling.
 
-```csharp
-public RuleResult(bool success, object? data = null)
-```
+| Exception | Thrown When |
+|-----------|-------------|
+| `RuleValidationException` | Rule has no Expression, Action, or active children |
+| `CircularReferenceException` | Circular reference detected in child rules |
+| `SyntaxErrorException` | Invalid C# syntax in expression |
+| `RuleCompilationException` | Roslyn compilation failure |
+| `NotCompiledException` | Execute called before Compile |
+| `RuleExecutionException` | Runtime error in compiled expression |
+| `WorkflowException` | Workflow has no active rules |
+| `DuplicateRuleIdException` | Duplicate rule IDs in workflow |
 
-| Property | Type | Description |
-|----------|------|-------------|
-| `Success` | `bool` | True if rule passed |
-| `Data` | `object?` | Optional return data from Action |
+All exceptions inherit from `RulesException` (which inherits from `InvalidOperationException`).
 
-## Logging
+## ExpressionCompiler
 
 Rules integrate with `Microsoft.Extensions.Logging` for structured execution events.
 

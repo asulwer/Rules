@@ -105,6 +105,23 @@ loaded.Compile(parameters);
 }
 ```
 
+## Custom Exceptions
+
+Rules uses typed exceptions for clear error handling:
+
+| Exception | When Thrown |
+|-----------|-------------|
+| `RuleValidationException` | Rule has no Expression, Action, or active children |
+| `CircularReferenceException` | Circular reference in child rule tree |
+| `SyntaxErrorException` | Invalid C# syntax in expression |
+| `RuleCompilationException` | Roslyn compilation failure |
+| `NotCompiledException` | Execute called before Compile |
+| `RuleExecutionException` | Runtime error in compiled code |
+| `WorkflowException` | Workflow has no active rules |
+| `DuplicateRuleIdException` | Duplicate rule IDs in same workflow |
+
+All inherit from `RulesException`.
+
 ## Quick Start
 
 ### 1. Define Your Model
@@ -299,6 +316,28 @@ Rules/
 │   └── DelegateFactory.cs      # Loads assembly and creates typed delegate
 └── Utilities/
     └── Execute.cs           # Execution helpers
+```
+
+## EF Core Ready
+
+Models include parameterless constructors, virtual collections, and navigation properties for Entity Framework:
+
+```csharp
+public class RulesDbContext : DbContext
+{
+    public DbSet<Workflow> Workflows => Set<Workflow>();
+    public DbSet<Rule> Rules => Set<Rule>();
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        // Configure JSON storage for child rules
+        modelBuilder.Entity<Rule>()
+            .Property(r => r.ChildRules)
+            .HasConversion(
+                v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                v => JsonSerializer.Deserialize<List<Rule>>(v, (JsonSerializerOptions?)null) ?? new List<Rule>());
+    }
+}
 ```
 
 ## Requirements
