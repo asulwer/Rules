@@ -402,7 +402,7 @@ namespace Rules.Models
             catch (Exception ex)
             {
                 exception = ex;
-                result = new RuleResult(false);
+                result = new RuleResult(false, Id, Description, IsActive, exception: ex);
             }
 
             sw.Stop();
@@ -490,7 +490,7 @@ namespace Rules.Models
             catch (Exception ex)
             {
                 exception = ex;
-                result = new RuleResult(false);
+                result = new RuleResult(false, Id, Description, IsActive, exception: ex);
             }
 
             sw.Stop();

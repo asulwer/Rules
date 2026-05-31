@@ -1,0 +1,46 @@
+Summary
+  Generated on: 5/30/2026 - 5:39:29 PM
+  Coverage date: 5/30/2026 - 5:39:22 PM
+  Parser: Cobertura
+  Assemblies: 1
+  Classes: 26
+  Files: 13
+  Line coverage: 73.1%
+  Covered lines: 540
+  Uncovered lines: 198
+  Coverable lines: 738
+  Total lines: 1819
+  Branch coverage: 63.4% (137 of 216)
+  Covered branches: 137
+  Total branches: 216
+  Method coverage: 74.4% (96 of 129)
+  Covered methods: 96
+  Total methods: 129
+
+Rules                                           73.1%
+  Rules.Compiler.AssemblyCompiler              100.0%
+  Rules.Compiler.CodeGenerator                 100.0%
+  Rules.Compiler.DelegateFactory               100.0%
+  Rules.Compiler.ExpressionCompiler             97.2%
+  Rules.Compiler.TypeNameResolver               66.6%
+  Rules.Exceptions.CircularReferenceException   71.4%
+  Rules.Exceptions.DuplicateRuleIdException     80.0%
+  Rules.Exceptions.NotCompiledException         80.0%
+  Rules.Exceptions.RuleCompilationException     50.0%
+  Rules.Exceptions.RuleExecutionException        0.0%
+  Rules.Exceptions.RulesException               50.0%
+  Rules.Exceptions.RuleValidationException     100.0%
+  Rules.Exceptions.SyntaxErrorException         71.4%
+  Rules.Exceptions.WorkflowException           100.0%
+  Rules.Extensions.JsonRuleLoader               98.7%
+  Rules.Models.CompiledAction<T>                 0.0%
+  Rules.Models.CompiledAsyncAction<T>            0.0%
+  Rules.Models.CompiledAsyncFunc<T1, T2>         0.0%
+  Rules.Models.CompiledDelegateFactory          51.8%
+  Rules.Models.CompiledFunc<T1, T2>            100.0%
+  Rules.Models.Rule                             63.8%
+  Rules.Models.RuleExecutedEvent               100.0%
+  Rules.Models.RuleLoggingExtensions            61.7%
+  Rules.Models.RuleParameter                    90.9%
+  Rules.Models.RuleResult                      100.0%
+  Rules.Models.Workflow                         72.0%
