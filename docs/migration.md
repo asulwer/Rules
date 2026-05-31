@@ -1,3 +1,9 @@
+---
+layout: default
+title: Migration
+nav_order: 5
+---
+
 [← Back to Documentation Index](index.md)
 
 # Migration from Microsoft RulesEngine

@@ -1,3 +1,9 @@
+---
+layout: default
+title: Performance
+nav_order: 6
+---
+
 [← Back to Documentation Index](index.md)
 
 # Performance

@@ -1,3 +1,9 @@
+---
+layout: default
+title: API Reference
+nav_order: 3
+---
+
 [← Back to Documentation Index](index.md)
 
 # API Reference

@@ -1,3 +1,9 @@
+---
+layout: default
+title: Home
+nav_order: 1
+---
+
 # Rules Engine Documentation
 
 High-performance .NET rules engine with Roslyn compilation, typed delegates, and async support.

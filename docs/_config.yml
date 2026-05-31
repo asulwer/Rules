@@ -1,15 +1,31 @@
 # GitHub Pages Jekyll Configuration
-theme: minima
-title: Rules Engine Documentation
+title: Rules Engine
 description: High-performance .NET rules engine with Roslyn compilation
+baseurl: "/Rules"
+url: "https://asulwer.github.io"
 
-header_pages:
-  - index.md
-  - getting-started.md
-  - api-reference.md
-  - examples/index.md
-  - migration.md
-  - performance.md
+# Use just-the-docs theme (GitHub Pages supported)
+theme: just-the-docs
+
+# Navigation structure
+nav_external_links:
+  - title: GitHub
+    url: https://github.com/asulwer/Rules
+    hide_icon: false
+
+# Search enabled
+search_enabled: true
+search.button: true
+
+# Color scheme
+color_scheme: dark
+
+# Back to top link
+back_to_top: true
+back_to_top_text: "Back to top"
+
+# Footer
+footer_content: "MIT License. Built with Roslyn + Typed Delegates."
 
 plugins:
   - jekyll-feed
