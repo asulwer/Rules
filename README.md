@@ -159,27 +159,18 @@ foreach (var result in results)
 
 Chain rules so the output of one rule feeds into the next. Use `DependsOnRuleId` to create data-flow dependencies between independent rules.
 
-### Parent-Child vs DependsOn — When to Use Which
+### Parent-Child vs DependsOn
 
-| | Parent-Child (`ParentRuleId` / `ChildRules`) | DependsOn (`DependsOnRuleId`) |
+| | Parent-Child (`ParentRuleId`) | DependsOn (`DependsOnRuleId`) |
 |---|---|---|
 | **Relationship** | Structural nesting — child is part of parent | Data-flow — one rule reads another&apos;s output |
 | **Execution** | Child runs first, then parent expression | Dependency runs first, then dependent rule |
-| **Failure impact** | Parent fails if any child fails | Dependent rule still runs even if dependency fails |
-| **Access to result** | Parent can&apos;t directly read child results | Dependent rule can read dependency result via `RuleContext` |
-| **Use for** | Sub-conditions that compose a larger check | Multi-stage pipelines where later stages need earlier outputs |
+| **Failure impact** | Parent fails if any child fails | Dependent still runs even if dependency fails |
+| **Use for** | Sub-conditions that compose a larger check | Multi-stage pipelines needing earlier outputs |
 
 ### Example: Parent-Child (Structural)
 
-Use when a rule is composed of multiple sub-conditions that must all pass.
-
 ```csharp
-// Parent rule: "Customer is valid adult"
-//  - Child: "Age >= 18" (runs first)
-//  - Child: "Name is not empty" (runs second)
-//  - Parent Expression: "customer.IsAdult == true && customer.HasName == true"
-// Parent succeeds only if ALL children succeed
-
 var adultCheck = new Rule
 {
     Description = "Valid adult customer",
@@ -198,16 +189,12 @@ adultCheck.ChildRules.Add(new Rule
     Description = "Name check",
     Expression = "!string.IsNullOrEmpty(customer.Name)"
 });
-
-// Result: adultCheck.Success == true only if BOTH children pass
+// adultCheck succeeds only if BOTH children pass
 ```
 
 ### Example: DependsOn (Data-Flow)
 
-Use when Rule B needs Rule A&apos;s result to make its own decision.
-
 ```csharp
-// Stage 1: Validate the customer exists and is active
 var validateCustomer = new Rule
 {
     Description = "Validate customer",
@@ -215,7 +202,6 @@ var validateCustomer = new Rule
     IsActive = true
 };
 
-// Stage 2: Check credit score — only meaningful if customer is valid
 var checkCredit = new Rule
 {
     Description = "Check credit",
@@ -224,36 +210,26 @@ var checkCredit = new Rule
     IsActive = true
 };
 
-// Stage 3: Approve loan — needs both previous results
-var approveLoan = new Rule
-{
-    Description = "Approve loan",
-    DependsOnRuleId = checkCredit.Id,
-    Expression = "customer.CreditScore >= 700 && customer.Income > 50000",
-    IsActive = true
-};
-
 var workflow = new Workflow
 {
-    Rules = new List<Rule> { approveLoan, checkCredit, validateCustomer } // Any order
+    Rules = new List<Rule> { checkCredit, validateCustomer }
 };
 
-workflow.Validate();   // Validates all dependencies exist
+workflow.Validate();   // Validates dependencies exist, no cycles
 workflow.Compile(parameters);
 
-// Execute: validateCustomer → checkCredit → approveLoan (dependency order)
 var results = workflow.Execute(parameters).ToList();
+// Execution order: validateCustomer → checkCredit (dependency order)
 ```
 
-### Accessing Dependency Results via RuleContext
+### Accessing Dependency Results
 
-Rules with dependencies can read the outputs of previous rules through `RuleContext`:
+Use `RuleContext` to read previous rule outputs:
 
 ```csharp
 var taxRule = new Rule
 {
     Description = "Calculate tax",
-    Expression = "true",  // Always succeeds, produces a value
     Action = "customer.TaxAmount = customer.Amount * 0.08",
     IsActive = true
 };
@@ -262,46 +238,15 @@ var totalRule = new Rule
 {
     Description = "Calculate total",
     DependsOnRuleId = taxRule.Id,
-    Expression = "true",
+    Expression = "context.GetResult(taxRule.Id).Success",
     Action = "customer.Total = customer.Amount + customer.TaxAmount",
     IsActive = true
 };
-
-// Alternative: access dependency result directly in expression
-var summaryRule = new Rule
-{
-    Description = "Summary",
-    DependsOnRuleId = taxRule.Id,
-    Expression = "context.GetResult(taxRule.Id).Success", // Was tax calculation successful?
-    IsActive = true
-};
 ```
 
-### Execution with Dependencies
+**Validation:** `Validate()` checks all `DependsOnRuleId` references exist and detects circular dependencies.
 
-| Mode | Behavior |
-|------|----------|
-| `Execute()` | Sequential, dependencies execute first |
-| `ExecuteAsync()` | Async sequential, dependencies execute first |
-| `ExecuteParallelAsync()` | Independent rules run in parallel; dependency chains run sequentially |
-| `ExecuteBufferedAsync()` | Batches respect dependencies within each buffer |
-
-### Validation
-
-`Validate()` checks:
-- All `DependsOnRuleId` references point to existing, active rules
-- No circular dependency chains (A → B → C → A)
-- Priority is respected within the same dependency level
-
-```csharp
-// This will throw CircularReferenceException during Validate()
-var ruleA = new Rule { Description = "A", DependsOnRuleId = ruleB.Id };
-var ruleB = new Rule { Description = "B", DependsOnRuleId = ruleC.Id };
-var ruleC = new Rule { Description = "C", DependsOnRuleId = ruleA.Id }; // Cycle!
-
-workflow.Rules = new List<Rule> { ruleA, ruleB, ruleC };
-workflow.Validate(); // Throws: CircularReferenceException
-```
+**Execution modes:** Dependencies execute first in all modes (sequential, parallel, async, buffered). Parallel mode runs independent rules concurrently while respecting dependency chains.
 ## Rule Priority
 
 Control execution order with the `Priority` property. Higher values execute first.
