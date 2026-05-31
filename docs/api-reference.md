@@ -292,3 +292,67 @@ Rules compile to one of these signatures:
 | Async returning bool | `Func<TParam, Task<bool>>` | `Func<Customer, Task<bool>>` |
 | Async returning custom | `Func<TParam, Task<TReturn>>` | `Func<Customer, Task<Result>>` |
 | Async void | `Func<TParam, Task>` | `Func<Customer, Task>` |
+
+## RuleBatch
+
+Evaluate multiple rules together as a unit. Shared compilation context, single validation pass.
+
+### Methods
+
+#### `AddRule(Rule)` / `AddRules(IEnumerable<Rule>)`
+
+Builder pattern for adding rules. Returns the batch for chaining.
+
+```csharp
+var batch = new RuleBatch()
+    .AddRule(new Rule { Expression = "customer.Age >= 18" })
+    .AddRules(GetRulesFromDatabase());
+```
+
+#### `Validate()`
+
+Validates all rules and checks for duplicate IDs within the batch.
+
+```csharp
+batch.Validate(); // Throws on duplicates or invalid rules
+```
+
+#### `Compile(RuleParameter[], string[]?)`
+
+Compiles all active rules using a shared ExpressionCompiler.
+
+```csharp
+batch.Compile(parameters);
+```
+
+#### `Evaluate(params RuleParameter[])`
+
+Sequential evaluation. Returns `IEnumerable<RuleResult>`.
+
+```csharp
+foreach (var result in batch.Evaluate(parameters)) { ... }
+```
+
+#### `EvaluateParallel(params RuleParameter[])`
+
+Parallel evaluation using `Parallel.For`.
+
+```csharp
+var results = batch.EvaluateParallel(parameters);
+```
+
+#### `EvaluateAsync(params RuleParameter[])`
+
+Async streaming evaluation. Returns `IAsyncEnumerable<RuleResult>`.
+
+```csharp
+await foreach (var result in batch.EvaluateAsync(parameters)) { ... }
+```
+
+#### `EvaluateParallelAsync(params RuleParameter[])`
+
+Parallel async evaluation using `Task.WhenAll`.
+
+```csharp
+var results = await batch.EvaluateParallelAsync(parameters);
+```

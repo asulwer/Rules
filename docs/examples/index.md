@@ -218,6 +218,75 @@ var results = workflow.Execute(parameters);
 }
 ```
 
+## Loading Rules into a Batch
+
+Combine rules from multiple sources into a single batch:
+
+```csharp
+using Rules.Batch;
+using Rules.Extensions;
+
+var batch = new RuleBatch();
+
+// From code
+batch.AddRule(new Rule
+{
+    Description = "Adult check",
+    Expression = "customer.Age >= 18"
+});
+
+// From JSON file
+var jsonWorkflow = JsonRuleLoader.LoadFromFile("compliance-rules.json");
+batch.AddRules(jsonWorkflow.Rules);
+
+// From database (EF Core)
+var dbRules = dbContext.Rules
+    .Where(r => r.WorkflowId == workflowId && r.IsActive)
+    .ToList();
+batch.AddRules(dbRules);
+
+// From a service
+var apiRules = await ruleService.GetRulesForTenantAsync(tenantId);
+batch.AddRules(apiRules);
+
+// Single compile, parallel evaluation
+batch.Compile(parameters);
+var results = batch.EvaluateParallel(parameters);
+
+foreach (var result in results.Where(r => !r.Success))
+{
+    Console.WriteLine($"Failed: {result.RuleDescription}");
+}
+```
+
+## Batch Evaluation (10+ Rules)
+
+Evaluate many rules together with shared compilation:
+
+```csharp
+var batch = new RuleBatch();
+
+// Add 10 validation rules
+for (int i = 0; i < 10; i++)
+{
+    batch.AddRule(new Rule
+    {
+        Description = $"Check {i + 1}",
+        Expression = $"customer.Field{i} > 0"
+    });
+}
+
+// Compile once
+batch.Compile(parameters);
+
+// Evaluate all at once — parallel mode for speed
+var results = batch.EvaluateParallel(parameters);
+
+// Summary
+var passCount = results.Count(r => r.Success);
+Console.WriteLine($"Passed: {passCount}/{results.Length}");
+```
+
 ## Validation Before Compile
 
 ```csharp

@@ -122,6 +122,38 @@ Rules uses typed exceptions for clear error handling:
 
 All inherit from `RulesException`.
 
+## RuleBatch (10+ Rules Together)
+
+Evaluate multiple rules as a unit with shared compilation context. Useful when you need to run 10+ checks against the same input.
+
+```csharp
+using Rules.Batch;
+
+var batch = new RuleBatch()
+    .AddRule(new Rule { Expression = "customer.Age >= 18", Description = "Adult" })
+    .AddRule(new Rule { Expression = "customer.Balance > 0", Description = "Positive balance" })
+    .AddRules(GetRulesFromDatabase()); // IEnumerable<Rule>
+
+// Single compile pass for all rules
+batch.Compile(parameters);
+
+// Evaluate all at once
+var results = batch.EvaluateParallel(parameters);
+foreach (var result in results)
+{
+    Console.WriteLine($"{result.RuleDescription}: {(result.Success ? "PASS" : "FAIL")}");
+}
+```
+
+**Loading rules into a batch:**
+
+| Source | Method |
+|--------|--------|
+| Manual | `batch.AddRule(new Rule { ... })` |
+| List | `batch.AddRules(existingRules)` |
+| JSON | `batch.AddRules(JsonRuleLoader.LoadFromFile("rules.json").Rules)` |
+| Database | `batch.AddRules(dbContext.Rules.Where(r => r.IsActive).ToList())` |
+
 ## Quick Start
 
 ### 1. Define Your Model
