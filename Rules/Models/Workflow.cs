@@ -19,6 +19,13 @@ namespace Rules.Models
         private ExpressionCompiler _compiler = new ExpressionCompiler();
 
         /// <summary>
+        /// EF Core requires a parameterless constructor.
+        /// </summary>
+        public Workflow()
+        {
+        }
+
+        /// <summary>
         /// Unique identifier for the workflow.
         /// </summary>
         [Key] public Guid Id { get; private set; } = Guid.NewGuid();
@@ -36,7 +43,7 @@ namespace Rules.Models
         /// <summary>
         /// Top-level rules in this workflow. Child rules are nested inside their parents.
         /// </summary>
-        public IList<Rule> Rules { get; set; } = new List<Rule>();
+        public virtual IList<Rule> Rules { get; set; } = new List<Rule>();
 
         // ==================== VALIDATION ====================
 

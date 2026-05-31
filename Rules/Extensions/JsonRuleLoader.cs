@@ -50,12 +50,10 @@ namespace Rules.Extensions
             if (dto == null)
                 throw new JsonException("Failed to deserialize workflow from JSON.");
 
-            var restored = new Workflow
-            {
-                Description = dto.Description,
-                IsActive = dto.IsActive,
-                Rules = dto.Rules?.Select(ToRule).ToList() ?? new List<Rule>()
-            };
+            var restored = new Workflow();
+            restored.Description = dto.Description;
+            restored.IsActive = dto.IsActive;
+            restored.Rules = dto.Rules?.Select(ToRule).ToList() ?? new List<Rule>();
 
             // Set Id via reflection if non-default
             if (dto.Id != default)
@@ -125,13 +123,11 @@ namespace Rules.Extensions
 
         private static Rule ToRule(RuleDto dto)
         {
-            var rule = new Rule
-            {
-                Description = dto.Description,
-                IsActive = dto.IsActive,
-                Expression = dto.Expression,
-                Action = dto.Action
-            };
+            var rule = new Rule();
+            rule.Description = dto.Description;
+            rule.IsActive = dto.IsActive;
+            rule.Expression = dto.Expression;
+            rule.Action = dto.Action;
 
             // Set Id via reflection if non-default
             if (dto.Id != default)

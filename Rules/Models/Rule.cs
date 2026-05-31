@@ -28,6 +28,14 @@ namespace Rules.Models
         [NotMapped] private bool _isCompiled;
 
         /// <summary>
+        /// EF Core requires a parameterless constructor.
+        /// Initializes a new rule with default values.
+        /// </summary>
+        public Rule()
+        {
+        }
+
+        /// <summary>
         /// Throws if an attempt is made to mutate a property after compilation.
         /// </summary>
         /// <param name="propertyName">Name of the property being modified.</param>
