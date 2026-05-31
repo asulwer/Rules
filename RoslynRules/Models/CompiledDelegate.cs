@@ -70,9 +70,10 @@ namespace RoslynRules.Models
         {
             var arg = (TParam?)parameter;
             // For sync execution, block and unwrap the task.
+            // Use ConfigureAwait(false) to avoid deadlock in UI/ASP.NET contexts.
             // Use ExecuteAsync for true async execution.
             var task = _delegate(arg!);
-            return task.GetAwaiter().GetResult();
+            return task.ConfigureAwait(false).GetAwaiter().GetResult();
         }
 
         /// <summary>
@@ -100,7 +101,8 @@ namespace RoslynRules.Models
         {
             var arg = (TParam?)parameter;
             // Block for sync execution path.
-            _delegate(arg!).GetAwaiter().GetResult();
+            // Use ConfigureAwait(false) to avoid deadlock in UI/ASP.NET contexts.
+            _delegate(arg!).ConfigureAwait(false).GetAwaiter().GetResult();
             return null;
         }
 
