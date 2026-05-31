@@ -273,7 +273,7 @@ namespace Rules.Tests
             workflow.Compile(_parameters);
 
             var results = new List<RuleResult>();
-            await foreach (var result in workflow.ExecuteAsync(_parameters))
+            await foreach (var result in workflow.ExecuteAsync(_parameters, TestContext.Current.CancellationToken))
             {
                 results.Add(result);
             }
@@ -298,7 +298,7 @@ namespace Rules.Tests
             workflow.Validate();
             workflow.Compile(_parameters);
 
-            var results = await workflow.ExecuteParallelAsync(_parameters);
+            var results = await workflow.ExecuteParallelAsync(_parameters, TestContext.Current.CancellationToken);
             var resultDict = results.ToDictionary(r => r.RuleDescription, r => r);
 
             resultDict.Should().ContainKey("A");

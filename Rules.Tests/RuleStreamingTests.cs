@@ -181,7 +181,7 @@ namespace Rules.Tests
             workflow.Compile(_parameters);
 
             var chunks = new List<RuleResult[]>();
-            await foreach (var chunk in workflow.ExecuteBufferedAsync(_parameters, bufferSize: 10))
+            await foreach (var chunk in workflow.ExecuteBufferedAsync(_parameters, bufferSize: 10, cancellationToken: TestContext.Current.CancellationToken))
             {
                 chunks.Add(chunk);
             }

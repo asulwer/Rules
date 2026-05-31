@@ -119,7 +119,7 @@ namespace Rules.Tests
 
             workflow.Compile(_parameters, new[] { "Rules.Tests" });
 
-            var results = await workflow.ExecuteParallelAsync(_parameters);
+            var results = await workflow.ExecuteParallelAsync(_parameters, TestContext.Current.CancellationToken);
 
             results.Should().HaveCount(2);
             results.All(r => r.Success).Should().BeTrue();
@@ -144,7 +144,7 @@ namespace Rules.Tests
 
             workflow.Compile(_parameters, new[] { "Rules.Tests" });
 
-            var results = await workflow.ExecuteParallelAsync(_parameters);
+            var results = await workflow.ExecuteParallelAsync(_parameters, TestContext.Current.CancellationToken);
 
             results.Should().BeEmpty();
         }

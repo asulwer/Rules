@@ -42,7 +42,7 @@ namespace Rules.Tests
             workflow.Compile(_parameters, new[] { "Rules.Tests" });
 
             var results = new List<RuleResult>();
-            await foreach (var result in workflow.ExecuteAsync(_parameters))
+            await foreach (var result in workflow.ExecuteAsync(_parameters, TestContext.Current.CancellationToken))
             {
                 results.Add(result);
             }
@@ -76,7 +76,7 @@ namespace Rules.Tests
             workflow.Compile(_parameters, new[] { "Rules.Tests" });
 
             var results = new List<RuleResult>();
-            await foreach (var result in workflow.ExecuteAsync(_parameters))
+            await foreach (var result in workflow.ExecuteAsync(_parameters, TestContext.Current.CancellationToken))
             {
                 results.Add(result);
             }
@@ -109,7 +109,7 @@ namespace Rules.Tests
             workflow.Compile(_parameters, new[] { "Rules.Tests" });
 
             var results = new List<RuleResult>();
-            await foreach (var result in workflow.ExecuteAsync(_parameters))
+            await foreach (var result in workflow.ExecuteAsync(_parameters, TestContext.Current.CancellationToken))
             {
                 results.Add(result);
             }

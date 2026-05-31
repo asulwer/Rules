@@ -105,7 +105,7 @@ namespace Rules.Tests
             batch.Compile(_parameters, new[] { "Rules.Tests", "System.Threading.Tasks" });
 
             var results = new System.Collections.Generic.List<RuleResult>();
-            await foreach (var result in batch.EvaluateAsync(_parameters))
+            await foreach (var result in batch.EvaluateAsync(_parameters, TestContext.Current.CancellationToken))
             {
                 results.Add(result);
             }
@@ -123,7 +123,7 @@ namespace Rules.Tests
                 .AddRule(new Rule { Description = "R3", Expression = "await Task.FromResult(customer.Name != null)" });
 
             batch.Compile(_parameters, new[] { "Rules.Tests", "System.Threading.Tasks" });
-            var results = await batch.EvaluateParallelAsync(_parameters);
+            var results = await batch.EvaluateParallelAsync(_parameters, TestContext.Current.CancellationToken);
 
             results.Should().HaveCount(3);
             results.All(r => r.Success).Should().BeTrue();
