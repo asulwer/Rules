@@ -200,6 +200,41 @@ var result = rule.Execute(parameters);
 Expression = "((dynamic)customer).Age != null && ((dynamic)customer).Age >= 18"
 ```
 
+## JSON Configuration
+
+Store rules in JSON files for configuration-driven setups:
+
+```csharp
+using Rules.Extensions;
+
+// Load from JSON
+var workflow = JsonRuleLoader.LoadFromFile("customer-rules.json");
+
+// Validate, compile, execute as normal
+workflow.Validate();
+workflow.Compile(parameters);
+var results = workflow.Execute(parameters);
+```
+
+**customer-rules.json:**
+```json
+{
+  "description": "Customer validation",
+  "rules": [
+    {
+      "description": "Adult check",
+      "expression": "customer.Age >= 18",
+      "isActive": true
+    },
+    {
+      "description": "Name required",
+      "expression": "!string.IsNullOrEmpty(customer.Name)",
+      "isActive": true
+    }
+  ]
+}
+```
+
 ## Validation Before Compile
 
 ```csharp

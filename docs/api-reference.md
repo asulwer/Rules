@@ -223,6 +223,39 @@ logger.LogRuleExecuted(new RuleExecutedEvent {
 - `1003` — RuleFailed
 - `1004` — RuleError
 
+## JSON Serialization
+
+Rules and workflows support JSON serialization for configuration-driven setups.
+
+```csharp
+using Rules.Extensions;
+
+// Serialize
+var json = JsonRuleLoader.Serialize(workflow);
+
+// Deserialize
+var loaded = JsonRuleLoader.Deserialize(json);
+
+// File I/O
+JsonRuleLoader.SaveToFile(workflow, "rules.json");
+var fromFile = JsonRuleLoader.LoadFromFile("rules.json");
+```
+
+**Example JSON:**
+```json
+{
+  "description": "Customer workflow",
+  "isActive": true,
+  "rules": [
+    {
+      "description": "Adult check",
+      "expression": "customer.Age >= 18",
+      "isActive": true
+    }
+  ]
+}
+```
+
 ## ExpressionCompiler
 
 Roslyn-based expression compiler. Results are cached.

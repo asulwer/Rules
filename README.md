@@ -65,6 +65,46 @@ if (!result.Success)
 | `FirstFailure` | Helper: first failing child (or null) |
 | `AllFailures` | Helper: all failing children |
 
+## JSON Rule Loader
+
+Rules and workflows can be serialized to/from JSON for configuration-driven setups:
+
+```csharp
+using Rules.Extensions;
+
+// Save workflow to JSON
+var json = JsonRuleLoader.Serialize(workflow);
+File.WriteAllText("rules.json", json);
+
+// Load workflow from JSON
+var loaded = JsonRuleLoader.LoadFromFile("rules.json");
+loaded.Validate();
+loaded.Compile(parameters);
+```
+
+**JSON format:**
+```json
+{
+  "description": "Customer validation",
+  "isActive": true,
+  "rules": [
+    {
+      "description": "Adult check",
+      "expression": "customer.Age >= 18",
+      "action": "customer.IsAdult = true",
+      "isActive": true,
+      "childRules": [
+        {
+          "description": "Name check",
+          "expression": "!string.IsNullOrEmpty(customer.Name)",
+          "isActive": true
+        }
+      ]
+    }
+  ]
+}
+```
+
 ## Quick Start
 
 ### 1. Define Your Model
