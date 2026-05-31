@@ -27,7 +27,7 @@ jobs:
 
       - name: Sign and Build Project
         env:
-          SIGNING_KEY: *** secrets.SIGNING_KEY }}
+          SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
         run: |
           $directory = Split-Path './Rules/Rules.csproj';
           $signKeyFile = Join-Path $directory "signKey.snk";
