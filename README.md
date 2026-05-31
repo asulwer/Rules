@@ -8,8 +8,8 @@ A high-performance rewrite of [Microsoft RulesEngine](https://github.com/microso
 
 | Feature | RulesEngine | This Rewrite |
 |---------|-------------|--------------|
-| Expression compiler | DynamicExpresso | **Roslyn (Microsoft.CodeAnalysis.CSharp)** |
-| Delegate invocation | `DynamicInvoke` (slow) | **Typed delegates** (direct call) |
+| Expression compiler | `System.Linq.Dynamic.Core` | **Roslyn (Microsoft.CodeAnalysis.CSharp)** |
+| Delegate invocation | `ExpressionParser.Parse` (slow) | **Typed delegates** (direct call) |
 | Parameters | Multi-parameter | **Single parameter** (wrap multiples in structs) |
 | Async support | None | **Async/await in expressions** |
 | Validation | Runtime only | **Compile-time validation** |
