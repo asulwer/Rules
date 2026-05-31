@@ -12,7 +12,7 @@ Date: 2026-05-31
 
 ## Rules Engine Features (Remaining)
 
-1. **Rule result streaming** — IAsyncEnumerable for large rule sets (already partially done with ExecuteAsync)
+1. ~~Rule result streaming~~ ✅ Implemented — CancellationToken support, IAsyncEnumerable on RuleBatch, ExecuteBufferedAsync
 2. ~~Hot-reload rules~~ — Deferred to future
 3. **Rule serialization to EF** — Example showing how to store rules in database
 4. ~~Distributed evaluation~~ — **Permanently excluded**

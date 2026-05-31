@@ -4,6 +4,8 @@ using Rules.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Rules.Batch
@@ -112,30 +114,49 @@ namespace Rules.Batch
         }
 
         /// <summary>
-        /// Evaluates all active rules asynchronously.
+        /// Evaluates all active rules asynchronously with cancellation support.
+        /// Yields results as they are produced for memory-efficient processing of large rule sets.
         /// </summary>
-        public async IAsyncEnumerable<RuleResult> EvaluateAsync(params RuleParameter[] parameters)
+        /// <param name="parameters">Runtime parameter values.</param>
+        /// <param name="cancellationToken">Token to cancel the stream.</param>
+        public async IAsyncEnumerable<RuleResult> EvaluateAsync(
+            RuleParameter[] parameters,
+            [EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
             EnsureCompiled();
 
             foreach (var rule in _rules.Where(r => r.IsActive).OrderByDescending(r => r.Priority))
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 yield return await rule.ExecuteAsync(parameters);
             }
         }
 
         /// <summary>
-        /// Evaluates all active rules in parallel asynchronously.
+        /// Evaluates all active rules in parallel asynchronously with cancellation support.
         /// </summary>
-        public async Task<RuleResult[]> EvaluateParallelAsync(params RuleParameter[] parameters)
+        /// <param name="parameters">Runtime parameter values.</param>
+        /// <param name="cancellationToken">Token to cancel the parallel execution.</param>
+        public async Task<RuleResult[]> EvaluateParallelAsync(
+            RuleParameter[] parameters,
+            CancellationToken cancellationToken = default)
         {
             EnsureCompiled();
 
             var activeRules = _rules.Where(r => r.IsActive).OrderByDescending(r => r.Priority).ToArray();
-            var tasks = activeRules.Select(rule => rule.ExecuteAsync(parameters));
-            var results = await Task.WhenAll(tasks);
+            var tasks = activeRules.Select(rule => rule.ExecuteAsync(parameters)).ToArray();
 
-            return results;
+            if (cancellationToken == default || !cancellationToken.CanBeCanceled)
+                return await Task.WhenAll(tasks);
+
+            if (cancellationToken.IsCancellationRequested)
+                throw new OperationCanceledException(cancellationToken);
+
+            var tcs = new TaskCompletionSource<RuleResult[]>();
+            using var reg = cancellationToken.Register(() => tcs.TrySetCanceled(cancellationToken));
+            var whenAll = Task.WhenAll(tasks);
+            var completed = await Task.WhenAny(whenAll, tcs.Task);
+            return await completed;
         }
 
         private void EnsureCompiled()

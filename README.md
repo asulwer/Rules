@@ -15,7 +15,7 @@ A high-performance rewrite of [Microsoft RulesEngine](https://github.com/microso
 | Validation | Runtime only | **Compile-time validation** |
 | Circular reference guard | No | **Built-in tree validation** |
 | Thread safety | Mutable rules | **Immutable after compilation** |
-| Execution modes | Sequential | **Sequential + Parallel + Async** |
+| Execution modes | Sequential | **Sequential + Parallel + Async + Streaming** |
 
 ## Architecture
 
@@ -245,8 +245,20 @@ var results = wf.Execute(parameters);
 // Parallel (CPU-intensive rules)
 var results = wf.ExecuteParallel(parameters);
 
-// Async (rules with await)
-var results = await wf.ExecuteParallelAsync(parameters);
+// Async streaming with cancellation
+await foreach (var result in wf.ExecuteAsync(parameters, cts.Token))
+{
+    if (!result.Success) break; // Short-circuit
+}
+
+// Parallel async with cancellation
+var results = await wf.ExecuteParallelAsync(parameters, cts.Token);
+
+// Buffered streaming (chunked results for large rule sets)
+await foreach (var chunk in wf.ExecuteBufferedAsync(parameters, bufferSize: 10))
+{
+    ProcessBatch(chunk);
+}
 ```
 
 ## Supported Delegate Signatures

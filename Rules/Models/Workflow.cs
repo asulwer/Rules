@@ -4,6 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Rules.Models
@@ -149,18 +151,24 @@ namespace Rules.Models
 
         /// <summary>
         /// Executes all active rules asynchronously, yielding a RuleResult for each.
+        /// Supports cancellation to stop mid-stream.
         /// Properly awaits async expressions in rules.
-        /// Use this when rules contain async I/O (database lookups, HTTP calls).
+        /// Use this when rules contain async I/O (database lookups, HTTP calls)
+        /// or when consuming results via await foreach.
         /// </summary>
         /// <param name="parameters">Runtime parameter values passed to each rule.</param>
+        /// <param name="cancellationToken">Token to cancel execution mid-stream.</param>
         /// <returns>Enumerable of async results, one per evaluated rule.</returns>
-        public async IAsyncEnumerable<RuleResult> ExecuteAsync(params RuleParameter[] parameters)
+        public async IAsyncEnumerable<RuleResult> ExecuteAsync(
+            RuleParameter[] parameters,
+            [EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
             if (!IsActive)
                 yield break;
 
             foreach (var rule in Rules.Where(r => r.IsActive).OrderByDescending(r => r.Priority))
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 yield return await rule.ExecuteAsync(parameters);
             }
         }
@@ -168,12 +176,16 @@ namespace Rules.Models
         /// <summary>
         /// Executes all active rules in parallel asynchronously for maximum throughput.
         /// Rules run concurrently; results are returned in rule order.
+        /// Supports cancellation to abort before all rules complete.
         /// Properly awaits async expressions in rules.
         /// Use this for maximum performance with async I/O-bound rules.
         /// </summary>
         /// <param name="parameters">Runtime parameter values.</param>
+        /// <param name="cancellationToken">Token to cancel the parallel execution.</param>
         /// <returns>Array of results in rule order.</returns>
-        public async Task<RuleResult[]> ExecuteParallelAsync(params RuleParameter[] parameters)
+        public async Task<RuleResult[]> ExecuteParallelAsync(
+            RuleParameter[] parameters,
+            CancellationToken cancellationToken = default)
         {
             if (!IsActive)
                 return Array.Empty<RuleResult>();
@@ -184,7 +196,51 @@ namespace Rules.Models
 
             // Execute all rules concurrently via Task.WhenAll.
             var tasks = activeRules.Select(rule => rule.ExecuteAsync(parameters)).ToArray();
-            return await Task.WhenAll(tasks);
+
+            if (cancellationToken == default || !cancellationToken.CanBeCanceled)
+                return await Task.WhenAll(tasks);
+
+            if (cancellationToken.IsCancellationRequested)
+                throw new OperationCanceledException(cancellationToken);
+
+            var tcs = new TaskCompletionSource<RuleResult[]>();
+            using var reg = cancellationToken.Register(() => tcs.TrySetCanceled(cancellationToken));
+            var whenAll = Task.WhenAll(tasks);
+            var completed = await Task.WhenAny(whenAll, tcs.Task);
+            return await completed;
+        }
+
+        /// <summary>
+        /// Executes rules in buffered chunks, yielding arrays of results.
+        /// Useful for processing large rule sets in batches rather than one at a time.
+        /// Supports cancellation and respects priority ordering within each batch.
+        /// </summary>
+        /// <param name="parameters">Runtime parameter values.</param>
+        /// <param name="bufferSize">Number of rules to evaluate per batch.</param>
+        /// <param name="cancellationToken">Token to cancel the stream.</param>
+        /// <returns>IAsyncEnumerable of result arrays, one chunk per yield.</returns>
+        public async IAsyncEnumerable<RuleResult[]> ExecuteBufferedAsync(
+            RuleParameter[] parameters,
+            int bufferSize = 10,
+            [EnumeratorCancellation] CancellationToken cancellationToken = default)
+        {
+            if (!IsActive)
+                yield break;
+
+            var activeRules = Rules.Where(r => r.IsActive).OrderByDescending(r => r.Priority).ToList();
+            if (activeRules.Count == 0)
+                yield break;
+
+            for (int i = 0; i < activeRules.Count; i += bufferSize)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                var batch = activeRules.Skip(i).Take(bufferSize).ToArray();
+                var tasks = batch.Select(rule => rule.ExecuteAsync(parameters)).ToArray();
+                var results = await Task.WhenAll(tasks);
+
+                yield return results;
+            }
         }
     }
 }
