@@ -83,7 +83,7 @@ namespace RoslynRules.Tests
 
             engine.Compile(_compileParams);
             var results = new List<RuleResult>();
-            await foreach (var result in engine.ExecuteAsync(_executeParams))
+            await foreach (var result in engine.ExecuteAsync(_executeParams, TestContext.Current.CancellationToken))
             {
                 results.Add(result);
             }
@@ -104,7 +104,7 @@ namespace RoslynRules.Tests
             ((Workflow)engine).Rules.Add(rule);
 
             engine.Compile(_compileParams);
-            var results = await engine.ExecuteParallelAsync(_executeParams);
+            var results = await engine.ExecuteParallelAsync(_executeParams, TestContext.Current.CancellationToken);
 
             Assert.Single(results);
             Assert.True(results[0].Success);
@@ -165,7 +165,7 @@ namespace RoslynRules.Tests
 
             engine.Compile(_compileParams);
             var results = new List<RuleResult>();
-            await foreach (var result in engine.ExecuteAsync(_executeParams))
+            await foreach (var result in engine.ExecuteAsync(_executeParams, TestContext.Current.CancellationToken))
             {
                 results.Add(result);
             }
@@ -185,7 +185,7 @@ namespace RoslynRules.Tests
             });
 
             engine.Compile(_compileParams);
-            var results = await engine.ExecuteParallelAsync(_executeParams);
+            var results = await engine.ExecuteParallelAsync(_executeParams, TestContext.Current.CancellationToken);
 
             Assert.Single(results);
             Assert.True(results[0].Success);
