@@ -17,6 +17,11 @@ Date: 2026-05-31
 11. **Pre-compiled rule library** — Common rules shipped as library
 12. **Rule testing framework** — Built-in assertions for rules
 
+## Documentation
+
+13. **Extensive examples** — Real-world use cases: form validation, transaction screening, feature flags, compliance checks
+14. **Use case documentation** — When to use Workflow vs RuleBatch vs individual Rule
+
 ## Status
 
 - [ ] Not started
