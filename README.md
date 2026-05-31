@@ -348,6 +348,85 @@ workflow.Compile(parameters, new[] { "System.Dynamic" });
 | Validation | Compile-time | Runtime only |
 | Safety | Property must exist | Returns null if missing |
 
+## Rule Testing Framework
+
+Built-in assertions for testing rules without external test libraries.
+
+```csharp
+using Rules.Testing;
+
+// Test an individual rule
+var test = RuleTest.For(rule)
+    .WithInput("customer", new Customer { Age = 25, Name = "Alice" })
+    .ExpectSuccess()
+    .ExpectAllChildrenPass()
+    .ExpectValue(true);
+
+var result = test.Run();
+```
+
+**Fluent assertions on RuleResult:**
+
+```csharp
+var result = rule.Execute(parameters);
+
+// Success / failure
+result.ShouldPass();
+result.ShouldFail();
+result.ShouldBeInactive();
+
+// Value assertions
+result.ShouldHaveValue(expectedValue);
+result.ShouldHaveValueOfType<int>();
+
+// Child rule assertions
+result.ShouldHaveAllChildrenPass();
+result.ShouldHaveChildFailure();
+result.ShouldHaveChildCount(2);
+result.ShouldHaveChild("Name check").ShouldPass();
+
+// Exception assertions
+result.ShouldHaveThrown<ArgumentException>();
+result.ShouldNotHaveThrown();
+
+// Workflow result collections
+var results = workflow.Execute(parameters);
+results.ShouldAllPass();
+results.ShouldHaveAnyFailure();
+results.ShouldContainRule("Adult check").ShouldPass();
+```
+
+**Test suites:**
+
+```csharp
+var suite = new RuleTestSuite()
+    .AddTest(RuleTest.For(adultRule)
+        .WithInput("customer", new Customer { Age = 25 })
+        .ExpectSuccess())
+    .AddTest(RuleTest.For(nameRule)
+        .WithInput("customer", new Customer { Name = "" })
+        .ExpectFailure());
+
+var suiteResult = suite.Run();
+Console.WriteLine(suiteResult.ToString());
+// Rule Test Suite: 2 passed, 0 failed (2 total)
+//   ✅ PASS Adult check
+//   ✅ PASS Name check
+
+suiteResult.ThrowOnFailure(); // Throws if any test failed
+```
+
+**Custom assertions:**
+
+```csharp
+var test = RuleTest.For(rule)
+    .WithInput("customer", customer)
+    .Assert(r => {
+        customer.IsAdult.Should().BeTrue(); // Any assertion logic
+        return r;
+    });
+```
+
 ## Performance
 
 Typical execution for 999 customers:
@@ -374,6 +453,10 @@ Rules/
 │   ├── CodeGenerator.cs        # Generates C# source from expression string
 │   ├── AssemblyCompiler.cs     # Compiles source to assembly bytes
 │   └── DelegateFactory.cs      # Loads assembly and creates typed delegate
+├── Testing/
+│   ├── RuleResultAssertions.cs # Fluent assertions for RuleResult
+│   ├── RuleTest.cs             # Declarative test builder for rules/workflows
+│   └── RuleTestSuite.cs        # Test suite runner with aggregated results
 └── Utilities/
     └── Execute.cs           # Execution helpers
 ```
