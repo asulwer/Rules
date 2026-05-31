@@ -35,6 +35,7 @@ namespace Demo
                         },
                         new Rule
                         {
+                            Priority = 100, //run this rule first
                             Description = "Contains then Replace",
                             Expression = "Customer.Name.Contains(\"Bridger Wise\")",
                             Action = "Customer.Name = Customer.Name.Replace(\"Bridger Wise\", \"Wise\")"
