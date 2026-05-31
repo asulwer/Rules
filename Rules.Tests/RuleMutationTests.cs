@@ -57,7 +57,7 @@ namespace Rules.Tests
             var result = rule.Execute(_parameters);
 
             result.Success.Should().BeFalse();
-            ((TestCustomer)_parameters[0].Value).IsAdult.Should().BeFalse();
+            ((TestCustomer)_parameters[0].Value!).IsAdult.Should().BeFalse();
         }
 
         [Fact]

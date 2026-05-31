@@ -40,7 +40,7 @@ namespace Rules.Tests
 
             result.Success.Should().BeTrue();
             result.Value.Should().Be(true); // Assignment returns true
-            var customer = (TestCustomer)_parameters[0].Value;
+            var customer = (TestCustomer)_parameters[0].Value!;
             customer.IsAdult.Should().BeTrue();
         }
 
@@ -134,7 +134,7 @@ namespace Rules.Tests
             var result = rule.Execute(_parameters);
 
             result.Success.Should().BeTrue();
-            var customer = (TestCustomer)_parameters[0].Value;
+            var customer = (TestCustomer)_parameters[0].Value!;
             customer.IsAdult.Should().BeTrue();
         }
 
@@ -155,7 +155,7 @@ namespace Rules.Tests
             var result = rule.Execute(_parameters);
 
             result.Success.Should().BeFalse();
-            var customer = (TestCustomer)_parameters[0].Value;
+            var customer = (TestCustomer)_parameters[0].Value!;
             customer.IsAdult.Should().BeFalse(); // Action not executed
         }
 
@@ -253,7 +253,7 @@ namespace Rules.Tests
         [Fact]
         public void Execute_RuntimeNullReference_ReturnsFailureWithException()
         {
-            var customer = new TestCustomer { Age = 25, Name = null };
+            var customer = new TestCustomer { Age = 25, Name = null! };
             var parameters = new[] { new RuleParameter("customer", typeof(TestCustomer), customer) };
 
             var rule = new Rule

@@ -90,7 +90,7 @@ namespace Rules.Tests
             var result = await rule.ExecuteAsync(_parameters);
 
             result.Success.Should().BeTrue();
-            var customer = (TestCustomer)_parameters[0].Value;
+            var customer = (TestCustomer)_parameters[0].Value!;
             customer.IsAdult.Should().BeTrue();
         }
 
