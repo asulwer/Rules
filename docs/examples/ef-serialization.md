@@ -57,7 +57,7 @@ CREATE TABLE Rules (
 
 ```csharp
 using Microsoft.EntityFrameworkCore;
-using Rules.Models;
+using RoslynRules.Models;
 
 public class RulesDbContext : DbContext
 {

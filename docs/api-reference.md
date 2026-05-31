@@ -184,7 +184,7 @@ public RuleParameter(string name, Type type, object? value)
 
 ## Exceptions
 
-Rules uses a custom exception hierarchy for clear error handling.
+RoslynRules uses a custom exception hierarchy for clear error handling.
 
 | Exception | Thrown When |
 |-----------|-------------|
@@ -201,7 +201,7 @@ All exceptions inherit from `RulesException` (which inherits from `InvalidOperat
 
 ## ExpressionCompiler
 
-Rules integrate with `Microsoft.Extensions.Logging` for structured execution events.
+RoslynRules integrate with `Microsoft.Extensions.Logging` for structured execution events.
 
 ### Rule.Logger
 
@@ -212,7 +212,7 @@ rule.Logger = loggerFactory.CreateLogger<Rule>();
 ### LogRuleExecuted Extension
 
 ```csharp
-using Rules.Models;
+using RoslynRules.Models;
 
 logger.LogRuleExecuted(new RuleExecutedEvent {
     RuleId = rule.Id,
@@ -237,10 +237,10 @@ logger.LogRuleExecuted(new RuleExecutedEvent {
 
 ## JSON Serialization
 
-Rules and workflows support JSON serialization for configuration-driven setups.
+RoslynRules and workflows support JSON serialization for configuration-driven setups.
 
 ```csharp
-using Rules.Extensions;
+using RoslynRules.Extensions;
 
 // Serialize
 var json = JsonRuleLoader.Serialize(workflow);
@@ -282,7 +282,7 @@ var del = compiler.Compile<Func<Customer, bool>>(
 
 ## Delegate Types
 
-Rules compile to one of these signatures:
+RoslynRules compile to one of these signatures:
 
 | Expression Type | Delegate | Example |
 |----------------|----------|---------|

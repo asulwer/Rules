@@ -226,7 +226,7 @@ Expression = "((dynamic)customer).Age != null && ((dynamic)customer).Age >= 18"
 Store rules in JSON files for configuration-driven setups:
 
 ```csharp
-using Rules.Extensions;
+using RoslynRules.Extensions;
 
 // Load from JSON
 var workflow = JsonRuleLoader.LoadFromFile("customer-rules.json");
@@ -261,8 +261,8 @@ var results = workflow.Execute(parameters);
 Combine rules from multiple sources into a single batch:
 
 ```csharp
-using Rules.Batch;
-using Rules.Extensions;
+using RoslynRules.Batch;
+using RoslynRules.Extensions;
 
 var batch = new RuleBatch();
 

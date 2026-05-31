@@ -11,13 +11,13 @@ nav_order: 2
 ## Installation
 
 ```bash
-dotnet add package Rules --version 1.0.0
+dotnet add package RoslynRules --version 1.0.0
 ```
 
 Or reference the project directly:
 
 ```xml
-<ProjectReference Include="..\Rules\Rules.csproj" />
+<ProjectReference Include="..\RoslynRules\RoslynRules.csproj" />
 ```
 
 ## Your First Rule
@@ -36,7 +36,7 @@ public class Customer
 ### 2. Create a Rule
 
 ```csharp
-using Rules.Models;
+using RoslynRules.Models;
 
 var adultRule = new Rule
 {

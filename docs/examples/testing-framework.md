@@ -24,7 +24,7 @@ Built-in assertions for testing rules without external test libraries. Works wit
 Create a `RuleTest` to declaratively specify inputs and expected outputs.
 
 ```csharp
-using Rules.Testing;
+using RoslynRules.Testing;
 
 var test = RuleTest.For(adultRule)
     .WithInput("customer", new Customer { Age = 25, Name = "Alice" })
@@ -336,7 +336,7 @@ The testing framework works seamlessly with FluentAssertions for more expressive
 
 ```csharp
 using FluentAssertions;
-using Rules.Testing;
+using RoslynRules.Testing;
 
 [Fact]
 public void AdultRule_WithAdultCustomer_ShouldPass()

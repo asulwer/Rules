@@ -5,7 +5,7 @@ nav_order: 1
 has_children: false
 ---
 
-# Rules Engine Documentation
+# RoslynRules Documentation
 
 High-performance .NET rules engine with Roslyn compilation, typed delegates, and async support.
 
