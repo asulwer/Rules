@@ -19,8 +19,8 @@
 | **1** | Fix all build/test warnings | CI warnings, nullable refs, xUnit analyzers |
 | **2** | Update git remote | Local repo still pushes to old `asulwer/Rules` URL |
 | **3** | XML doc comments | Public APIs need IntelliSense documentation |
-| **4** | README polish | Installation section, NuGet badge, remaining `Rules` refs |
-| **5** | Benchmarks | BenchmarkDotNet vs Microsoft RulesEngine |
+| **4** | README polish | ✅ Title, install cmd, namespace refs updated |
+| **5** | Benchmarks | Backlog — BenchmarkDotNet vs Microsoft RulesEngine |
 | **6** | Strong-name signing | Verify signing actually works or remove |
 
 ## ❌ Excluded / Won't Implement
