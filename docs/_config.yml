@@ -4,8 +4,8 @@ description: High-performance .NET rules engine with Roslyn compilation
 baseurl: "/Rules"
 url: "https://asulwer.github.io"
 
-# Use GitHub Pages supported theme
-theme: jekyll-theme-cayman
+# Use just-the-docs via remote_theme (GitHub Pages supports this)
+remote_theme: just-the-docs/just-the-docs@v0.10.0
 
 # Navigation structure
 nav_external_links:
@@ -15,11 +15,18 @@ nav_external_links:
 
 # Search enabled
 search_enabled: true
+search.button: true
 
 # Color scheme
 color_scheme: dark
 
-# Plugins
+# Back to top link
+back_to_top: true
+back_to_top_text: "Back to top"
+
+# Footer
+footer_content: "MIT License. Built with Roslyn + Typed Delegates."
+
 plugins:
   - jekyll-feed
   - jekyll-seo-tag
