@@ -6,7 +6,7 @@ nav_order: 5
 
 [← Back to Documentation Index](index.md)
 
-# Migration from Microsoft RulesEngine
+# Migration from Microsoft.RulesEngine
 
 ## Key Changes
 
@@ -67,7 +67,7 @@ var results = workflow.Execute(new[] { param });
 
 | Metric | Improvement |
 |--------|-------------|
-| Execution speed | 10-100x faster (no DynamicInvoke) |
+| Execution speed | 10-100x faster (no System.Linq.Dynamic.Core) |
 | Memory | Lower allocation (single parameter) |
 | Thread safety | Immutable rules, no locks |
 | Validation | Catch errors before runtime |
