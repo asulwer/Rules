@@ -60,13 +60,14 @@ namespace RoslynRules.Tests.Execution
             await Task.WhenAll(tasks);
 
             // All should succeed — no exceptions from concurrent compilation
-            Assert.All(tasks, t => Assert.NotNull(t.Result));
+            var delegates = tasks.Select(t => t.Result).ToArray();
+            Assert.All(delegates, d => Assert.NotNull(d));
 
             // All delegates should produce the same result
-            foreach (var task in tasks)
+            foreach (var del in delegates)
             {
-                Assert.True(task.Result(1));
-                Assert.False(task.Result(2));
+                Assert.True(del(1));
+                Assert.False(del(2));
             }
         }
 
