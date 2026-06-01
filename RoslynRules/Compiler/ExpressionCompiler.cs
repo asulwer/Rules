@@ -1,5 +1,5 @@
 using System;
-using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
@@ -13,8 +13,7 @@ namespace RoslynRules.Compiler
     /// </summary>
     public class ExpressionCompiler
     {
-        private readonly Dictionary<string, Delegate> _cache = new();
-        private readonly object _lock = new();
+        private readonly ConcurrentDictionary<string, Delegate> _cache = new();
 
         /// <summary>
         /// Compiles a C# expression string into a strongly-typed delegate.
@@ -35,13 +34,16 @@ namespace RoslynRules.Compiler
             // STEP 1: Build a unique cache key.
             var cacheKey = BuildCacheKey<TDelegate>(expression, parameterNames, additionalNamespaces);
 
-            // Check if we already compiled this exact expression.
-            lock (_lock)
-            {
-                if (_cache.TryGetValue(cacheKey, out var cached))
-                    return (TDelegate)cached;
-            }
+            // Atomic GetOrAdd — compilation happens inside the factory, so only one thread compiles.
+            var del = _cache.GetOrAdd(cacheKey, key => CompileInternal<TDelegate>(expression, parameterNames, additionalNamespaces));
+            return (TDelegate)del;
+        }
 
+        private TDelegate CompileInternal<TDelegate>(
+            string expression,
+            string[] parameterNames,
+            string[]? additionalNamespaces) where TDelegate : Delegate
+        {
             // STEP 2: Reflect the delegate type to discover its signature.
             var delegateType = typeof(TDelegate);
             var invokeMethod = delegateType.GetMethod("Invoke")!;
@@ -61,15 +63,7 @@ namespace RoslynRules.Compiler
             var assemblyBytes = AssemblyCompiler.Compile(code);
 
             // STEP 5: Load assembly and create a typed delegate.
-            var del = DelegateFactory.CreateDelegate(assemblyBytes, delegateType);
-
-            // STEP 6: Cache and return.
-            lock (_lock)
-            {
-                _cache[cacheKey] = del;
-            }
-
-            return (TDelegate)del;
+            return (TDelegate)DelegateFactory.CreateDelegate(assemblyBytes, delegateType);
         }
 
         /// <summary>

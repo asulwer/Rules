@@ -1,3 +1,4 @@
+using RoslynRules.Exceptions;
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
@@ -22,10 +23,14 @@ namespace RoslynRules.Compiler
             var assembly = Assembly.Load(assemblyBytes);
 
             // The generated class is always named "ExpressionAssembly".
-            var type = assembly.GetType("ExpressionAssembly")!;
+            var type = assembly.GetType("ExpressionAssembly");
+            if (type is null)
+                throw new RuleCompilationException("Compiled assembly does not contain expected type 'ExpressionAssembly'.");
 
             // The generated method is always named "Evaluate".
-            var method = type.GetMethod("Evaluate")!;
+            var method = type.GetMethod("Evaluate");
+            if (method is null)
+                throw new RuleCompilationException($"Type '{type.FullName}' does not contain expected method 'Evaluate'.");
 
             // Convert MethodInfo into a typed delegate.
             return System.Delegate.CreateDelegate(delegateType, method);

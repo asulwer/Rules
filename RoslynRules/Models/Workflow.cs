@@ -33,7 +33,7 @@ namespace RoslynRules.Models
         /// <summary>
         /// Unique identifier for the workflow.
         /// </summary>
-        [Key] public Guid Id { get; private set; } = Guid.NewGuid();
+        [Key] public Guid Id { get; init; } = Guid.NewGuid();
 
         /// <summary>
         /// Human-readable description of the workflow.
@@ -325,7 +325,8 @@ namespace RoslynRules.Models
 
         /// <summary>
         /// Executes all active rules in parallel for maximum throughput.
-        /// Rules run concurrently; results are returned in rule order.
+        /// Rules with dependencies are executed in dependency order; independent rules run concurrently.
+        /// Results are returned in rule order (sorted by priority, with dependencies before dependents).
         /// Child rules within a parent still execute sequentially (bottom-up dependency).
         /// Use this when rules are complex, numerous, or CPU-intensive.
         /// </summary>
@@ -336,18 +337,57 @@ namespace RoslynRules.Models
             if (!IsActive)
                 return Array.Empty<RuleResult>();
 
-            var activeRules = Rules.Where(r => r.IsActive).OrderByDescending(r => r.Priority).ToArray();
-            if (activeRules.Length == 0)
+            var orderedRules = GetExecutionOrder();
+            if (orderedRules.Count == 0)
                 return Array.Empty<RuleResult>();
 
-            // Pre-allocate result array to maintain rule order.
-            var results = new RuleResult[activeRules.Length];
+            // Pre-allocate result array.
+            var results = new RuleResult[orderedRules.Count];
+            var context = new RuleContext();
 
-            // Execute independent rules in parallel.
-            Parallel.For(0, activeRules.Length, i =>
+            // Group rules by dependency level (rules with no deps can run in parallel)
+            var executed = new HashSet<Guid>();
+            var index = 0;
+
+            while (index < orderedRules.Count)
             {
-                results[i] = activeRules[i].Execute(parameters);
-            });
+                // Find all rules at the current level whose dependencies have been executed
+                var batch = new List<Rule>();
+                for (int i = index; i < orderedRules.Count; i++)
+                {
+                    var rule = orderedRules[i];
+                    if (!rule.DependsOnRuleId.HasValue || executed.Contains(rule.DependsOnRuleId.Value))
+                    {
+                        batch.Add(rule);
+                    }
+                    else
+                    {
+                        break; // Dependencies not yet satisfied, stop batching
+                    }
+                }
+
+                if (batch.Count == 0)
+                {
+                    // Should not happen if GetExecutionOrder is correct, but guard against infinite loop
+                    throw new InvalidOperationException($"Dependency resolution stalled at rule '{orderedRules[index].Description}' (Id: {orderedRules[index].Id}).");
+                }
+
+                // Execute batch in parallel
+                var batchResults = new RuleResult[batch.Count];
+                System.Threading.Tasks.Parallel.For(0, batch.Count, i =>
+                {
+                    batchResults[i] = batch[i].ExecuteWithContext(context, parameters);
+                });
+
+                // Store results and mark as executed
+                for (int i = 0; i < batch.Count; i++)
+                {
+                    results[index + i] = batchResults[i];
+                    executed.Add(batch[i].Id);
+                }
+
+                index += batch.Count;
+            }
 
             return results;
         }
