@@ -15,7 +15,7 @@ namespace RoslynRules.Batch
     /// A batch of rules compiled and evaluated together as a unit.
     /// Useful when evaluating 10+ rules against the same input with shared context.
     /// </summary>
-    public class RuleBatch : IRuleEngine
+    public sealed class RuleBatch : IRuleEngine
     {
         private readonly List<Rule> _rules = new List<Rule>();
         private readonly ExpressionCompiler _compiler = new ExpressionCompiler();

@@ -4,7 +4,6 @@
 
 ### High Value / Low Effort
 - [ ] Validation result aggregation (`ValidateAll()` that returns errors without throwing)
-- [ ] `sealed` on non-inheritable classes (`Rule`, `Workflow`, `RuleBatch`)
 - [ ] `CompiledDelegate.Invoke()` null-safety (replace `!` null-forgiving operator)
 
 ### Medium Value

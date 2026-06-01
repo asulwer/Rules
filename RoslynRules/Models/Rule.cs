@@ -22,7 +22,7 @@ namespace RoslynRules.Models
     /// After compilation, rule properties become immutable to ensure thread-safe execution.
     /// Supports both synchronous and asynchronous expressions.
     /// </summary>
-    public class Rule
+    public sealed class Rule
     {
         // Compiled delegates wrapped for fast invocation (no DynamicInvoke).
         [NotMapped] private CompiledDelegate? _compiledExpression;
