@@ -7,7 +7,8 @@
 
 ### Medium Value
 - [x] AOT/trimming compatibility annotations (`[RequiresUnreferencedCode]` on reflection-heavy code)
-- [ ] `IEnumerable<T>` return type support for rules (currently only `object? Value`)
+- [x] `IEnumerable<T>` return type support for rules — BLOCKED: expressions must return `bool`; requires architectural change to support selectors/transforms
+- [x] CompileDefinitions API — compile without dummy instances (separate compile/execute phases)
 - [ ] Rule composition/template system (placeholders like `{entity}.Age >= {minAge}`)
 - [ ] Built-in rule predicates library (`Rule.IsNotNull()`, `Rule.GreaterThan()`, etc.)
 - [ ] Event/callback system for rule lifecycle (`OnRuleExecuting`, `OnRuleExecuted`)

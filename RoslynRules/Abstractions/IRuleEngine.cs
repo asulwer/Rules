@@ -34,6 +34,14 @@ namespace RoslynRules.Abstractions
         void Compile(RuleParameter[] parameters, string[]? additionalNamespaces = null);
 
         /// <summary>
+        /// Compiles all rules using parameter definitions without requiring runtime values.
+        /// Use this when you want to compile once and execute later with different instances.
+        /// </summary>
+        /// <param name="definitions">Parameter name and type definitions.</param>
+        /// <param name="additionalNamespaces">Optional extra namespaces for compilation.</param>
+        void CompileDefinitions(RuleParameterDefinition[] definitions, string[]? additionalNamespaces = null);
+
+        /// <summary>
         /// Executes all rules sequentially against the provided input values.
         /// Must call <see cref="Compile"/> first.
         /// </summary>

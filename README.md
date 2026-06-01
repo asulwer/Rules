@@ -352,6 +352,31 @@ wf.Validate();
 wf.Compile(parameters);
 ```
 
+**Compile without values using `CompileDefinitions`:**
+
+If you want to compile before you have runtime instances, use `CompileDefinitions` with just name + type:
+
+```csharp
+// Compile with just type definitions — no dummy objects needed
+wf.CompileDefinitions(new[]
+{
+    new RuleParameterDefinition("customer", typeof(Customer))
+});
+
+// Execute later with real instances
+var customer = new Customer { Name = "Alice", Age = 25 };
+var results = wf.Execute(new[]
+{
+    new RuleParameter("customer", typeof(Customer), customer)
+});
+```
+
+`CompileDefinitions` is ideal when:
+- You compile at startup and execute later with different data
+- You want to avoid creating dummy/null objects just for compilation
+- You separate compilation (needs types) from execution (needs values)
+```
+
 ### 4. Execute
 
 ```csharp

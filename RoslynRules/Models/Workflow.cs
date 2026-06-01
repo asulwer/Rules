@@ -221,6 +221,18 @@ namespace RoslynRules.Models
             }
         }
 
+        /// <summary>
+        /// Compiles all active rules using parameter definitions without requiring runtime values.
+        /// Use this when you want to compile once and execute later with different instances.
+        /// </summary>
+        /// <param name="definitions">Parameter name and type definitions.</param>
+        /// <param name="additionalNamespaces">Extra namespaces for expression compilation.</param>
+        public void CompileDefinitions(RuleParameterDefinition[] definitions, string[]? additionalNamespaces = null)
+        {
+            var parameters = definitions.Select(d => new RuleParameter(d.Name, d.Type)).ToArray();
+            Compile(parameters, additionalNamespaces);
+        }
+
         // ==================== DEPENDENCY MANAGEMENT ====================
 
         /// <summary>

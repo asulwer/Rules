@@ -66,13 +66,12 @@ namespace Demo
                 wf.Validate();
                 Console.WriteLine($"Validation took: {sw.ElapsedMilliseconds - validateStart}ms");
 
-                // Compile workflow ONCE
+                // Compile workflow ONCE with just type definitions — no dummy objects needed
                 var compileStart = sw.ElapsedMilliseconds;
-                var compileParams = new RuleParameter[]
+                wf.CompileDefinitions(new[]
                 {
-                    new RuleParameter(nameof(Customer), typeof(Customer), default(Customer))
-                };
-                wf.Compile(compileParams);
+                    new RuleParameterDefinition(nameof(Customer), typeof(Customer))
+                });
                 Console.WriteLine($"Compilation took: {sw.ElapsedMilliseconds - compileStart}ms");
 
                 // Now load customers
