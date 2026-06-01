@@ -3,7 +3,7 @@ using RoslynRules.Exceptions;
 using RoslynRules.Models;
 using Xunit;
 
-namespace RoslynRules.Tests
+namespace RoslynRules.Tests.Execution
 {
     /// <summary>
     /// Tests for Rule logging edge cases (inactive rules, formatting, etc.)

@@ -3,7 +3,7 @@ using RoslynRules.Models;
 using System.Linq;
 using Xunit;
 
-namespace RoslynRules.Tests
+namespace RoslynRules.Tests.Workflow
 {
     /// <summary>
     /// Tests for Workflow.ExecuteParallel and ExecuteParallelAsync.

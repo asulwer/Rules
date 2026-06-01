@@ -3,7 +3,7 @@ using RoslynRules.Exceptions;
 using System;
 using Xunit;
 
-namespace RoslynRules.Tests
+namespace RoslynRules.Tests.Core
 {
     /// <summary>
     /// Tests for all exception constructors to maximize coverage.
