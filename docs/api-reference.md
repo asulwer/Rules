@@ -620,3 +620,124 @@ else
     Console.WriteLine("Tax rule failed or not found");
 }
 ```
+
+## Rule Templates
+
+Create reusable rule templates with placeholders for parameterized rule generation.
+
+### RuleTemplate
+
+```csharp
+public class RuleTemplate
+{
+    public string Description { get; set; }
+    public string Expression { get; set; }           // Contains {placeholders}
+    public string? Action { get; set; }               // Optional action template
+    public Dictionary<string, PlaceholderKind> Placeholders { get; }
+
+    public Rule Instantiate(Dictionary<string, object> values,
+                            ExpressionCompiler compiler,
+                            RuleParameter[] parameters,
+                            string[] assemblies);
+
+    public IReadOnlyList<string> ExtractPlaceholders();
+}
+```
+
+### PlaceholderKind
+
+| Kind | Use | Input Type | Output |
+|------|-----|------------|--------|
+| `Type` | CLR type references | `System.Type` | Fully-qualified type name |
+| `Identifier` | Parameter/variable names | `string` | Raw identifier (no quotes) |
+| `Value` | Literal values | Any | Properly formatted literal |
+
+**Value formatting:**
+- `null` → `null`
+- `string` → `"value"` (with escaped quotes)
+- `bool` → `true`/`false`
+- `int`, `long` → numeric literal
+- `float` → `123.45f`
+- `double` → `123.45d`
+- `decimal` → `123.45m`
+- `DateTime` → `DateTime.Parse("...")`
+- `DateTimeOffset` → `DateTimeOffset.Parse("...")`
+- `Guid` → `Guid.Parse("...")`
+- `Enum` → `Namespace.EnumType.Value`
+
+### Instantiation
+
+```csharp
+var template = new RuleTemplate
+{
+    Expression = "{entity}.Age >= {minAge}",
+    Placeholders =
+    {
+        ["entity"] = PlaceholderKind.Identifier,
+        ["minAge"] = PlaceholderKind.Value
+    }
+};
+
+var rule = template.Instantiate(
+    new Dictionary<string, object>
+    {
+        ["entity"] = "customer",
+        ["minAge"] = 18
+    },
+    compiler, parameters, assemblies);
+```
+
+**Validation:**
+- Missing placeholders throw `ArgumentException`
+- Empty/null Expression throws `InvalidOperationException`
+- Type placeholders reject non-`System.Type` values
+
+### ExtractPlaceholders
+
+Introspect a template to discover required placeholders:
+
+```csharp
+var names = template.ExtractPlaceholders();
+// Returns: ["entity", "minAge"]
+```
+
+## Result Caching
+
+Cache rule evaluation results to avoid redundant execution.
+
+### Enabling Cache
+
+```csharp
+var rule = new Rule
+{
+    Expression = "HeavyComputation(customer)",
+    CacheDuration = TimeSpan.FromMinutes(5)
+};
+```
+
+**Properties:**
+- `CacheDuration` (`TimeSpan?`) — Duration to cache results. `null` disables caching.
+
+### Clearing Cache
+
+```csharp
+rule.ClearCache();  // Removes all cached entries for this rule
+```
+
+### Cache Behavior
+
+| Aspect | Behavior |
+|--------|----------|
+| Thread safety | `ConcurrentDictionary` — safe for concurrent access |
+| Expiration | Lazy — checked on read; expired entries removed |
+| Scope | Per-rule only; child rules have independent caches |
+| Exceptions | Not cached; re-evaluated on next call |
+| Lifecycle events | `OnRuleExecuting`/`OnRuleExecuted` fire on cache miss only |
+
+### Recommendations
+
+- Enable for idempotent rules whose result is stable during the cache window
+- Use short durations (seconds to minutes) for volatile data
+- Use longer durations (hours) for reference data
+- Avoid caching rules with side effects (external calls that should rerun)
+
