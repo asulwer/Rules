@@ -3,7 +3,7 @@ using RoslynRules.Models;
 using System.Linq;
 using Xunit;
 
-namespace RoslynRules.Tests.Core
+namespace RoslynRules.Tests
 {
     /// <summary>
     /// Tests for ValidateAll() — non-throwing validation that returns all errors.

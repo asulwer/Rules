@@ -3,7 +3,7 @@ using RoslynRules.Compiler;
 using RoslynRules.Models;
 using Xunit;
 
-namespace RoslynRules.Tests.Workflow
+namespace RoslynRules.Tests
 {
     public class WorkflowTests
     {

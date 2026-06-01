@@ -8,7 +8,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace RoslynRules.Tests.Execution
+namespace RoslynRules.Tests
 {
     /// <summary>
     /// Tests for async expressions, logging, and workflow edge cases.
@@ -256,5 +256,4 @@ namespace RoslynRules.Tests.Execution
         }
     }
 }
-
 

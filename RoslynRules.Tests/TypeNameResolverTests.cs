@@ -2,7 +2,7 @@ using FluentAssertions;
 using RoslynRules.Models;
 using Xunit;
 
-namespace RoslynRules.Tests.Compiler
+namespace RoslynRules.Tests
 {
     /// <summary>
     /// Tests for TypeNameResolver edge cases.

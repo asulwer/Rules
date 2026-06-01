@@ -3,7 +3,7 @@ using RoslynRules.Models;
 using RoslynRules.Testing;
 using Xunit;
 
-namespace RoslynRules.Tests.Integration
+namespace RoslynRules.Tests
 {
     public class RuleTestingFrameworkTests
     {

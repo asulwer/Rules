@@ -4,7 +4,7 @@ using RoslynRules.Exceptions;
 using RoslynRules.Models;
 using Xunit;
 
-namespace RoslynRules.Tests.Core
+namespace RoslynRules.Tests
 {
     /// <summary>
     /// Tests for Rule mutation guards and edge cases.

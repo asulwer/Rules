@@ -4,7 +4,7 @@ using System;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace RoslynRules.Tests.Execution
+namespace RoslynRules.Tests
 {
     /// <summary>
     /// Tests for Rule lifecycle events (OnRuleExecuting, OnRuleExecuted).

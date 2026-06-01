@@ -3,7 +3,7 @@ using RoslynRules.Models;
 using System.Linq;
 using Xunit;
 
-namespace RoslynRules.Tests.Execution
+namespace RoslynRules.Tests
 {
     /// <summary>
     /// Tests for Rule.Priority execution ordering.

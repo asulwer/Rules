@@ -2,7 +2,7 @@ using FluentAssertions;
 using RoslynRules.Models;
 using Xunit;
 
-namespace RoslynRules.Tests.Core
+namespace RoslynRules.Tests
 {
     public class RuleValidationTests
     {

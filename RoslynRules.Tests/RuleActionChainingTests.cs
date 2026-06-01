@@ -8,7 +8,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace RoslynRules.Tests.Execution
+namespace RoslynRules.Tests
 {
     public class RuleActionChainingTests
     {

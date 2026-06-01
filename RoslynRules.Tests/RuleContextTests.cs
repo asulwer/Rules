@@ -3,7 +3,7 @@ using RoslynRules.Models;
 using System;
 using Xunit;
 
-namespace RoslynRules.Tests.Execution
+namespace RoslynRules.Tests
 {
     /// <summary>
     /// Tests for RuleContext, including TryGetValue pattern.

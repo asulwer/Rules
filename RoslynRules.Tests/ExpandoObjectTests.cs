@@ -5,7 +5,7 @@ using RoslynRules.Models;
 using System.Dynamic;
 using Xunit;
 
-namespace RoslynRules.Tests.Execution
+namespace RoslynRules.Tests
 {
     /// <summary>
     /// Tests proving ExpandoObject support via dynamic expressions.

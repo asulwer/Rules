@@ -3,7 +3,7 @@ using System;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace RoslynRules.Tests.Compiler
+namespace RoslynRules.Tests
 {
     /// <summary>
     /// Tests for CompiledDelegate classes and factory to cover all wrapping paths.

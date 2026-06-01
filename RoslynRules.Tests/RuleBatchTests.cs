@@ -6,7 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace RoslynRules.Tests.Models
+namespace RoslynRules.Tests
 {
     /// <summary>
     /// Tests for RuleBatch batch evaluation.

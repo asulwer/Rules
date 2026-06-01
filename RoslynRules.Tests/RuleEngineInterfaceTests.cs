@@ -5,7 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace RoslynRules.Tests.Models
+namespace RoslynRules.Tests
 {
     /// <summary>
     /// Verifies that Workflow and RuleBatch correctly implement IRuleEngine

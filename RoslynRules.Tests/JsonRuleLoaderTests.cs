@@ -6,7 +6,7 @@ using System.IO;
 using System.Linq;
 using Xunit;
 
-namespace RoslynRules.Tests.Integration
+namespace RoslynRules.Tests
 {
     /// <summary>
     /// Tests for JSON serialization and deserialization of Rules and Workflows.
