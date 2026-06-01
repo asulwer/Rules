@@ -31,8 +31,11 @@ namespace RoslynRules.Models
 
         public override object? Invoke(object? parameter)
         {
-            var arg = (TParam?)parameter;
-            return _delegate(arg!);
+            if (parameter is null)
+                throw new ArgumentNullException(nameof(parameter), "Rule parameter cannot be null for this delegate.");
+
+            var arg = (TParam)parameter;
+            return _delegate(arg);
         }
     }
 
@@ -48,8 +51,11 @@ namespace RoslynRules.Models
 
         public override object? Invoke(object? parameter)
         {
-            var arg = (TParam?)parameter;
-            _delegate(arg!);
+            if (parameter is null)
+                throw new ArgumentNullException(nameof(parameter), "Rule parameter cannot be null for this delegate.");
+
+            var arg = (TParam)parameter;
+            _delegate(arg);
             return null;
         }
     }
@@ -68,11 +74,14 @@ namespace RoslynRules.Models
 
         public override object? Invoke(object? parameter)
         {
-            var arg = (TParam?)parameter;
+            if (parameter is null)
+                throw new ArgumentNullException(nameof(parameter), "Rule parameter cannot be null for this delegate.");
+
+            var arg = (TParam)parameter;
             // For sync execution, block and unwrap the task.
             // Use ConfigureAwait(false) to avoid deadlock in UI/ASP.NET contexts.
             // Use ExecuteAsync for true async execution.
-            var task = _delegate(arg!);
+            var task = _delegate(arg);
             return task.ConfigureAwait(false).GetAwaiter().GetResult();
         }
 
@@ -81,8 +90,11 @@ namespace RoslynRules.Models
         /// </summary>
         public async Task<object?> InvokeAsync(object? parameter)
         {
-            var arg = (TParam?)parameter;
-            var result = await _delegate(arg!);
+            if (parameter is null)
+                throw new ArgumentNullException(nameof(parameter), "Rule parameter cannot be null for this delegate.");
+
+            var arg = (TParam)parameter;
+            var result = await _delegate(arg);
             return result;
         }
     }
@@ -99,10 +111,13 @@ namespace RoslynRules.Models
 
         public override object? Invoke(object? parameter)
         {
-            var arg = (TParam?)parameter;
+            if (parameter is null)
+                throw new ArgumentNullException(nameof(parameter), "Rule parameter cannot be null for this delegate.");
+
+            var arg = (TParam)parameter;
             // Block for sync execution path.
             // Use ConfigureAwait(false) to avoid deadlock in UI/ASP.NET contexts.
-            _delegate(arg!).ConfigureAwait(false).GetAwaiter().GetResult();
+            _delegate(arg).ConfigureAwait(false).GetAwaiter().GetResult();
             return null;
         }
 
@@ -111,8 +126,11 @@ namespace RoslynRules.Models
         /// </summary>
         public async Task<object?> InvokeAsync(object? parameter)
         {
-            var arg = (TParam?)parameter;
-            await _delegate(arg!);
+            if (parameter is null)
+                throw new ArgumentNullException(nameof(parameter), "Rule parameter cannot be null for this delegate.");
+
+            var arg = (TParam)parameter;
+            await _delegate(arg);
             return null;
         }
     }

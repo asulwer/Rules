@@ -3,7 +3,7 @@
 ## 📋 Backlog (Remaining)
 
 ### High Value / Low Effort
-- [ ] `CompiledDelegate.Invoke()` null-safety (replace `!` null-forgiving operator)
+- [x] `CompiledDelegate.Invoke()` null-safety (replace `!` null-forgiving operator)
 
 ### Medium Value
 - [ ] AOT/trimming compatibility annotations (`[RequiresUnreferencedCode]` on reflection-heavy code)
