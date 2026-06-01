@@ -130,6 +130,27 @@ Compiles all active rules using the shared ExpressionCompiler.
 workflow.Compile(parameters);
 ```
 
+**Note:** The value in `RuleParameter` is optional — you can compile with `null` values:
+
+```csharp
+// Compile with null values — types are what matter
+workflow.Compile(new[]
+{
+    new RuleParameter("customer", typeof(Customer))  // value defaults to null
+});
+```
+
+#### `CompileDefinitions(RuleParameterDefinition[], string[]?)`
+
+Compiles all active rules using just parameter name and type — no runtime values required.
+
+```csharp
+workflow.CompileDefinitions(new[]
+{
+    new RuleParameterDefinition("customer", typeof(Customer))
+});
+```
+
 #### `Execute(params RuleParameter[])`
 
 Sequential execution of all active rules.

@@ -56,6 +56,22 @@ workflow.Compile(new[] { param });
 var results = workflow.Execute(new[] { param });
 ```
 
+**Tip:** You can compile without values if you separate compilation from execution:
+
+```csharp
+// Compile at startup with just types
+workflow.CompileDefinitions(new[]
+{
+    new RuleParameterDefinition("customer", typeof(Customer))
+});
+
+// Execute later with real instances
+var results = workflow.Execute(new[]
+{
+    new RuleParameter("customer", typeof(Customer), customer)
+});
+```
+
 ## Breaking Changes
 
 1. **Single parameter only** — Wrap multiple inputs in a struct

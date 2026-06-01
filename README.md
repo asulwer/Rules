@@ -375,6 +375,18 @@ var results = wf.Execute(new[]
 - You compile at startup and execute later with different data
 - You want to avoid creating dummy/null objects just for compilation
 - You separate compilation (needs types) from execution (needs values)
+
+**Alternative — pass null directly to `Compile`:**
+
+If you prefer the existing API, `RuleParameter` already accepts `null` for the value:
+
+```csharp
+// Compile with null value — same result as CompileDefinitions
+wf.Compile(new[]
+{
+    new RuleParameter("customer", typeof(Customer))  // value defaults to null
+});
+```
 ```
 
 ### 4. Execute
