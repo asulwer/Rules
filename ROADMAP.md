@@ -39,6 +39,7 @@
 
 ## Status Legend
 
-- [ ] Not started
-- [~] In progress
-- [-] Excluded
+- `[ ]` Not started
+- `[~]` In progress
+- `[x]` Completed
+- `[-]` Excluded / removed
