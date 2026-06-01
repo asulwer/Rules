@@ -48,7 +48,9 @@ jobs:
       - name: Publish NuGet package to NuGet.org
         env:
           NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
-        run: dotnet nuget push ./nuget_packages/*.nupkg -k $NUGET_API_KEY -s https://api.nuget.org/v3/index.json --skip-duplicate
+        run: |
+          dotnet nuget push ./nuget_packages/*.nupkg -k $NUGET_API_KEY -s https://api.nuget.org/v3/index.json --skip-duplicate
+          dotnet nuget push ./nuget_packages/*.snupkg -k $NUGET_API_KEY -s https://api.nuget.org/v3/index.json --skip-duplicate
 
       - name: Create source code zip
         run: |
@@ -73,6 +75,7 @@ jobs:
         with:
           files: |
             ./nuget_packages/*.nupkg
+            ./nuget_packages/*.snupkg
             source.zip
             source.tar.gz
         env:
