@@ -3,7 +3,7 @@ using RoslynRules.Compiler;
 using RoslynRules.Models;
 using Xunit;
 
-namespace RoslynRules.Tests
+namespace RoslynRules.Tests.Execution
 {
     /// <summary>
     /// Tests for partial results showing which child rule failed.

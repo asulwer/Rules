@@ -3,8 +3,9 @@ using RoslynRules.Models;
 using System;
 using System.Threading.Tasks;
 using Xunit;
+using ExpressionCompiler = global::RoslynRules.Compiler.ExpressionCompiler;
 
-namespace RoslynRules.Tests
+namespace RoslynRules.Tests.Execution
 {
     /// <summary>
     /// Tests for Rule lifecycle events (OnRuleExecuting, OnRuleExecuted).
@@ -31,7 +32,7 @@ namespace RoslynRules.Tests
                 IsActive = true
             };
 
-            var compiler = new Compiler.ExpressionCompiler();
+            var compiler = new ExpressionCompiler();
             rule.Compile(compiler, _parameters, new[] { "RoslynRules.Tests" });
 
             bool executingFired = false;
@@ -58,7 +59,7 @@ namespace RoslynRules.Tests
                 IsActive = true
             };
 
-            var compiler = new Compiler.ExpressionCompiler();
+            var compiler = new ExpressionCompiler();
             rule.Compile(compiler, _parameters, new[] { "RoslynRules.Tests" });
 
             bool executedFired = false;
@@ -87,7 +88,7 @@ namespace RoslynRules.Tests
                 IsActive = true
             };
 
-            var compiler = new Compiler.ExpressionCompiler();
+            var compiler = new ExpressionCompiler();
             rule.Compile(compiler, _parameters, new[] { "RoslynRules.Tests" });
 
             bool executedFired = false;
@@ -121,7 +122,7 @@ namespace RoslynRules.Tests
                 IsActive = true
             };
 
-            var compiler = new Compiler.ExpressionCompiler();
+            var compiler = new ExpressionCompiler();
             rule.Compile(compiler, _parameters, new[] { "RoslynRules.Tests" });
 
             bool executedFired = false;
@@ -147,7 +148,7 @@ namespace RoslynRules.Tests
                 IsActive = true
             };
 
-            var compiler = new Compiler.ExpressionCompiler();
+            var compiler = new ExpressionCompiler();
             rule.Compile(compiler, _parameters, new[] { "RoslynRules.Tests" });
 
             bool executedFired = false;
@@ -173,7 +174,7 @@ namespace RoslynRules.Tests
                 IsActive = true
             };
 
-            var compiler = new Compiler.ExpressionCompiler();
+            var compiler = new ExpressionCompiler();
             rule.Compile(compiler, _parameters, new[] { "RoslynRules.Tests" });
 
             bool executingFired = false;
@@ -197,7 +198,7 @@ namespace RoslynRules.Tests
                 IsActive = true
             };
 
-            var compiler = new Compiler.ExpressionCompiler();
+            var compiler = new ExpressionCompiler();
             rule.Compile(compiler, _parameters, new[] { "RoslynRules.Tests" });
 
             bool executedFired = false;
@@ -222,7 +223,7 @@ namespace RoslynRules.Tests
                 IsActive = true
             };
 
-            var compiler = new Compiler.ExpressionCompiler();
+            var compiler = new ExpressionCompiler();
             rule.Compile(compiler, _parameters, new[] { "RoslynRules.Tests" });
 
             var act = () => rule.Execute(_parameters);
@@ -248,7 +249,7 @@ namespace RoslynRules.Tests
 
             parent.ChildRules.Add(child);
 
-            var compiler = new Compiler.ExpressionCompiler();
+            var compiler = new ExpressionCompiler();
             parent.Compile(compiler, _parameters, new[] { "RoslynRules.Tests" });
 
             int childExecutingCount = 0;

@@ -3,8 +3,9 @@ using RoslynRules.Models;
 using System;
 using System.Threading.Tasks;
 using Xunit;
+using ExpressionCompiler = global::RoslynRules.Compiler.ExpressionCompiler;
 
-namespace RoslynRules.Tests
+namespace RoslynRules.Tests.Execution
 {
     /// <summary>
     /// Tests for per-rule timeout functionality.
@@ -31,7 +32,7 @@ namespace RoslynRules.Tests
                 // No timeout set
             };
 
-            rule.Compile(new Compiler.ExpressionCompiler(), _compileParams);
+            rule.Compile(new ExpressionCompiler(), _compileParams);
             var result = rule.Execute(_executeParams);
 
             Assert.True(result.Success);
@@ -47,7 +48,7 @@ namespace RoslynRules.Tests
                 Timeout = TimeSpan.FromSeconds(5)
             };
 
-            rule.Compile(new Compiler.ExpressionCompiler(), _compileParams);
+            rule.Compile(new ExpressionCompiler(), _compileParams);
             var result = rule.Execute(_executeParams);
 
             Assert.True(result.Success);
@@ -62,7 +63,7 @@ namespace RoslynRules.Tests
                 Timeout = TimeSpan.FromSeconds(1)
             };
 
-            rule.Compile(new Compiler.ExpressionCompiler(), _compileParams);
+            rule.Compile(new ExpressionCompiler(), _compileParams);
 
             Assert.Throws<RuleCompilationException>(() => rule.Timeout = TimeSpan.FromSeconds(2));
         }
@@ -122,7 +123,7 @@ namespace RoslynRules.Tests
                 Timeout = TimeSpan.FromSeconds(5)
             };
 
-            rule.Compile(new Compiler.ExpressionCompiler(), _compileParams);
+            rule.Compile(new ExpressionCompiler(), _compileParams);
             var result = await rule.ExecuteAsync(_executeParams);
 
             Assert.True(result.Success);

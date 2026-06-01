@@ -4,8 +4,9 @@ using RoslynRules.Templates;
 using System;
 using System.Collections.Generic;
 using Xunit;
+using ExpressionCompiler = global::RoslynRules.Compiler.ExpressionCompiler;
 
-namespace RoslynRules.Tests
+namespace RoslynRules.Tests.Execution
 {
     public class RuleTemplateTests
     {
@@ -14,7 +15,7 @@ namespace RoslynRules.Tests
 
         public RuleTemplateTests()
         {
-            _compiler = new global::RoslynRules.Compiler.ExpressionCompiler();
+            _compiler = new ExpressionCompiler();
             _parameters = new[]
             {
                 new RuleParameter("customer", typeof(TestCustomer), new TestCustomer { Age = 30, Name = "Alice" })

@@ -2,8 +2,9 @@ using FluentAssertions;
 using RoslynRules.Models;
 using System.Linq;
 using Xunit;
+using ExpressionCompiler = global::RoslynRules.Compiler.ExpressionCompiler;
 
-namespace RoslynRules.Tests
+namespace RoslynRules.Tests.Execution
 {
     /// <summary>
     /// Tests for Rule.Priority execution ordering.
@@ -89,7 +90,7 @@ namespace RoslynRules.Tests
                 Priority = 5
             };
 
-            var compiler = new Compiler.ExpressionCompiler();
+            var compiler = new ExpressionCompiler();
             rule.Compile(compiler, _parameters, new[] { "RoslynRules.Tests" });
 
             var act = () => rule.Priority = 10;

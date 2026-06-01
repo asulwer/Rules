@@ -2,8 +2,9 @@ using FluentAssertions;
 using RoslynRules.Exceptions;
 using RoslynRules.Models;
 using Xunit;
+using ExpressionCompiler = global::RoslynRules.Compiler.ExpressionCompiler;
 
-namespace RoslynRules.Tests
+namespace RoslynRules.Tests.Execution
 {
     /// <summary>
     /// Tests for Rule logging edge cases (inactive rules, formatting, etc.)
@@ -32,7 +33,7 @@ namespace RoslynRules.Tests
                 Logger = logger
             };
 
-            var compiler = new Compiler.ExpressionCompiler();
+            var compiler = new ExpressionCompiler();
             rule.Compile(compiler, _parameters, new[] { "RoslynRules.Tests" });
             rule.Execute(_parameters);
 
@@ -53,7 +54,7 @@ namespace RoslynRules.Tests
                 Logger = logger
             };
 
-            var compiler = new Compiler.ExpressionCompiler();
+            var compiler = new ExpressionCompiler();
             rule.Compile(compiler, _parameters, new[] { "RoslynRules.Tests" });
             rule.Execute(_parameters);
 
@@ -73,7 +74,7 @@ namespace RoslynRules.Tests
                 Logger = logger
             };
 
-            var compiler = new Compiler.ExpressionCompiler();
+            var compiler = new ExpressionCompiler();
             rule.Compile(compiler, _parameters, new[] { "RoslynRules.Tests" });
             rule.Execute(_parameters);
 
@@ -93,7 +94,7 @@ namespace RoslynRules.Tests
                 Logger = logger
             };
 
-            var compiler = new Compiler.ExpressionCompiler();
+            var compiler = new ExpressionCompiler();
             rule.Compile(compiler, _parameters, new[] { "RoslynRules.Tests" });
             rule.Execute(_parameters);
 
@@ -112,7 +113,7 @@ namespace RoslynRules.Tests
                 Logger = null
             };
 
-            var compiler = new Compiler.ExpressionCompiler();
+            var compiler = new ExpressionCompiler();
             rule.Compile(compiler, _parameters, new[] { "RoslynRules.Tests" });
             
             var act = () => rule.Execute(_parameters);

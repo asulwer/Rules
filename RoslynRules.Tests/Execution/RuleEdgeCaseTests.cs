@@ -4,7 +4,7 @@ using RoslynRules.Exceptions;
 using RoslynRules.Models;
 using Xunit;
 
-namespace RoslynRules.Tests
+namespace RoslynRules.Tests.Execution
 {
     /// <summary>
     /// Tests for action-only rules, custom namespaces, and mutation guards.

@@ -4,7 +4,7 @@ using System;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace RoslynRules.Tests
+namespace RoslynRules.Tests.Compiler
 {
     /// <summary>
     /// Tests for CompiledAsyncFunc to cover Invoke, ToString, and other paths.
