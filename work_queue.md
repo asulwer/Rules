@@ -3,7 +3,6 @@
 ## 📋 Backlog (Remaining)
 
 ### High Value / Low Effort
-- [ ] `TryGetValue` pattern on `RuleContext` (currently returns `default(T)` on failure — ambiguous)
 - [ ] Validation result aggregation (`ValidateAll()` that returns errors without throwing)
 - [ ] `sealed` on non-inheritable classes (`Rule`, `Workflow`, `RuleBatch`)
 - [ ] `CompiledDelegate.Invoke()` null-safety (replace `!` null-forgiving operator)

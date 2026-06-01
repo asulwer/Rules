@@ -59,6 +59,28 @@ namespace RoslynRules.Execution
         }
 
         /// <summary>
+        /// Tries to get the typed value from a rule&apos;s result.
+        /// Distinguishes between rule not found, rule failed, and successful retrieval.
+        /// </summary>
+        /// <typeref name="T">The expected type of the value.</typeref>
+        /// <param name="ruleId">The unique identifier of the rule.</param>
+        /// <param name="value">The typed value if the rule succeeded and the value is of type T.</param>
+        /// <returns>True if the rule succeeded and a value of type T was found; otherwise false.</returns>
+        public bool TryGetValue<T>(Guid ruleId, out T? value)
+        {
+            if (_results.TryGetValue(ruleId, out var result))
+            {
+                if (result.Success && result.Value is T typedValue)
+                {
+                    value = typedValue;
+                    return true;
+                }
+            }
+            value = default;
+            return false;
+        }
+
+        /// <summary>
         /// Gets all stored results.
         /// </summary>
         public IReadOnlyDictionary<Guid, RuleResult> Results => _results;
