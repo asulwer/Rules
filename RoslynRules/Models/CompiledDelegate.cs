@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 
 namespace RoslynRules.Models
@@ -150,6 +151,7 @@ namespace RoslynRules.Models
         /// <param name="del">The raw compiled delegate.</param>
         /// <returns>A CompiledDelegate wrapper.</returns>
         /// <exception cref="NotSupportedException">Thrown for multi-parameter delegates.</exception>
+        [RequiresUnreferencedCode("RoslynRules uses reflection to inspect delegate signatures and instantiate generic wrappers. This code may not work correctly with trimming or AOT.")]
         public static CompiledDelegate Wrap(Delegate del)
         {
             var type = del.GetType();

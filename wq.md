@@ -6,7 +6,7 @@
 - [x] `CompiledDelegate.Invoke()` null-safety (replace `!` null-forgiving operator)
 
 ### Medium Value
-- [ ] AOT/trimming compatibility annotations (`[RequiresUnreferencedCode]` on reflection-heavy code)
+- [x] AOT/trimming compatibility annotations (`[RequiresUnreferencedCode]` on reflection-heavy code)
 - [ ] `IEnumerable<T>` return type support for rules (currently only `object? Value`)
 - [ ] Rule composition/template system (placeholders like `{entity}.Age >= {minAge}`)
 - [ ] Built-in rule predicates library (`Rule.IsNotNull()`, `Rule.GreaterThan()`, etc.)

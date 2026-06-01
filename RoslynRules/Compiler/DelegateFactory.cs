@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 
 namespace RoslynRules.Compiler
@@ -14,6 +15,7 @@ namespace RoslynRules.Compiler
         /// <param name="assemblyBytes">Raw bytes of the compiled assembly.</param>
         /// <param name="delegateType">The delegate type to create (e.g., Func<Customer, bool>).</param>
         /// <returns>A typed delegate pointing to the compiled Evaluate method.</returns>
+        [RequiresUnreferencedCode("RoslynRules loads generated assemblies and resolves methods by name. This code may not work correctly with trimming or AOT.")]
         public static Delegate CreateDelegate(byte[] assemblyBytes, Type delegateType)
         {
             // Load the compiled assembly into the current AppDomain.

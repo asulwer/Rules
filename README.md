@@ -702,6 +702,28 @@ public class RulesDbContext : DbContext
 - .NET 8+ (demo project)
 - NuGet: `Microsoft.CodeAnalysis.CSharp`
 
+## AOT and Trimming Compatibility
+
+RoslynRules uses runtime reflection for delegate type construction and compiler invocation. If you publish with trimming or NativeAOT enabled, the linker may strip types that are only referenced dynamically.
+
+**Recommended approach:** Exclude RoslynRules from trimming in your project file:
+
+```xml
+<ItemGroup>
+  <TrimmerRootAssembly Include="RoslynRules" />
+</ItemGroup>
+```
+
+Or exclude it from trimming entirely:
+
+```xml
+<ItemGroup>
+  <TrimmableAssembly Include="RoslynRules" TrimMode="none" />
+</ItemGroup>
+```
+
+Reflection-heavy methods are annotated with `[RequiresUnreferencedCode]` to produce build-time warnings when used in trimmed applications. The polyfilled attribute is included for .NET Standard 2.1 compatibility.
+
 ## Source Link
 
 RoslynRules includes Source Link support. When you reference the NuGet package, you can step into the library source code during debugging in Visual Studio or VS Code.

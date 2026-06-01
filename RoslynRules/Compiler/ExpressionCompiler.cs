@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 
@@ -25,6 +26,7 @@ namespace RoslynRules.Compiler
         /// <param name="additionalNamespaces">Optional extra using namespaces (e.g. "Demo.Models").</param>
         /// <returns>A typed delegate that evaluates the expression.</returns>
         /// <exception cref="InvalidOperationException">Thrown when expression compilation fails.</exception>
+        [RequiresUnreferencedCode("RoslynRules uses reflection to inspect delegate signatures (GetMethod, GetParameters). This code may not work correctly with trimming or AOT.")]
         public TDelegate Compile<TDelegate>(
             string expression,
             string[] parameterNames,

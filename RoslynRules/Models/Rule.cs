@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -398,6 +399,7 @@ namespace RoslynRules.Models
         /// Single input, void return: Action<Customer>
         /// Single input, composite return: Func<Customer, Returned>
         /// </example>
+        [RequiresUnreferencedCode("RoslynRules builds delegate types via MakeGenericType which trimming may strip.")]
         private static Type BuildDelegateType(Type returnType, RuleParameter[] parameters)
         {
             if (parameters.Length > 1)
@@ -423,6 +425,7 @@ namespace RoslynRules.Models
         /// <param name="returnType">The result type (not Task, the inner type).</param>
         /// <param name="parameters">Parameter definitions.</param>
         /// <returns>Func<TParam, Task<TReturn>> or Func<TParam, Task>.</returns>
+        [RequiresUnreferencedCode("RoslynRules builds async delegate types via MakeGenericType which trimming may strip.")]
         private static Type BuildAsyncDelegateType(Type returnType, RuleParameter[] parameters)
         {
             if (parameters.Length > 1)
@@ -446,6 +449,7 @@ namespace RoslynRules.Models
         /// <summary>
         /// Invokes the compiler via reflection to create a typed delegate.
         /// </summary>
+        [RequiresUnreferencedCode("RoslynRules invokes the compiler via reflection (GetMethod, MakeGenericMethod). This code may not work correctly with trimming or AOT.")]
         private static Delegate CompileDelegate(ExpressionCompiler compiler, string expression, Type delegateType, RuleParameter[] parameters, string[]? additionalNamespaces)
         {
             var paramNames = parameters.Select(p => p.Name).ToArray();
