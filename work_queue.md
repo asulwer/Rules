@@ -17,6 +17,11 @@ All critical gaps resolved. See backlog for future ideas.
 
 ## 📋 Backlog (Future Ideas)
 
+- Source Link support (debug into library from consumer projects)
+- Multi-target `net8.0` alongside `netstandard2.1`
+- AOT/trimming compatibility annotations
+- Localizable rule descriptions (i18n)
+- `IEnumerable<T>` return type support for rules
 - Expression compilation cache (reuse compiled delegates)
 - Rule result caching (memoization by parameter hash)
 - Rule dependency graph visualization (Graphviz DOT)
