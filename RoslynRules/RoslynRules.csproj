@@ -7,7 +7,7 @@
     <AssemblyName>RoslynRules</AssemblyName>
     <RootNamespace>RoslynRules</RootNamespace>
     <PackageId>RoslynRules</PackageId>
-    <Authors>asulwer</Authors>
+    <Authors>Aaron Sulwer</Authors>
     <Description>High-performance .NET rules engine with Roslyn compilation, typed delegates, and async support</Description>
     <PackageTags>rules;engine;roslyn;validation;workflow;business-logic</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
