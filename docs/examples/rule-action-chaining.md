@@ -487,6 +487,6 @@ var processAdult = new Rule
 
 ## See Also
 
-- [Parent-Child Rules](parent-child-rules.md) — Bottom-up evaluation patterns
+- [Parent-Child Rules](#parent-child-vs-dependson) — Bottom-up evaluation patterns (see section above)
 - [Rule Testing Framework](testing-framework.md) — Testing chained rules
 - [API Reference: RuleContext](../api-reference.md#rulecontext)

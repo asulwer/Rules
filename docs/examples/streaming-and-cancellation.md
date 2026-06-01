@@ -257,4 +257,4 @@ Console.WriteLine($"{healthyCount}/{results.Length} services healthy");
 
 - [API Reference: Workflow](../api-reference.md#workflow)
 - [Performance Tuning](../performance.md)
-- [RuleBatch](rule-batch.md)
+- [RuleBatch in Examples](index.md#batch-evaluation-10-rules)

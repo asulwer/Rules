@@ -89,5 +89,5 @@ foreach (var result in results)
 ## Next Steps
 
 - [Learn about child rules and bottom-up evaluation](api-reference.md#rule)
-- [See async expression examples](examples/async-rules.md)
+- [See async expression examples](examples/streaming-and-cancellation.md)
 - [Compare performance modes](performance.md)

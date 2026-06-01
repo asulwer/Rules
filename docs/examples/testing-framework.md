@@ -470,5 +470,5 @@ public void Rule_WithSyntaxError_ShouldThrow()
 ## See Also
 
 - [API Reference: RuleResult](../api-reference.md#ruleresult)
-- [Parent-Child Rules](parent-child-rules.md)
-- [Rule Action Chaining](rule-action-chaining.md)
+- [Rule Action Chaining](rule-action-chaining.md) — Includes parent-child patterns
+- [Examples Index](index.md)
