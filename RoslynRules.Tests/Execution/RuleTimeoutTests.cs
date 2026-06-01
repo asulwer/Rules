@@ -31,7 +31,7 @@ namespace RoslynRules.Tests.Execution
                 // No timeout set
             };
 
-            rule.Compile(new Compiler.ExpressionCompiler(), _compileParams);
+            rule.Compile(new global::RoslynRules.Compiler.ExpressionCompiler(), _compileParams);
             var result = rule.Execute(_executeParams);
 
             Assert.True(result.Success);
@@ -47,7 +47,7 @@ namespace RoslynRules.Tests.Execution
                 Timeout = TimeSpan.FromSeconds(5)
             };
 
-            rule.Compile(new Compiler.ExpressionCompiler(), _compileParams);
+            rule.Compile(new global::RoslynRules.Compiler.ExpressionCompiler(), _compileParams);
             var result = rule.Execute(_executeParams);
 
             Assert.True(result.Success);
@@ -62,7 +62,7 @@ namespace RoslynRules.Tests.Execution
                 Timeout = TimeSpan.FromSeconds(1)
             };
 
-            rule.Compile(new Compiler.ExpressionCompiler(), _compileParams);
+            rule.Compile(new global::RoslynRules.Compiler.ExpressionCompiler(), _compileParams);
 
             Assert.Throws<RuleCompilationException>(() => rule.Timeout = TimeSpan.FromSeconds(2));
         }
@@ -122,7 +122,7 @@ namespace RoslynRules.Tests.Execution
                 Timeout = TimeSpan.FromSeconds(5)
             };
 
-            rule.Compile(new Compiler.ExpressionCompiler(), _compileParams);
+            rule.Compile(new global::RoslynRules.Compiler.ExpressionCompiler(), _compileParams);
             var result = await rule.ExecuteAsync(_executeParams);
 
             Assert.True(result.Success);

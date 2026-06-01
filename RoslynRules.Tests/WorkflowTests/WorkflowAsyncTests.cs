@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace RoslynRules.Tests.Workflow
+namespace RoslynRules.Tests.WorkflowTests
 {
     /// <summary>
     /// Tests for Workflow.ExecuteAsync and validation edge cases.

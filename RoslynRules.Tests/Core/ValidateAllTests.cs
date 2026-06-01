@@ -2,6 +2,7 @@ using RoslynRules.Batch;
 using RoslynRules.Models;
 using System.Linq;
 using Xunit;
+using Workflow = global::RoslynRules.Models.Workflow;
 
 namespace RoslynRules.Tests.Core
 {
@@ -13,7 +14,7 @@ namespace RoslynRules.Tests.Core
         [Fact]
         public void Workflow_ValidateAll_EmptyWorkflow_ReturnsNoActiveRulesError()
         {
-            var wf = new Workflow();
+            var wf = new global::RoslynRules.Models.Workflow();
             var errors = wf.ValidateAll();
 
             Assert.Single(errors);
@@ -23,7 +24,7 @@ namespace RoslynRules.Tests.Core
         [Fact]
         public void Workflow_ValidateAll_ValidWorkflow_ReturnsEmpty()
         {
-            var wf = new Workflow();
+            var wf = new global::RoslynRules.Models.Workflow();
             wf.Rules.Add(new Rule { Expression = "true", Description = "Valid" });
 
             var errors = wf.ValidateAll();
@@ -34,7 +35,7 @@ namespace RoslynRules.Tests.Core
         [Fact]
         public void Workflow_ValidateAll_InvalidRule_ReturnsSyntaxError()
         {
-            var wf = new Workflow();
+            var wf = new global::RoslynRules.Models.Workflow();
             wf.Rules.Add(new Rule { Expression = "invalid syntax here @#$", Description = "Broken" });
 
             var errors = wf.ValidateAll();
@@ -45,7 +46,7 @@ namespace RoslynRules.Tests.Core
         [Fact]
         public void Workflow_ValidateAll_MultipleErrors_ReturnsAll()
         {
-            var wf = new Workflow();
+            var wf = new global::RoslynRules.Models.Workflow();
             var rule1 = new Rule { Expression = "true" };
             var rule2 = new Rule { Expression = "true" }; // Will have duplicate ID
             var rule3 = new Rule { Expression = "broken syntax @#$" };
@@ -116,8 +117,8 @@ namespace RoslynRules.Tests.Core
         [Fact]
         public void IRuleEngine_ValidateAll_ImplementedByWorkflow()
         {
-            RoslynRules.Abstractions.IRuleEngine engine = new Workflow();
-            engine = new Workflow();
+            RoslynRules.Abstractions.IRuleEngine engine = new global::RoslynRules.Models.Workflow();
+            engine = new global::RoslynRules.Models.Workflow();
             ((Workflow)engine).Rules.Add(new Rule { Expression = "true" });
 
             var errors = engine.ValidateAll();

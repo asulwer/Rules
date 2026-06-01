@@ -32,7 +32,7 @@ namespace RoslynRules.Tests.Execution
                 Logger = logger
             };
 
-            var compiler = new Compiler.ExpressionCompiler();
+            var compiler = new global::RoslynRules.Compiler.ExpressionCompiler();
             rule.Compile(compiler, _parameters, new[] { "RoslynRules.Tests" });
             rule.Execute(_parameters);
 
@@ -53,7 +53,7 @@ namespace RoslynRules.Tests.Execution
                 Logger = logger
             };
 
-            var compiler = new Compiler.ExpressionCompiler();
+            var compiler = new global::RoslynRules.Compiler.ExpressionCompiler();
             rule.Compile(compiler, _parameters, new[] { "RoslynRules.Tests" });
             rule.Execute(_parameters);
 
@@ -73,7 +73,7 @@ namespace RoslynRules.Tests.Execution
                 Logger = logger
             };
 
-            var compiler = new Compiler.ExpressionCompiler();
+            var compiler = new global::RoslynRules.Compiler.ExpressionCompiler();
             rule.Compile(compiler, _parameters, new[] { "RoslynRules.Tests" });
             rule.Execute(_parameters);
 
@@ -93,7 +93,7 @@ namespace RoslynRules.Tests.Execution
                 Logger = logger
             };
 
-            var compiler = new Compiler.ExpressionCompiler();
+            var compiler = new global::RoslynRules.Compiler.ExpressionCompiler();
             rule.Compile(compiler, _parameters, new[] { "RoslynRules.Tests" });
             rule.Execute(_parameters);
 
@@ -112,7 +112,7 @@ namespace RoslynRules.Tests.Execution
                 Logger = null
             };
 
-            var compiler = new Compiler.ExpressionCompiler();
+            var compiler = new global::RoslynRules.Compiler.ExpressionCompiler();
             rule.Compile(compiler, _parameters, new[] { "RoslynRules.Tests" });
             
             var act = () => rule.Execute(_parameters);
