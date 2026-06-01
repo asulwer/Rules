@@ -140,17 +140,6 @@ workflow.Compile(new[]
 });
 ```
 
-#### `CompileDefinitions(RuleParameterDefinition[], string[]?)`
-
-Compiles all active rules using just parameter name and type — no runtime values required.
-
-```csharp
-workflow.CompileDefinitions(new[]
-{
-    new RuleParameterDefinition("customer", typeof(Customer))
-});
-```
-
 #### `Execute(params RuleParameter[])`
 
 Sequential execution of all active rules.

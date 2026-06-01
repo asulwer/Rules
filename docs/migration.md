@@ -59,10 +59,10 @@ var results = workflow.Execute(new[] { param });
 **Tip:** You can compile without values if you separate compilation from execution:
 
 ```csharp
-// Compile at startup with just types
-workflow.CompileDefinitions(new[]
+// Compile at startup with null values — types are what matter
+workflow.Compile(new[]
 {
-    new RuleParameterDefinition("customer", typeof(Customer))
+    new RuleParameter("customer", typeof(Customer))  // value defaults to null
 });
 
 // Execute later with real instances
