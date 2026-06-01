@@ -58,21 +58,57 @@ namespace RoslynRules.Models
         /// Also validates that dependency chains (DependsOnRuleId) contain no cycles.
         /// Call before Compile to catch errors early.
         /// </summary>
-        /// <exception cref="InvalidOperationException">Thrown when workflow or rule validation fails.</exception>
+        /// <exception cref="WorkflowException">Thrown when workflow has no active rules.</exception>
+        /// <exception cref="RuleValidationException">Thrown when a rule is invalid.</exception>
+        /// <exception cref="DuplicateRuleIdException">Thrown when duplicate rule IDs exist.</exception>
+        /// <exception cref="CircularReferenceException">Thrown when a dependency cycle is detected.</exception>
         public void Validate()
         {
+            var errors = ValidateAll();
+            if (errors.Any())
+            {
+                // Throw the most specific exception type based on the first error
+                var first = errors[0];
+                switch (first.ErrorType)
+                {
+                    case ValidationErrorType.CircularReference:
+                        throw new CircularReferenceException(first.EntityId!.Value, first.EntityDescription ?? "");
+                    case ValidationErrorType.DuplicateRuleId:
+                        throw new DuplicateRuleIdException(errors.Where(e => e.ErrorType == ValidationErrorType.DuplicateRuleId).Select(e => e.EntityId!.Value).ToArray());
+                    case ValidationErrorType.MissingDependency:
+                        throw new RuleValidationException(first.Message);
+                    case ValidationErrorType.SyntaxError:
+                        throw new SyntaxErrorException("", new[] { first.Message });
+                    default:
+                        throw new WorkflowException(first.Message);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Validates the entire workflow and all contained rules, returning all errors found.
+        /// Does not throw — returns an empty array if validation succeeds.
+        /// Checks workflow consistency, rule syntax, duplicate IDs, and dependency cycles.
+        /// </summary>
+        /// <returns>Array of validation errors. Empty if valid.</returns>
+        public ValidationError[] ValidateAll()
+        {
+            var errors = new List<ValidationError>();
+
             // 1. Workflow must have at least one active rule.
             var activeRules = Rules.Where(r => r.IsActive).ToList();
             if (activeRules.Count == 0)
             {
-                throw new WorkflowException(
-                    $"Workflow &apos;{Description}&apos; (Id: {Id}) has no active rules.");
+                errors.Add(new ValidationError(
+                    $"Workflow &apos;{Description}&apos; (Id: {Id}) has no active rules.",
+                    ValidationErrorType.NoActiveRules, Id, Description));
+                return errors.ToArray();
             }
 
             // 2. Validate each top-level rule.
             foreach (var rule in activeRules)
             {
-                rule.Validate();
+                errors.AddRange(rule.ValidateAll());
             }
 
             // 3. Detect duplicate rule IDs within this workflow.
@@ -80,29 +116,57 @@ namespace RoslynRules.Models
             var duplicates = ids.GroupBy(id => id).Where(g => g.Count() > 1).Select(g => g.Key).ToList();
             if (duplicates.Any())
             {
-                throw new DuplicateRuleIdException(duplicates.ToArray());
-
+                foreach (var dupId in duplicates)
+                {
+                    errors.Add(new ValidationError(
+                        $"Duplicate rule ID: {dupId}",
+                        ValidationErrorType.DuplicateRuleId, dupId));
+                }
             }
 
             // 4. Validate dependency chains: no cycles, all referenced rules exist.
-            ValidateDependencies();
+            ValidateDependencies(errors);
+
+            return errors.ToArray();
         }
 
         /// <summary>
         /// Validates that all DependsOnRuleId references are valid and form no cycles.
+        /// Errors are collected into the provided list instead of thrown.
         /// </summary>
-        /// <exception cref="InvalidOperationException">Thrown when a dependency is invalid or cyclic.</exception>
-        private void ValidateDependencies()
+        private void ValidateDependencies(List<ValidationError> errors)
         {
-            var ruleLookup = Rules.Where(r => r.IsActive).ToDictionary(r => r.Id);
+            var activeRules = Rules.Where(r => r.IsActive).ToList();
+            var ruleLookup = new Dictionary<Guid, Rule>();
+            foreach (var rule in activeRules)
+            {
+                if (!ruleLookup.ContainsKey(rule.Id))
+                {
+                    ruleLookup[rule.Id] = rule;
+                }
+                // Duplicate IDs are reported separately by ValidateAll
+            }
             var visited = new HashSet<Guid>();
             var recursionStack = new HashSet<Guid>();
 
-            foreach (var rule in Rules.Where(r => r.IsActive))
+            foreach (var rule in activeRules)
             {
                 if (!visited.Contains(rule.Id))
                 {
-                    ValidateDependencyChain(rule, ruleLookup, visited, recursionStack);
+                    try
+                    {
+                        ValidateDependencyChain(rule, ruleLookup, visited, recursionStack);
+                    }
+                    catch (CircularReferenceException ex)
+                    {
+                        errors.Add(new ValidationError(
+                            ex.Message, ValidationErrorType.CircularReference, ex.RuleId, ex.RuleDescription));
+                    }
+                    catch (RuleValidationException ex)
+                    {
+                        errors.Add(new ValidationError(
+                            ex.Message, ValidationErrorType.MissingDependency, rule.Id, rule.Description));
+                    }
                 }
             }
         }

@@ -53,18 +53,55 @@ namespace RoslynRules.Batch
         /// </summary>
         public void Validate()
         {
+            var errors = ValidateAll();
+            if (errors.Any())
+            {
+                var first = errors[0];
+                switch (first.ErrorType)
+                {
+                    case ValidationErrorType.NoActiveRules:
+                        throw new WorkflowException(first.Message);
+                    case ValidationErrorType.DuplicateRuleId:
+                        throw new DuplicateRuleIdException(errors.Where(e => e.ErrorType == ValidationErrorType.DuplicateRuleId).Select(e => e.EntityId!.Value).ToArray());
+                    default:
+                        throw new RuleValidationException(first.Message);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Validates all rules in the batch, returning all errors found.
+        /// Does not throw — returns an empty array if validation succeeds.
+        /// </summary>
+        /// <returns>Array of validation errors. Empty if valid.</returns>
+        public ValidationError[] ValidateAll()
+        {
+            var errors = new List<ValidationError>();
+
             if (!_rules.Any())
-                throw new WorkflowException("Batch has no rules.");
+            {
+                errors.Add(new ValidationError(
+                    "Batch has no rules.", ValidationErrorType.NoActiveRules));
+                return errors.ToArray();
+            }
 
             var ids = _rules.Select(r => r.Id).ToList();
             var duplicates = ids.GroupBy(id => id).Where(g => g.Count() > 1).Select(g => g.Key).ToList();
             if (duplicates.Any())
-                throw new DuplicateRuleIdException(duplicates.ToArray());
+            {
+                foreach (var dupId in duplicates)
+                {
+                    errors.Add(new ValidationError(
+                        $"Duplicate rule ID: {dupId}", ValidationErrorType.DuplicateRuleId, dupId));
+                }
+            }
 
             foreach (var rule in _rules.Where(r => r.IsActive))
             {
-                rule.Validate();
+                errors.AddRange(rule.ValidateAll());
             }
+
+            return errors.ToArray();
         }
 
         /// <summary>

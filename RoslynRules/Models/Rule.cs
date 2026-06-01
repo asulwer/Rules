@@ -248,23 +248,88 @@ namespace RoslynRules.Models
         }
 
         /// <summary>
+        /// Validates the rule and all child rules, returning all errors found.
+        /// Does not throw — returns an empty array if validation succeeds.
+        /// </summary>
+        /// <returns>Array of validation errors. Empty if valid.</returns>
+        public ValidationError[] ValidateAll()
+        {
+            var errors = new List<ValidationError>();
+
+            // 1. Structural validation: a rule must have something to do.
+            if (string.IsNullOrEmpty(Expression) && string.IsNullOrEmpty(Action) && !ChildRules.Any(r => r.IsActive))
+            {
+                errors.Add(new ValidationError(
+                    $"Rule &apos;{Description}&apos; (Id: {Id}) has no Expression, Action, or active ChildRules.",
+                    ValidationErrorType.EmptyRule, Id, Description));
+                return errors.ToArray();
+            }
+
+            // 2. Validate no circular references FIRST.
+            try
+            {
+                ValidateNoCircularReferences();
+            }
+            catch (CircularReferenceException ex)
+            {
+                errors.Add(new ValidationError(
+                    ex.Message, ValidationErrorType.CircularReference, ex.RuleId, ex.RuleDescription));
+            }
+
+            // 3. Validate Expression syntax if present.
+            if (!string.IsNullOrEmpty(Expression))
+            {
+                ValidateExpressionSyntax(Expression, mustReturnBool: true, errors);
+            }
+
+            // 4. Validate Action syntax if present.
+            if (!string.IsNullOrEmpty(Action))
+            {
+                ValidateExpressionSyntax(Action, mustReturnBool: false, errors);
+            }
+
+            // 5. Validate child rules recursively.
+            foreach (var child in ChildRules.Where(r => r.IsActive))
+            {
+                errors.AddRange(child.ValidateAll());
+            }
+
+            return errors.ToArray();
+        }
+
+        /// <summary>
         /// Validates that a C# expression string is syntactically valid.
         /// Uses Roslyn to parse the expression without compiling it.
+        /// Throws on syntax errors.
         /// </summary>
-        /// <param name="expression">The expression string to validate.</param>
-        /// <param name="mustReturnBool">If true, expression should logically return a boolean (not enforced at syntax level).</param>
         private static void ValidateExpressionSyntax(string expression, bool mustReturnBool)
         {
-            // Wrap the expression in a minimal method body so Roslyn can parse it.
             var code = $@"class X {{ void M() {{ {(mustReturnBool ? "var __result = " : "")}{expression}; }} }}";
-
             var tree = CSharpSyntaxTree.ParseText(code);
             var diagnostics = tree.GetDiagnostics();
-
             var errors = diagnostics.Where(d => d.Severity == DiagnosticSeverity.Error).ToList();
             if (errors.Any())
             {
                 throw new SyntaxErrorException(expression, errors.Select(e => e.GetMessage()).ToArray());
+            }
+        }
+
+        /// <summary>
+        /// Validates that a C# expression string is syntactically valid.
+        /// Uses Roslyn to parse the expression without compiling it.
+        /// Errors are collected into the provided list instead of thrown.
+        /// </summary>
+        private static void ValidateExpressionSyntax(string expression, bool mustReturnBool, List<ValidationError> errors)
+        {
+            var code = $@"class X {{ void M() {{ {(mustReturnBool ? "var __result = " : "")}{expression}; }} }}";
+            var tree = CSharpSyntaxTree.ParseText(code);
+            var diagnostics = tree.GetDiagnostics();
+            var syntaxErrors = diagnostics.Where(d => d.Severity == DiagnosticSeverity.Error).ToList();
+            if (syntaxErrors.Any())
+            {
+                errors.Add(new ValidationError(
+                    $"Syntax error in expression: {string.Join("; ", syntaxErrors.Select(e => e.GetMessage()))}",
+                    ValidationErrorType.SyntaxError));
             }
         }
 

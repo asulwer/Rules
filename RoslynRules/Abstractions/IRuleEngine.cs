@@ -19,6 +19,13 @@ namespace RoslynRules.Abstractions
         void Validate();
 
         /// <summary>
+        /// Validates all rules without compiling them, returning all errors found.
+        /// Does not throw — returns an empty array if validation succeeds.
+        /// </summary>
+        /// <returns>Array of validation errors. Empty if valid.</returns>
+        ValidationError[] ValidateAll();
+
+        /// <summary>
         /// Compiles all rules for the given parameter signature.
         /// Must be called once before execution.
         /// </summary>

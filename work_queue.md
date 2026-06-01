@@ -3,7 +3,6 @@
 ## 📋 Backlog (Remaining)
 
 ### High Value / Low Effort
-- [ ] Validation result aggregation (`ValidateAll()` that returns errors without throwing)
 - [ ] `CompiledDelegate.Invoke()` null-safety (replace `!` null-forgiving operator)
 
 ### Medium Value
