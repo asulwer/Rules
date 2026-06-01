@@ -210,6 +210,7 @@ namespace RoslynRules.Models
             while (queue.Count > 0)
             {
                 var current = queue.Min;
+                if (current == null) break;
                 queue.Remove(current);
                 result.Add(current);
 
