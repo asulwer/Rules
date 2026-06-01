@@ -809,3 +809,71 @@ rule.ClearCache();  // Removes all cached entries for this rule
 - Use longer durations (hours) for reference data
 - Avoid caching rules with side effects (external calls that should rerun)
 
+
+## Rule Predicates
+
+Static factory methods for common validation patterns. Eliminates the need to write raw C# expressions for frequent checks.
+
+```csharp
+using RoslynRules.Predicates;
+
+var rule = RulePredicates.GreaterThan("customer.Age", 18);
+```
+
+### Available Predicates
+
+| Predicate | Description | Example |
+|-----------|-------------|---------|
+| `IsNotNull(parameter)` | Parameter is not null | `RulePredicates.IsNotNull("customer")` |
+| `IsNotNullOrEmpty(parameter)` | String parameter is not null or empty | `RulePredicates.IsNotNullOrEmpty("customer.Name")` |
+| `IsNotNullOrWhiteSpace(parameter)` | String parameter is not null or whitespace | `RulePredicates.IsNotNullOrWhiteSpace("customer.Name")` |
+| `IsNotEmpty(parameter)` | Collection parameter is not empty | `RulePredicates.IsNotEmpty("customer.Orders")` |
+| `IsEmpty(parameter)` | Collection parameter is empty | `RulePredicates.IsEmpty("customer.Orders")` |
+| `GreaterThan(parameter, value)` | Numeric comparison | `RulePredicates.GreaterThan("age", 18)` |
+| `GreaterThanOrEqual(parameter, value)` | Greater than or equal | `RulePredicates.GreaterThanOrEqual("score", 100)` |
+| `LessThan(parameter, value)` | Less than | `RulePredicates.LessThan("temperature", 100)` |
+| `LessThanOrEqual(parameter, value)` | Less than or equal | `RulePredicates.LessThanOrEqual("count", 10)` |
+| `Equals(parameter, value)` | Equality check | `RulePredicates.Equals("status", "Active")` |
+| `NotEquals(parameter, value)` | Inequality check | `RulePredicates.NotEquals("role", "Admin")` |
+| `InRange(parameter, min, max)` | Numeric within range (inclusive) | `RulePredicates.InRange("age", 18, 65)` |
+| `NotInRange(parameter, min, max)` | Numeric outside range | `RulePredicates.NotInRange("age", 0, 17)` |
+| `MatchesRegex(parameter, pattern)` | Regex match | `RulePredicates.MatchesRegex("email", "^[^@]+@[^@]+\\.[^@]+$")` |
+| `Contains(parameter, value)` | String contains substring | `RulePredicates.Contains("name", "Smith")` |
+| `StartsWith(parameter, value)` | String starts with | `RulePredicates.StartsWith("code", "US-")` |
+| `EndsWith(parameter, value)` | String ends with | `RulePredicates.EndsWith("email", "@company.com")` |
+| `HasLength(parameter, length)` | String exact length | `RulePredicates.HasLength("zip", 5)` |
+| `HasMinLength(parameter, length)` | String minimum length | `RulePredicates.HasMinLength("password", 8)` |
+| `HasMaxLength(parameter, length)` | String maximum length | `RulePredicates.HasMaxLength("title", 100)` |
+| `CountEquals(parameter, count)` | Collection count equals | `RulePredicates.CountEquals("items", 3)` |
+| `CountGreaterThan(parameter, count)` | Collection count > | `RulePredicates.CountGreaterThan("items", 0)` |
+| `CountLessThan(parameter, count)` | Collection count < | `RulePredicates.CountLessThan("items", 10)` |
+| `IsTrue(parameter)` | Boolean is true | `RulePredicates.IsTrue("isActive")` |
+| `IsFalse(parameter)` | Boolean is false | `RulePredicates.IsFalse("isDeleted")` |
+| `IsOfType<T>(parameter)` | Type check | `RulePredicates.IsOfType<Customer>("entity")` |
+
+### Usage Notes
+
+- **Parameter names**: Use the same name you'd pass to `RuleParameter` (e.g., `"customer"` or `"customer.Age"`)
+- **Auto descriptions**: Each predicate generates a human-readable description; override with the optional `description` parameter
+- **Value formatting**: Values are properly escaped for C# expression compilation (strings quoted, booleans lowercase, enums fully qualified)
+- **Regex**: Use standard regex syntax; patterns are embedded in verbatim strings so no double-escaping needed
+- **Chaining**: Predicates are just `Rule` objects -- compose them with `Workflow` or `RuleTemplate` the same way as hand-written rules
+
+### Example: Mixed Predicates and Custom Rules
+
+```csharp
+var workflow = new Workflow
+{
+    Rules =
+    {
+        RulePredicates.IsNotNull("customer"),
+        RulePredicates.GreaterThan("customer.Age", 18),
+        RulePredicates.MatchesRegex("customer.Email", "^[^@]+@[^@]+\\.[^@]+$")",
+        new Rule
+        {
+            Description = "VIP check",
+            Expression = "customer.IsVip == true"
+        }
+    }
+};
+```

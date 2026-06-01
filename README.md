@@ -23,6 +23,47 @@ A high-performance rewrite of [Microsoft RulesEngine](https://github.com/microso
 | Thread safety | Mutable rules | **Immutable after compilation** |
 | Execution modes | Sequential | **Sequential + Parallel + Async + Streaming** |
 | Rule chaining | No | **DependsOnRuleId with topological sort** |
+| Built-in predicates | No | **25+ static factory methods** |
+
+## Quick Start
+
+### Predicates (No Raw Expressions Needed)
+
+Use built-in factory methods for common validation patterns:
+
+```csharp
+using RoslynRules.Predicates;
+
+var workflow = new Workflow
+{
+    Rules =
+    {
+        RulePredicates.IsNotNull("customer"),
+        RulePredicates.GreaterThan("customer.Age", 18),
+        RulePredicates.MatchesRegex("customer.Email", @"^[^@]+@[^@]+\.[^@]+$")"
+    }
+};
+```
+
+### Raw Expressions (Full Control)
+
+For custom logic, write C# expressions directly:
+
+```csharp
+var workflow = new Workflow
+{
+    Rules =
+    {
+        new Rule
+        {
+            Description = "Adult customer",
+            Expression = "customer.Age >= 18 && customer.IsActive",
+            Action = "customer.Processed = true",
+            DependsOnRuleId = parentRule.Id
+        }
+    }
+};
+```
 
 ## Architecture
 
@@ -828,6 +869,8 @@ RoslynRules/
 │   ├── CompiledDelegate.cs  # Typed delegate wrappers (no DynamicInvoke)
 │   ├── RuleDiagnostics.cs   # Compilation diagnostics
 │   └── ValidationError.cs   # Structured validation errors with ValidationErrorType enum
+├── Predicates/
+│   └── RulePredicates.cs    # Static factory methods for common validation patterns
 ├── Testing/
 │   ├── RuleResultAssertions.cs # Fluent assertions for RuleResult
 │   ├── RuleTest.cs             # Declarative test builder for rules/workflows
