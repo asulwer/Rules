@@ -7,6 +7,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
+using Workflow = global::RoslynRules.Models.Workflow;
 
 namespace RoslynRules.Tests.Execution
 {
@@ -208,7 +209,7 @@ namespace RoslynRules.Tests.Execution
         [Fact]
         public void Validate_DuplicateRuleIds_ThrowsDuplicateRuleIdException()
         {
-            var workflow = new Workflow();
+            var workflow = new global::RoslynRules.Models.Workflow();
             var rule1 = new Rule { Description = "Rule 1", Expression = "true" };
             var rule2 = new Rule { Description = "Rule 2", Expression = "true" };
             

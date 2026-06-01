@@ -586,86 +586,50 @@ child.OnRuleExecuting += (s, e) => { /* fires when child evaluates */ };
 parent.OnRuleExecuting += (s, e) => { /* fires when parent evaluates */ };
 ```
 
-## Rule Templates
+## Result Caching (Memoization)
 
-Create reusable rule templates with placeholders that can be instantiated into concrete compiled rules.
+Cache rule evaluation results to skip redundant execution of expensive rules.
 
-**Define a template:**
+**Enable caching on a rule:**
 
 ```csharp
-using RoslynRules.Templates;
-
-var template = new RuleTemplate
+var rule = new Rule
 {
-    Description = "Age threshold",
-    Expression = "{entity}.Age >= {minAge}",
-    Placeholders =
-    {
-        ["entity"] = PlaceholderKind.Identifier,  // parameter name
-        ["minAge"] = PlaceholderKind.Value        // literal value
-    }
+    Description = "Complex validation",
+    Expression = "ExpensiveOperation(customer)",
+    CacheDuration = TimeSpan.FromMinutes(5)  // Cache for 5 minutes
 };
+
+// First call evaluates and caches
+var result1 = rule.Execute(parameters);
+
+// Second call with same parameters returns cached result instantly
+var result2 = rule.Execute(parameters);
 ```
 
-**Placeholder kinds:**
+**Cache behavior:**
+- Opt-in per-rule via `CacheDuration` property (`null` = disabled)
+- Thread-safe via `ConcurrentDictionary`
+- Automatic expiration on read (lazy cleanup)
+- Cache key includes rule ID + all parameter values
+- Only the rule's final result is cached; child rules are still evaluated independently
+- Exceptions are NOT cached — subsequent calls re-evaluate
 
-| Kind | Use | Example Input | Output |
-|------|-----|---------------|--------|
-| `Identifier` | Parameter names, variable names | `"customer"` | `customer` (no quotes) |
-| `Value` | Literal values (auto-formatted) | `18` | `18` |
-| `Value` | Strings (auto-escaped) | `"Alice"` | `"Alice"` |
-| `Type` | CLR type names | `typeof(Customer)` | `RoslynRules.Models.Customer` |
-
-**Instantiate the template:**
+**Manual invalidation:**
 
 ```csharp
-var adultRule = template.Instantiate(
-    new Dictionary<string, object>
-    {
-        ["entity"] = "customer",
-        ["minAge"] = 18
-    },
-    compiler, parameters, assemblies);
-
-// adultRule.Expression == "customer.Age >= 18"
-
-var seniorRule = template.Instantiate(
-    new Dictionary<string, object>
-    {
-        ["entity"] = "customer",
-        ["minAge"] = 65
-    },
-    compiler, parameters, assemblies);
-
-// seniorRule.Expression == "customer.Age >= 65"
+rule.ClearCache();  // Force next evaluation to re-run
 ```
 
-**Action templates:**
+**Typical use cases:**
+| Scenario | Cache Duration |
+|----------|---------------|
+| Database lookup rules | 30 seconds – 5 minutes |
+| API call rules | 1 – 10 minutes |
+| CPU-intensive calculations | 1 – 60 minutes |
+| Static reference data | Hours or until `ClearCache()` |
 
-```csharp
-var actionTemplate = new RuleTemplate
-{
-    Expression = "{entity}.Age >= {minAge}",
-    Action = "{entity}.Processed = true",
-    Placeholders =
-    {
-        ["entity"] = PlaceholderKind.Identifier,
-        ["minAge"] = PlaceholderKind.Value
-    }
-};
-```
-
-**Extract placeholders for UI generation:**
-
-```csharp
-var placeholderNames = template.ExtractPlaceholders();
-// Returns: ["entity", "minAge"]
-```
-
-**Validation:**
-- Missing placeholder values throw `ArgumentException`
-- Invalid `Expression` (null/empty) throws `InvalidOperationException`
-- Type placeholders reject non-`System.Type` values
+**Important:** Caching is disabled by default. Enable only for idempotent rules — rules whose result won't change for the same input during the cache window.
 
 ## ExpandoObject Support
 

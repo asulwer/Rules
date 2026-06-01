@@ -453,6 +453,52 @@ rule.OnRuleExecuted += (sender, args) =>
 | Feature flags | `OnRuleExecuting` — cancel when feature is disabled |
 | Debug tracing | Both — log rule evaluation flow |
 
+## Result Caching
+
+Cache rule evaluation results to avoid redundant execution. Opt-in per-rule via `CacheDuration`.
+
+### Enabling Cache
+
+```csharp
+var rule = new Rule
+{
+    Description = "Expensive check",
+    Expression = "HeavyComputation(customer)",
+    CacheDuration = TimeSpan.FromMinutes(5)
+};
+```
+
+**Properties:**
+- `CacheDuration` (`TimeSpan?`) — Duration to cache results. `null` disables caching.
+
+**Cache key construction:**
+- Rule ID + parameter name/value pairs
+- Value serialization uses `IFormattable.ToString()` or `object.ToString()`
+- Complex objects without meaningful `ToString()` may produce collision-prone keys
+
+### Clearing Cache
+
+```csharp
+rule.ClearCache();  // Removes all cached entries for this rule
+```
+
+### Cache Behavior
+
+| Aspect | Behavior |
+|--------|----------|
+| Thread safety | `ConcurrentDictionary` — safe for concurrent access |
+| Expiration | Lazy — checked on read; expired entries removed |
+| Scope | Per-rule only; child rules have independent caches |
+| Exceptions | Not cached; re-evaluated on next call |
+| Lifecycle events | `OnRuleExecuting`/`OnRuleExecuted` fire on cache miss only |
+
+### Recommendations
+
+- Enable for idempotent rules whose result is stable during the cache window
+- Use short durations (seconds to minutes) for volatile data
+- Use longer durations (hours) for reference data
+- Avoid caching rules with side effects (external calls that should rerun)
+
 ## IRuleEngine
 
 Abstraction implemented by `Workflow` and `RuleBatch`. Enables dependency injection and mocking.

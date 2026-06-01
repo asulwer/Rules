@@ -32,7 +32,7 @@ namespace RoslynRules.Tests.Execution
                 IsActive = true
             };
 
-            var compiler = new ExpressionCompiler();
+            var compiler = new global::RoslynRules.Compiler.ExpressionCompiler();
             rule.Compile(compiler, _parameters, new[] { "RoslynRules.Tests" });
 
             bool executingFired = false;
@@ -59,7 +59,7 @@ namespace RoslynRules.Tests.Execution
                 IsActive = true
             };
 
-            var compiler = new ExpressionCompiler();
+            var compiler = new global::RoslynRules.Compiler.ExpressionCompiler();
             rule.Compile(compiler, _parameters, new[] { "RoslynRules.Tests" });
 
             bool executedFired = false;
@@ -88,7 +88,7 @@ namespace RoslynRules.Tests.Execution
                 IsActive = true
             };
 
-            var compiler = new ExpressionCompiler();
+            var compiler = new global::RoslynRules.Compiler.ExpressionCompiler();
             rule.Compile(compiler, _parameters, new[] { "RoslynRules.Tests" });
 
             bool executedFired = false;
@@ -122,7 +122,7 @@ namespace RoslynRules.Tests.Execution
                 IsActive = true
             };
 
-            var compiler = new ExpressionCompiler();
+            var compiler = new global::RoslynRules.Compiler.ExpressionCompiler();
             rule.Compile(compiler, _parameters, new[] { "RoslynRules.Tests" });
 
             bool executedFired = false;
@@ -148,7 +148,7 @@ namespace RoslynRules.Tests.Execution
                 IsActive = true
             };
 
-            var compiler = new ExpressionCompiler();
+            var compiler = new global::RoslynRules.Compiler.ExpressionCompiler();
             rule.Compile(compiler, _parameters, new[] { "RoslynRules.Tests" });
 
             bool executedFired = false;
@@ -174,7 +174,7 @@ namespace RoslynRules.Tests.Execution
                 IsActive = true
             };
 
-            var compiler = new ExpressionCompiler();
+            var compiler = new global::RoslynRules.Compiler.ExpressionCompiler();
             rule.Compile(compiler, _parameters, new[] { "RoslynRules.Tests" });
 
             bool executingFired = false;
@@ -198,7 +198,7 @@ namespace RoslynRules.Tests.Execution
                 IsActive = true
             };
 
-            var compiler = new ExpressionCompiler();
+            var compiler = new global::RoslynRules.Compiler.ExpressionCompiler();
             rule.Compile(compiler, _parameters, new[] { "RoslynRules.Tests" });
 
             bool executedFired = false;
@@ -223,7 +223,7 @@ namespace RoslynRules.Tests.Execution
                 IsActive = true
             };
 
-            var compiler = new ExpressionCompiler();
+            var compiler = new global::RoslynRules.Compiler.ExpressionCompiler();
             rule.Compile(compiler, _parameters, new[] { "RoslynRules.Tests" });
 
             var act = () => rule.Execute(_parameters);
@@ -249,7 +249,7 @@ namespace RoslynRules.Tests.Execution
 
             parent.ChildRules.Add(child);
 
-            var compiler = new ExpressionCompiler();
+            var compiler = new global::RoslynRules.Compiler.ExpressionCompiler();
             parent.Compile(compiler, _parameters, new[] { "RoslynRules.Tests" });
 
             int childExecutingCount = 0;
