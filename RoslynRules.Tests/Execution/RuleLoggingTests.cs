@@ -2,6 +2,7 @@ using FluentAssertions;
 using RoslynRules.Exceptions;
 using RoslynRules.Models;
 using Xunit;
+using ExpressionCompiler = global::RoslynRules.Compiler.ExpressionCompiler;
 
 namespace RoslynRules.Tests.Execution
 {

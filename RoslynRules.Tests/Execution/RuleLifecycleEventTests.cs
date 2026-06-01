@@ -3,6 +3,7 @@ using RoslynRules.Models;
 using System;
 using System.Threading.Tasks;
 using Xunit;
+using ExpressionCompiler = global::RoslynRules.Compiler.ExpressionCompiler;
 
 namespace RoslynRules.Tests.Execution
 {

@@ -846,6 +846,51 @@ public class RulesDbContext : DbContext
 }
 ```
 
+## Result Caching (Memoization)
+
+Cache rule evaluation results to skip redundant execution of expensive rules.
+
+**Enable caching on a rule:**
+
+```csharp
+var rule = new Rule
+{
+    Description = "Complex validation",
+    Expression = "ExpensiveOperation(customer)",
+    CacheDuration = TimeSpan.FromMinutes(5)  // Cache for 5 minutes
+};
+
+// First call evaluates and caches
+var result1 = rule.Execute(parameters);
+
+// Second call with same parameters returns cached result instantly
+var result2 = rule.Execute(parameters);
+```
+
+**Cache behavior:**
+- Opt-in per-rule via `CacheDuration` property (`null` = disabled)
+- Thread-safe via `ConcurrentDictionary`
+- Automatic expiration on read (lazy cleanup)
+- Cache key includes rule ID + all parameter values
+- Only the rule's final result is cached; child rules are still evaluated independently
+- Exceptions are NOT cached — subsequent calls re-evaluate
+
+**Manual invalidation:**
+
+```csharp
+rule.ClearCache();  // Force next evaluation to re-run
+```
+
+**Typical use cases:**
+| Scenario | Cache Duration |
+|----------|---------------|
+| Database lookup rules | 30 seconds – 5 minutes |
+| API call rules | 1 – 10 minutes |
+| CPU-intensive calculations | 1 – 60 minutes |
+| Static reference data | Hours or until `ClearCache()` |
+
+**Important:** Caching is disabled by default. Enable only for idempotent rules — rules whose result won't change for the same input during the cache window.
+
 ## Requirements
 
 - .NET 8.0 or .NET 9.0 (library multi-targets both)
