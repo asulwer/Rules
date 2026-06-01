@@ -11,7 +11,11 @@
 - [-] CompileDefinitions API — REMOVED: wrapper method rejected in favor of existing `Compile(null)` pattern
 - [ ] Rule composition/template system (placeholders like `{entity}.Age >= {minAge}`)
 - [ ] Built-in rule predicates library (`Rule.IsNotNull()`, `Rule.GreaterThan()`, etc.)
-- [ ] Event/callback system for rule lifecycle (`OnRuleExecuting`, `OnRuleExecuted`)
+- [x] Event/callback system for rule lifecycle (`OnRuleExecuting`, `OnRuleExecuted`)
+  - `OnRuleExecuting`: cancellable pre-execution event
+  - `OnRuleExecuted`: post-execution event with Result, Elapsed, Exception
+  - Tests: `RuleLifecycleEventTests.cs` (9 tests)
+  - Docs: README.md, docs/api-reference.md
 
 ### Nice-to-Have
 - [ ] Localizable rule descriptions (i18n)
