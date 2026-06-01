@@ -698,8 +698,7 @@ public class RulesDbContext : DbContext
 
 ## Requirements
 
-- .NET Standard 2.1 **and** .NET 8.0 (library multi-targets both)
-- .NET 8+ (demo project)
+- .NET 8.0 or .NET 9.0 (library multi-targets both)
 - NuGet: `Microsoft.CodeAnalysis.CSharp`
 
 ## AOT and Trimming Compatibility
