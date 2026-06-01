@@ -4,6 +4,7 @@ using RoslynRules.Compiler;
 using RoslynRules.Models;
 using System.Dynamic;
 using Xunit;
+using Workflow = global::RoslynRules.Models.Workflow;
 
 namespace RoslynRules.Tests.Execution
 {

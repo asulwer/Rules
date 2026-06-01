@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
+using Workflow = global::RoslynRules.Models.Workflow;
 
 namespace RoslynRules.Tests.Execution
 {

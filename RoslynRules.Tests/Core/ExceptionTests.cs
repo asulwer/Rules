@@ -2,6 +2,7 @@ using FluentAssertions;
 using RoslynRules.Exceptions;
 using System;
 using Xunit;
+using Workflow = global::RoslynRules.Models.Workflow;
 
 namespace RoslynRules.Tests.Core
 {

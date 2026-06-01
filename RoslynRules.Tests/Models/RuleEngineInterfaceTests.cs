@@ -4,6 +4,7 @@ using RoslynRules.Models;
 using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
+using Workflow = global::RoslynRules.Models.Workflow;
 
 namespace RoslynRules.Tests.Models
 {
@@ -28,14 +29,14 @@ namespace RoslynRules.Tests.Models
         [Fact]
         public void Workflow_Implements_IRuleEngine()
         {
-            IRuleEngine engine = new Workflow();
+            IRuleEngine engine = new global::RoslynRules.Models.Workflow();
             Assert.NotNull(engine);
         }
 
         [Fact]
         public void Workflow_ViaInterface_CompileAndExecute()
         {
-            IRuleEngine engine = new Workflow();
+            IRuleEngine engine = new global::RoslynRules.Models.Workflow();
             engine.Compile(_compileParams);
 
             var rule = new Rule
@@ -55,7 +56,7 @@ namespace RoslynRules.Tests.Models
         [Fact]
         public void Workflow_ViaInterface_ExecuteParallel()
         {
-            IRuleEngine engine = new Workflow();
+            IRuleEngine engine = new global::RoslynRules.Models.Workflow();
             var rule = new Rule
             {
                 Expression = "customer.Age >= 18",
@@ -73,7 +74,7 @@ namespace RoslynRules.Tests.Models
         [Fact]
         public async Task Workflow_ViaInterface_ExecuteAsync()
         {
-            IRuleEngine engine = new Workflow();
+            IRuleEngine engine = new global::RoslynRules.Models.Workflow();
             var rule = new Rule
             {
                 Expression = "customer.Age >= 18",
@@ -95,7 +96,7 @@ namespace RoslynRules.Tests.Models
         [Fact]
         public async Task Workflow_ViaInterface_ExecuteParallelAsync()
         {
-            IRuleEngine engine = new Workflow();
+            IRuleEngine engine = new global::RoslynRules.Models.Workflow();
             var rule = new Rule
             {
                 Expression = "customer.Age >= 18",
@@ -196,7 +197,7 @@ namespace RoslynRules.Tests.Models
         [Fact]
         public void Workflow_ViaInterface_Validate_ThrowsOnEmpty()
         {
-            IRuleEngine engine = new Workflow();
+            IRuleEngine engine = new global::RoslynRules.Models.Workflow();
             Assert.Throws<Exceptions.WorkflowException>(() => engine.Validate());
         }
 
@@ -210,7 +211,7 @@ namespace RoslynRules.Tests.Models
         [Fact]
         public void Workflow_ViaInterface_ExecuteWithoutCompile_Throws()
         {
-            IRuleEngine engine = new Workflow();
+            IRuleEngine engine = new global::RoslynRules.Models.Workflow();
             ((Workflow)engine).Rules.Add(new Rule
             {
                 Expression = "customer.Age >= 18",

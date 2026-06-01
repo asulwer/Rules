@@ -30,6 +30,9 @@ namespace RoslynRules.Models
         [NotMapped] private CompiledDelegate? _compiledAction;
         [NotMapped] private bool _isCompiled;
 
+        // Result cache for memoization.
+        [NotMapped] private readonly Execution.RuleCache _resultCache = new();
+
         /// <summary>
         /// EF Core requires a parameterless constructor.
         /// Initializes a new rule with default values.
@@ -150,6 +153,18 @@ namespace RoslynRules.Models
         private TimeSpan? _timeout;
 
         /// <summary>
+        /// Duration to cache rule evaluation results. Null means no caching.
+        /// When set, repeated executions with identical parameters return cached results.
+        /// Child rules are evaluated independently; only this rule's final result is cached.
+        /// </summary>
+        public TimeSpan? CacheDuration
+        {
+            get => _cacheDuration;
+            set { EnsureNotCompiled(nameof(CacheDuration)); _cacheDuration = value; }
+        }
+        private TimeSpan? _cacheDuration;
+
+        /// <summary>
         /// Navigation property to the parent rule.
         /// </summary>
         public Rule? ParentRule 
@@ -218,6 +233,12 @@ namespace RoslynRules.Models
         {
             Logger?.LogRuleExecuted(@event);
         }
+
+        /// <summary>
+        /// Clears the cached result for this rule, forcing the next evaluation to re-execute.
+        /// Thread-safe.
+        /// </summary>
+        public void ClearCache() => _resultCache.Clear();
 
         // ==================== VALIDATION ====================
 
@@ -615,6 +636,14 @@ namespace RoslynRules.Models
             if (_compiledExpression == null && _compiledAction == null && !ChildRules.Any())
                 throw new NotCompiledException(Id);
 
+            // Check cache first
+            if (CacheDuration.HasValue)
+            {
+                var cacheKey = Execution.CacheKeyBuilder.Build(Id, parameters);
+                if (_resultCache.TryGet(cacheKey, out var cachedResult))
+                    return cachedResult;
+            }
+
             var sw = Stopwatch.StartNew();
             RuleResult result;
 
@@ -673,6 +702,13 @@ namespace RoslynRules.Models
             // Fire OnRuleExecuted event
             var executedArgs = new RuleExecutedEventArgs(this, result, sw.Elapsed);
             OnRuleExecuted?.Invoke(this, executedArgs);
+
+            // Store result in cache
+            if (CacheDuration.HasValue)
+            {
+                var cacheKey = Execution.CacheKeyBuilder.Build(Id, parameters);
+                _resultCache.Set(cacheKey, result, CacheDuration.Value);
+            }
 
             return result;
         }
@@ -753,6 +789,14 @@ namespace RoslynRules.Models
             if (_compiledExpression == null && _compiledAction == null && !ChildRules.Any())
                 throw new NotCompiledException(Id);
 
+            // Check cache first
+            if (CacheDuration.HasValue)
+            {
+                var cacheKey = Execution.CacheKeyBuilder.Build(Id, parameters);
+                if (_resultCache.TryGet(cacheKey, out var cachedResult))
+                    return cachedResult;
+            }
+
             var sw = Stopwatch.StartNew();
             RuleResult result;
 
@@ -787,6 +831,13 @@ namespace RoslynRules.Models
             // Fire OnRuleExecuted event
             var executedArgs = new RuleExecutedEventArgs(this, result, sw.Elapsed);
             OnRuleExecuted?.Invoke(this, executedArgs);
+
+            // Store result in cache
+            if (CacheDuration.HasValue)
+            {
+                var cacheKey = Execution.CacheKeyBuilder.Build(Id, parameters);
+                _resultCache.Set(cacheKey, result, CacheDuration.Value);
+            }
 
             return result;
         }

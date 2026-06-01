@@ -5,6 +5,7 @@ using System;
 using System.IO;
 using System.Linq;
 using Xunit;
+using Workflow = global::RoslynRules.Models.Workflow;
 
 namespace RoslynRules.Tests.Integration
 {
