@@ -208,8 +208,11 @@ public class RuleContext
     // Check if a rule has been executed
     bool HasResult(Guid ruleId);
     
-    // Get typed value from a result
+    // Get typed value from a result (returns default(T) if not found/failed)
     T? GetValue<T>(Guid ruleId);
+    
+    // Get typed value safely — returns true only if rule succeeded and value is of type T
+    bool TryGetValue<T>(Guid ruleId, out T? value);
     
     // Clear all results
     void Clear();
@@ -233,6 +236,27 @@ var calculateTotal = new Rule
     DependsOnRuleId = calculateTax.Id,
     Expression = "true",
     Action = @"customer.Total = customer.Amount + context.GetValue<decimal>(calculateTax.Id)",
+    IsActive = true
+};
+```
+
+### Using TryGetValue for Safe Access
+
+```csharp
+var calculateTotal = new Rule
+{
+    Description = "Calculate total",
+    DependsOnRuleId = calculateTax.Id,
+    Expression = "true",
+    Action = @"
+        if (context.TryGetValue<decimal>(calculateTax.Id, out var taxAmount))
+        {
+            customer.Total = customer.Amount + taxAmount;
+        }
+        else
+        {
+            customer.Total = customer.Amount; // No tax applied
+        }",
     IsActive = true
 };
 ```

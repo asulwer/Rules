@@ -21,9 +21,16 @@ An individual rule with optional boolean Expression, Action, and child rules.
 | `IsActive` | `bool` | When false, rule is skipped |
 | `Expression` | `string` | C# boolean expression evaluated during execution |
 | `Action` | `string` | C# expression executed when rule succeeds |
+| `Priority` | `int` | Execution priority (higher = first; default 0) |
+| `Timeout` | `TimeSpan?` | Per-rule execution timeout (null = no timeout) |
+| `DependsOnRuleId` | `Guid?` | Foreign key for rule dependency (data-flow) |
+| `ParentRuleId` | `Guid?` | Foreign key for parent rule (structural) |
 | `ChildRules` | `IList<Rule>` | Child rules evaluated bottom-up before parent |
 | `ParentRule` | `Rule?` | Navigation to parent (EF support) |
+| `DependsOnRule` | `Rule?` | Navigation to dependency rule (EF support) |
 | `Workflow` | `Workflow?` | Navigation to parent workflow (EF support) |
+
+**Note:** `Rule` is `sealed`. Properties become immutable after `Compile()`.
 
 ### Methods
 
@@ -36,6 +43,19 @@ rule.Validate(); // Throws on:
                  // - Empty rules (no Expression/Action/children)
                  // - Invalid C# syntax
                  // - Circular child references
+```
+
+#### `ValidateAll()`
+
+Validates the rule and returns all errors without throwing.
+
+```csharp
+ValidationError[] errors = rule.ValidateAll();
+if (errors.Any())
+{
+    foreach (var error in errors)
+        Console.WriteLine($"[{error.ErrorType}] {error.Message}");
+}
 ```
 
 #### `Compile(ExpressionCompiler, RuleParameter[], string[]?)`
@@ -86,6 +106,20 @@ Validates all rules and checks workflow consistency.
 
 ```csharp
 workflow.Validate();
+```
+
+#### `ValidateAll()`
+
+Validates the workflow and returns all errors without throwing.
+
+```csharp
+ValidationError[] errors = workflow.ValidateAll();
+if (errors.Any())
+{
+    // Handle validation errors
+    foreach (var error in errors)
+        Console.WriteLine($"[{error.ErrorType}] {error.EntityDescription}: {error.Message}");
+}
 ```
 
 #### `Compile(RuleParameter[], string[]?)`
@@ -189,11 +223,12 @@ RoslynRules uses a custom exception hierarchy for clear error handling.
 | Exception | Thrown When |
 |-----------|-------------|
 | `RuleValidationException` | Rule has no Expression, Action, or active children |
-| `CircularReferenceException` | Circular reference detected in child rules |
+| `CircularReferenceException` | Circular reference detected in child rules or dependency chain |
 | `SyntaxErrorException` | Invalid C# syntax in expression |
 | `RuleCompilationException` | Roslyn compilation failure |
 | `NotCompiledException` | Execute called before Compile |
 | `RuleExecutionException` | Runtime error in compiled expression |
+| `RuleTimeoutException` | Rule exceeded configured `Timeout` during execution |
 | `WorkflowException` | Workflow has no active rules |
 | `DuplicateRuleIdException` | Duplicate rule IDs in workflow |
 
@@ -345,7 +380,8 @@ Abstraction implemented by `Workflow` and `RuleBatch`. Enables dependency inject
 | `ExecuteAsync(params, ct)` | `IAsyncEnumerable<RuleResult>` | Streaming async |
 | `ExecuteParallel(params)` | `RuleResult[]` | CPU-bound parallel |
 | `ExecuteParallelAsync(params, ct)` | `Task<RuleResult[]>` | Async parallel |
-| `Validate()` | `void` | Pre-compile validation |
+| `Validate()` | `void` | Pre-compile validation (throws) |
+| `ValidateAll()` | `ValidationError[]` | Pre-compile validation (returns) |
 
 ### Dependency Injection
 
@@ -456,4 +492,45 @@ Parallel async evaluation using `Task.WhenAll`.
 
 ```csharp
 var results = await batch.EvaluateParallelAsync(parameters);
+```
+
+## RuleContext
+
+Access dependency rule results during execution. Passed to expressions via the `context` parameter when `DependsOnRuleId` is used.
+
+### Methods
+
+#### `GetResult(Guid)`
+
+Gets the full `RuleResult` for a dependency rule.
+
+```csharp
+var taxResult = context.GetResult(taxRule.Id);
+if (taxResult.Success)
+{
+    var taxAmount = taxResult.Value;
+}
+```
+
+#### `GetValue<T>(Guid)`
+
+Gets the typed value from a successful dependency rule. Returns `default(T)` if rule not found or failed — ambiguous for value types.
+
+```csharp
+int amount = context.GetValue<int>(taxRule.Id);  // 0 if not found or value was 0
+```
+
+#### `TryGetValue<T>(Guid, out T?)`
+
+Safer alternative to `GetValue`. Returns `true` only if rule succeeded and value is of type `T`.
+
+```csharp
+if (context.TryGetValue<int>(taxRule.Id, out var amount))
+{
+    Console.WriteLine($"Tax: {amount}");  // Only runs if rule succeeded
+}
+else
+{
+    Console.WriteLine("Tax rule failed or not found");
+}
 ```

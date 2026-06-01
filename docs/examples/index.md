@@ -24,7 +24,9 @@ Quick-reference code snippets for common scenarios.
 - [Loading Rules into a Batch](#loading-rules-into-a-batch)
 - [Batch Evaluation](#batch-evaluation-10-rules)
 - [Rule Priority](#rule-priority)
+- [Per-Rule Timeout](#per-rule-timeout)
 - [Validation Before Compile](#validation-before-compile)
+- [Non-Throwing Validation](#non-throwing-validation)
 
 ## Detailed Guides
 
@@ -378,6 +380,22 @@ var results = workflow.Execute(parameters);
 - Same priority = original order preserved
 - Immutable after `Compile()`
 
+## Per-Rule Timeout
+
+Prevent infinite loops or blocking operations from hanging execution:
+
+```csharp
+var rule = new Rule
+{
+    Description = "External API call",
+    Expression = "await CheckApiAsync(customer.Id)",
+    Timeout = TimeSpan.FromSeconds(10),  // Fail after 10 seconds
+    IsActive = true
+};
+
+// If execution exceeds 10s, RuleTimeoutException is thrown
+```
+
 ## Validation Before Compile
 
 ```csharp
@@ -395,4 +413,17 @@ catch (InvalidOperationException ex)
     // - Duplicate rule IDs
     Console.WriteLine($"Validation failed: {ex.Message}");
 }
+```
+
+## Non-Throwing Validation
+
+Collect all validation errors without throwing:
+
+```csharp
+ValidationError[] errors = workflow.ValidateAll();
+foreach (var error in errors)
+{
+    Console.WriteLine($"[{error.ErrorType}] {error.Message}");
+}
+// ErrorType values: NoActiveRules, EmptyRule, SyntaxError, CircularReference, DuplicateRuleId, MissingDependency
 ```

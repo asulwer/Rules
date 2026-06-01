@@ -117,11 +117,12 @@ RoslynRules uses typed exceptions for clear error handling:
 | Exception | When Thrown |
 |-----------|-------------|
 | `RuleValidationException` | Rule has no Expression, Action, or active children |
-| `CircularReferenceException` | Circular reference in child rule tree |
+| `CircularReferenceException` | Circular reference in child rule tree or dependency chain |
 | `SyntaxErrorException` | Invalid C# syntax in expression |
 | `RuleCompilationException` | Roslyn compilation failure |
 | `NotCompiledException` | Execute called before Compile |
 | `RuleExecutionException` | Runtime error in compiled code |
+| `RuleTimeoutException` | Rule exceeded configured `Timeout` |
 | `WorkflowException` | Workflow has no active rules |
 | `DuplicateRuleIdException` | Duplicate rule IDs in same workflow |
 
@@ -248,6 +249,23 @@ var totalRule = new Rule
 };
 ```
 
+**`TryGetValue` — safer alternative to `GetValue`:**
+
+```csharp
+// GetValue returns default(T) when rule not found — ambiguous for value types
+int value = context.GetValue<int>(taxRule.Id);  // 0 if not found OR value was actually 0
+
+// TryGetValue distinguishes these cases
+if (context.TryGetValue<int>(taxRule.Id, out var amount))
+{
+    Console.WriteLine($"Tax: {amount}");
+}
+else
+{
+    Console.WriteLine("Tax rule not found or failed");
+}
+```
+
 **Validation:** `Validate()` checks all `DependsOnRuleId` references exist and detects circular dependencies.
 
 **Execution modes:** Dependencies execute first in all modes (sequential, parallel, async, buffered). Parallel mode runs independent rules concurrently while respecting dependency chains.
@@ -300,7 +318,8 @@ var rule = new Rule
     Description = "Check adult customers",
     Expression = "customer.Age >= 18",
     Action = "customer.Processed = true",
-    IsActive = true
+    IsActive = true,
+    Timeout = TimeSpan.FromSeconds(5)  // Optional: prevent infinite loops
 };
 
 var childRule = new Rule
@@ -397,6 +416,41 @@ wf.Validate();  // Throws on:
                 // - Duplicate rule IDs
                 // - No active rules
 ```
+
+**`ValidateAll()` — non-throwing alternative:**
+
+```csharp
+ValidationError[] errors = wf.ValidateAll();
+if (errors.Any())
+{
+    foreach (var error in errors)
+        Console.WriteLine($"[{error.ErrorType}] {error.Message}");
+}
+```
+
+| Error Type | When |
+|-----------|------|
+| `NoActiveRules` | Workflow has no active rules |
+| `EmptyRule` | Rule has no Expression, Action, or active children |
+| `CircularReference` | Circular dependency in child rules or `DependsOnRuleId` |
+| `SyntaxError` | Invalid C# syntax in expression or action |
+| `DuplicateRuleId` | Duplicate rule IDs in same workflow |
+| `MissingDependency` | `DependsOnRuleId` points to non-existent rule |
+| `General` | Other validation failure |
+
+## Per-Rule Timeout
+
+Prevent infinite loops or blocking I/O from hanging rule execution:
+
+```csharp
+var rule = new Rule
+{
+    Expression = "customer.Age >= 18",
+    Timeout = TimeSpan.FromSeconds(5)  // Fail after 5 seconds
+};
+```
+
+When a rule exceeds its timeout, `RuleTimeoutException` is thrown with the rule ID and configured timeout duration. Timeout is immutable after `Compile()`.
 
 ## Compile-Time Immutability
 
@@ -570,7 +624,8 @@ var service = new MyService(mockEngine.Object);
 | `ExecuteAsync(params, ct)` | `IAsyncEnumerable<RuleResult>` | Streaming async |
 | `ExecuteParallel(params)` | `RuleResult[]` | CPU-bound parallel |
 | `ExecuteParallelAsync(params, ct)` | `Task<RuleResult[]>` | Async parallel |
-| `Validate()` | `void` | Pre-compile validation |
+| `Validate()` | `void` | Pre-compile validation (throws) |
+| `ValidateAll()` | `ValidationError[]` | Pre-compile validation (returns) |
 
 ## Performance
 
@@ -589,17 +644,28 @@ Typical execution for 999 customers:
 RoslynRules/
 ├── Abstractions/
 │   └── IRuleEngine.cs       # Interface for DI and mocking
-├── Models/
-│   ├── Rule.cs              # Individual rule with Expression/Action/Children
-│   ├── Workflow.cs          # Container with sequential/parallel/async execution
-│   ├── RuleParameter.cs     # Parameter definition (name, type, value)
-│   ├── RuleResult.cs        # Execution result (success, data)
-│   └── CompiledDelegate.cs  # Typed delegate wrappers (no DynamicInvoke)
+├── Batch/
+│   └── RuleBatch.cs         # Batch evaluation (sealed, 10+ rules)
 ├── Compiler/
 │   ├── ExpressionCompiler.cs   # Public API: Compile(expression) -> Delegate
 │   ├── CodeGenerator.cs        # Generates C# source from expression string
 │   ├── AssemblyCompiler.cs     # Compiles source to assembly bytes
 │   └── DelegateFactory.cs      # Loads assembly and creates typed delegate
+├── Exceptions/
+│   └── RulesException.cs       # Typed exception hierarchy
+├── Execution/
+│   ├── RuleContext.cs          # Dependency result access (GetResult, TryGetValue)
+│   └── RuleExecutionContext.cs # Execution helpers
+├── Extensions/
+│   └── JsonRuleLoader.cs       # JSON serialization (preserves Priority, Timeout, DependsOn, Parent)
+├── Models/
+│   ├── Rule.cs              # Individual rule (sealed, immutable after compile)
+│   ├── Workflow.cs          # Container with sequential/parallel/async execution
+│   ├── RuleParameter.cs     # Parameter definition (name, type, value)
+│   ├── RuleResult.cs        # Execution result (success, data)
+│   ├── CompiledDelegate.cs  # Typed delegate wrappers (no DynamicInvoke)
+│   ├── RuleDiagnostics.cs   # Compilation diagnostics
+│   └── ValidationError.cs   # Structured validation errors with ValidationErrorType enum
 ├── Testing/
 │   ├── RuleResultAssertions.cs # Fluent assertions for RuleResult
 │   ├── RuleTest.cs             # Declarative test builder for rules/workflows
@@ -632,9 +698,13 @@ public class RulesDbContext : DbContext
 
 ## Requirements
 
-- .NET Standard 2.1 (library)
+- .NET Standard 2.1 **and** .NET 8.0 (library multi-targets both)
 - .NET 8+ (demo project)
 - NuGet: `Microsoft.CodeAnalysis.CSharp`
+
+## Source Link
+
+RoslynRules includes Source Link support. When you reference the NuGet package, you can step into the library source code during debugging in Visual Studio or VS Code.
 
 ## License
 
