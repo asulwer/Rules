@@ -193,13 +193,23 @@ namespace RoslynRules.Models
         }
         private Rule? _dependsOnRule;
 
-        // ==================== LOGGING ====================
+        // ==================== LOGGING & EVENTS ====================
 
         /// <summary>
         /// Optional logger for observing rule execution.
         /// Set this to any ILogger implementation (Serilog, NLog, etc.).
         /// </summary>
         [NotMapped] public ILogger? Logger { get; set; }
+
+        /// <summary>
+        /// Fired before a rule executes. Set Cancel = true to skip execution.
+        /// </summary>
+        public event EventHandler<RuleExecutingEventArgs>? OnRuleExecuting;
+
+        /// <summary>
+        /// Fired after a rule completes execution.
+        /// </summary>
+        public event EventHandler<RuleExecutedEventArgs>? OnRuleExecuted;
 
         /// <summary>
         /// Logs rule execution via Microsoft.Extensions.Logging if a logger is set.
@@ -589,6 +599,8 @@ namespace RoslynRules.Models
 
         /// <summary>
         /// Core execution logic without timeout or logging.
+        /// Fires OnRuleExecuting and OnRuleExecuted lifecycle events.
+        /// Exceptions propagate naturally — caught by ExecuteWithContext for logging.
         /// </summary>
         private RuleResult ExecuteCoreInternal(RuleContext? context, RuleParameter[] parameters)
         {
@@ -603,6 +615,22 @@ namespace RoslynRules.Models
             if (_compiledExpression == null && _compiledAction == null && !ChildRules.Any())
                 throw new NotCompiledException(Id);
 
+            var sw = Stopwatch.StartNew();
+            RuleResult result;
+
+            // Fire OnRuleExecuting event
+            var executingArgs = new RuleExecutingEventArgs(this, parameters);
+            OnRuleExecuting?.Invoke(this, executingArgs);
+            if (executingArgs.Cancel)
+            {
+                result = new RuleResult(true, Id, Description, IsActive, value: null,
+                    childResults: new List<RuleResult>(),
+                    exception: executingArgs.CancelReason != null
+                        ? new OperationCanceledException(executingArgs.CancelReason)
+                        : null);
+                goto Completed;
+            }
+
             var paramValue = parameters[0].Value;
 
             // Bottom-up: evaluate all active children first
@@ -612,7 +640,10 @@ namespace RoslynRules.Models
                 var childResult = child.ExecuteWithContext(context, parameters);
                 childResults.Add(childResult);
                 if (!childResult.Success)
-                return new RuleResult(false, Id, Description, IsActive, childResults: childResults);
+                {
+                    result = new RuleResult(false, Id, Description, IsActive, childResults: childResults);
+                    goto Completed;
+                }
             }
 
             // Evaluate compiled Expression if present
@@ -620,17 +651,30 @@ namespace RoslynRules.Models
             {
                 var exprResult = _compiledExpression.Invoke(paramValue);
                 if (!(bool)exprResult!)
-                return new RuleResult(false, Id, Description, IsActive, childResults: childResults);
+                {
+                    result = new RuleResult(false, Id, Description, IsActive, childResults: childResults);
+                    goto Completed;
+                }
             }
 
             // Execute compiled Action if present
             if (_compiledAction != null)
             {
                 var actionResult = _compiledAction.Invoke(paramValue);
-                return new RuleResult(true, Id, Description, IsActive, actionResult, childResults: childResults);
+                result = new RuleResult(true, Id, Description, IsActive, actionResult, childResults: childResults);
+                goto Completed;
             }
 
-                return new RuleResult(true, Id, Description, IsActive, childResults: childResults);
+            result = new RuleResult(true, Id, Description, IsActive, childResults: childResults);
+
+        Completed:
+            sw.Stop();
+
+            // Fire OnRuleExecuted event
+            var executedArgs = new RuleExecutedEventArgs(this, result, sw.Elapsed);
+            OnRuleExecuted?.Invoke(this, executedArgs);
+
+            return result;
         }
 
         /// <summary>
@@ -691,6 +735,8 @@ namespace RoslynRules.Models
         /// <summary>
         /// Core async execution logic without logging overhead.
         /// Enforces per-rule timeout if configured.
+        /// Fires OnRuleExecuting and OnRuleExecuted lifecycle events.
+        /// Exceptions propagate naturally — caught by ExecuteWithContextAsync for logging.
         /// </summary>
         /// <param name="context">Optional context for accessing dependency results.</param>
         /// <param name="parameters">Runtime parameter values.</param>
@@ -707,18 +753,42 @@ namespace RoslynRules.Models
             if (_compiledExpression == null && _compiledAction == null && !ChildRules.Any())
                 throw new NotCompiledException(Id);
 
-            // If timeout is configured, wrap execution in a timed task
-            if (Timeout.HasValue)
+            var sw = Stopwatch.StartNew();
+            RuleResult result;
+
+            // Fire OnRuleExecuting event
+            var executingArgs = new RuleExecutingEventArgs(this, parameters);
+            OnRuleExecuting?.Invoke(this, executingArgs);
+            if (executingArgs.Cancel)
             {
+                result = new RuleResult(true, Id, Description, IsActive, value: null,
+                    childResults: new List<RuleResult>(),
+                    exception: executingArgs.CancelReason != null
+                        ? new OperationCanceledException(executingArgs.CancelReason)
+                        : null);
+            }
+            else if (Timeout.HasValue)
+            {
+                // If timeout is configured, wrap execution in a timed task
                 using var cts = new CancellationTokenSource((int)Timeout.Value.TotalMilliseconds);
                 var task = ExecuteCoreAsyncInternal(context, parameters, cts.Token);
                 var completed = await Task.WhenAny(task, Task.Delay(Timeout.Value, cts.Token));
                 if (completed != task)
                     throw new RuleTimeoutException(Id, Timeout.Value);
-                return await task;
+                result = await task;
+            }
+            else
+            {
+                result = await ExecuteCoreAsyncInternal(context, parameters, CancellationToken.None);
             }
 
-            return await ExecuteCoreAsyncInternal(context, parameters, CancellationToken.None);
+            sw.Stop();
+
+            // Fire OnRuleExecuted event
+            var executedArgs = new RuleExecutedEventArgs(this, result, sw.Elapsed);
+            OnRuleExecuted?.Invoke(this, executedArgs);
+
+            return result;
         }
 
         /// <summary>

@@ -506,6 +506,86 @@ rule.Logger = new LoggerConfiguration()
 - `1003` — RuleFailed
 - `1004` — RuleError
 
+## Lifecycle Events
+
+Attach event handlers to rules for custom logic before and after execution.
+
+### OnRuleExecuting
+
+Fires before a rule evaluates. Set `Cancel = true` to skip execution.
+
+```csharp
+var rule = new Rule
+{
+    Description = "Adult check",
+    Expression = "customer.Age >= 18"
+};
+
+rule.OnRuleExecuting += (sender, args) =>
+{
+    // Inspect or modify execution
+    Console.WriteLine($"About to execute: {args.Rule.Description}");
+    
+    // Skip evaluation entirely
+    if (args.Parameters[0].Value is Customer c && c.Name == "SkipMe")
+    {
+        args.Cancel = true;
+        args.CancelReason = "Customer opted out";
+    }
+};
+```
+
+**When cancelled:**
+- Rule returns `Success = true` (skipped, not failed)
+- `OnRuleExecuted` still fires with cancellation info
+- Optional `CancelReason` is embedded as `OperationCanceledException`
+
+### OnRuleExecuted
+
+Fires after a rule completes — success, failure, or cancellation.
+
+```csharp
+rule.OnRuleExecuted += (sender, args) =>
+{
+    Console.WriteLine($"Rule {args.Rule.Description}: {(args.Result.Success ? "PASS" : "FAIL")}");
+    Console.WriteLine($"Elapsed: {args.Elapsed.TotalMilliseconds}ms");
+    
+    if (args.Exception != null)
+    {
+        Console.WriteLine($"Exception: {args.Exception.Message}");
+    }
+};
+```
+
+**Event args:**
+- `args.Rule` — The rule that executed
+- `args.Result` — Full `RuleResult` (Success, Value, Exception, etc.)
+- `args.Elapsed` — Execution time (excluding child rule evaluation)
+- `args.Exception` — Exception if execution failed
+
+**Note:** `OnRuleExecuted` does NOT fire when an unhandled exception propagates to the caller. Use the `ILogger` integration (Event ID 1004) to capture runtime errors.
+
+### Use Cases
+
+| Use Case | Handler |
+|----------|---------|
+| Audit logging | `OnRuleExecuted` — write result to audit table |
+| Circuit breaker | `OnRuleExecuting` — cancel if service is unhealthy |
+| Metrics | `OnRuleExecuted` — record timing to Prometheus |
+| Conditional skip | `OnRuleExecuting` — cancel for feature flags |
+| Debugging | Both — trace rule evaluation flow |
+
+### Child Rule Events
+
+Child rules fire their own events independently. Subscribe to each child separately:
+
+```csharp
+parent.ChildRules.Add(child);
+
+child.OnRuleExecuting += (s, e) => { /* fires when child evaluates */ };
+parent.OnRuleExecuting += (s, e) => { /* fires when parent evaluates */ };
+```
+
 ## ExpandoObject Support
 
 RoslynRules supports `ExpandoObject` via `dynamic` expressions. Useful when the data shape is not known at compile time.

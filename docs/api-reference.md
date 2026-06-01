@@ -29,6 +29,9 @@ An individual rule with optional boolean Expression, Action, and child rules.
 | `ParentRule` | `Rule?` | Navigation to parent (EF support) |
 | `DependsOnRule` | `Rule?` | Navigation to dependency rule (EF support) |
 | `Workflow` | `Workflow?` | Navigation to parent workflow (EF support) |
+| `Logger` | `ILogger?` | Optional logger for structured execution events |
+| `OnRuleExecuting` | `event EventHandler<RuleExecutingEventArgs>?` | Fires before execution; set Cancel to skip |
+| `OnRuleExecuted` | `event EventHandler<RuleExecutedEventArgs>?` | Fires after execution with result and timing |
 
 **Note:** `Rule` is `sealed`. Properties become immutable after `Compile()`.
 
@@ -376,6 +379,79 @@ var workflow = new Workflow
 ```
 
 Applies to all execution modes: `Execute`, `ExecuteParallel`, `ExecuteAsync`, `ExecuteParallelAsync`.
+
+## Lifecycle Events
+
+Attach event handlers to individual rules for custom logic before and after execution. Events fire per-rule; child rules fire their own events independently.
+
+### OnRuleExecuting
+
+Fires before a rule evaluates. Set `Cancel = true` to skip execution and return a success result.
+
+```csharp
+var rule = new Rule
+{
+    Description = "Adult check",
+    Expression = "customer.Age >= 18"
+};
+
+rule.OnRuleExecuting += (sender, args) =>
+{
+    // Inspect or modify execution
+    Console.WriteLine($"About to execute: {args.Rule.Description}");
+    
+    // Skip evaluation entirely
+    if (args.Parameters[0].Value is Customer c && c.Name == "SkipMe")
+    {
+        args.Cancel = true;
+        args.CancelReason = "Customer opted out";
+    }
+};
+```
+
+**Properties:**
+- `args.Rule` — The rule about to execute
+- `args.Parameters` — Runtime parameters passed to the rule
+- `args.Cancel` — Set to `true` to skip evaluation
+- `args.CancelReason` — Optional reason string (embedded as exception message)
+
+**When cancelled:**
+- Rule returns `RuleResult.Success = true` (skipped, not failed)
+- `OnRuleExecuted` still fires with cancellation info
+- Optional `CancelReason` is embedded as `OperationCanceledException` in the result
+
+### OnRuleExecuted
+
+Fires after a rule completes — success, failure, or cancellation. Does NOT fire when an unhandled exception propagates to the caller.
+
+```csharp
+rule.OnRuleExecuted += (sender, args) =>
+{
+    Console.WriteLine($"Rule {args.Rule.Description}: {(args.Result.Success ? "PASS" : "FAIL")}");
+    Console.WriteLine($"Elapsed: {args.Elapsed.TotalMilliseconds:0.000}ms");
+    
+    if (args.Exception != null)
+    {
+        Console.WriteLine($"Exception: {args.Exception.Message}");
+    }
+};
+```
+
+**Properties:**
+- `args.Rule` — The rule that executed
+- `args.Result` — Full `RuleResult` (Success, Value, Exception, ChildResults)
+- `args.Elapsed` — Execution time (excluding child rule evaluation)
+- `args.Exception` — Exception if execution failed (null otherwise)
+
+### Use Cases
+
+| Use Case | Handler |
+|----------|---------|
+| Audit logging | `OnRuleExecuted` — write result to audit table |
+| Circuit breaker | `OnRuleExecuting` — cancel if downstream service is unhealthy |
+| Metrics collection | `OnRuleExecuted` — record timing to Prometheus/StatsD |
+| Feature flags | `OnRuleExecuting` — cancel when feature is disabled |
+| Debug tracing | Both — log rule evaluation flow |
 
 ## IRuleEngine
 
