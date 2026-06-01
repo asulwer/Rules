@@ -50,16 +50,13 @@ namespace RoslynRules.Extensions
             if (dto == null)
                 throw new JsonException("Failed to deserialize workflow from JSON.");
 
-            var restored = new Workflow();
-            restored.Description = dto.Description;
-            restored.IsActive = dto.IsActive;
-            restored.Rules = dto.Rules?.Select(ToRule).ToList() ?? new List<Rule>();
-
-            // Set Id via reflection if non-default
-            if (dto.Id != default)
+            var restored = new Workflow
             {
-                typeof(Workflow).GetProperty("Id")?.SetValue(restored, dto.Id);
-            }
+                Id = dto.Id,
+                Description = dto.Description,
+                IsActive = dto.IsActive,
+                Rules = dto.Rules?.Select(ToRule).ToList() ?? new List<Rule>()
+            };
 
             return restored;
         }
@@ -131,28 +128,24 @@ namespace RoslynRules.Extensions
 
         private static Rule ToRule(RuleDto dto)
         {
-            var rule = new Rule();
-            rule.Description = dto.Description;
-            rule.IsActive = dto.IsActive;
-            rule.Priority = dto.Priority;
-            rule.Expression = dto.Expression;
-            rule.Action = dto.Action;
-            rule.Timeout = dto.TimeoutSeconds.HasValue ? TimeSpan.FromSeconds(dto.TimeoutSeconds.Value) : null;
-            rule.DependsOnRuleId = dto.DependsOnRuleId;
-            rule.ParentRuleId = dto.ParentRuleId;
-
-            // Set Id via reflection if non-default
-            if (dto.Id != default)
+            var rule = new Rule
             {
-                typeof(Rule).GetProperty("Id")?.SetValue(rule, dto.Id);
-            }
+                Id = dto.Id,
+                Description = dto.Description,
+                IsActive = dto.IsActive,
+                Priority = dto.Priority,
+                Expression = dto.Expression,
+                Action = dto.Action,
+                Timeout = dto.TimeoutSeconds.HasValue ? TimeSpan.FromSeconds(dto.TimeoutSeconds.Value) : null,
+                DependsOnRuleId = dto.DependsOnRuleId,
+                ParentRuleId = dto.ParentRuleId
+            };
 
             if (dto.ChildRules?.Any() == true)
             {
                 foreach (var childDto in dto.ChildRules)
                 {
                     var child = ToRule(childDto);
-                    child.ParentRuleId = rule.Id;
                     rule.ChildRules.Add(child);
                 }
             }

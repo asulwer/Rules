@@ -6,6 +6,8 @@ dotnet add package RoslynRules
 
 A high-performance rewrite of [Microsoft RulesEngine](https://github.com/microsoft/RulesEngine) and its maintained [fork](https://github.com/asulwer/RulesEngine). Built for speed, with a focus on zero-overhead execution, compile-time validation, and modern .NET patterns.
 
+> ⚠️ **Security Warning:** RoslynRules compiles user-supplied C# expression strings into executable code at runtime. Never compile expressions from untrusted sources (user input, external APIs, uploaded files) without validation. See [SECURITY.md](SECURITY.md) for details and mitigation strategies.
+
 📖 **Documentation:** [https://asulwer.github.io/RoslynRules/](https://asulwer.github.io/RoslynRules/)
 
 ## Key Differences
@@ -788,6 +790,16 @@ Typical execution for 999 customers:
 | Validation | 46ms | One-time |
 | Compilation | 812ms | One-time, cached |
 
+### Memory Considerations
+
+Each unique expression compilation loads a new assembly into memory. In long-running applications with dynamic rule generation, this can lead to unbounded memory growth because assemblies loaded via `Assembly.Load` are never unloaded from the default AppDomain.
+
+**Mitigation strategies:**
+- Reuse compiled rules and expressions when possible (the `ExpressionCompiler` caches delegates)
+- For dynamic expressions, consider periodic application restarts or pooling
+- Use `Rule.CacheDuration` to cache evaluation results and avoid redundant compilation
+- See [Issue #13](https://github.com/asulwer/RoslynRules/issues/13) for future `AssemblyLoadContext` support on .NET Core+
+
 ## Project Structure
 
 ```
@@ -845,51 +857,6 @@ public class RulesDbContext : DbContext
     }
 }
 ```
-
-## Result Caching (Memoization)
-
-Cache rule evaluation results to skip redundant execution of expensive rules.
-
-**Enable caching on a rule:**
-
-```csharp
-var rule = new Rule
-{
-    Description = "Complex validation",
-    Expression = "ExpensiveOperation(customer)",
-    CacheDuration = TimeSpan.FromMinutes(5)  // Cache for 5 minutes
-};
-
-// First call evaluates and caches
-var result1 = rule.Execute(parameters);
-
-// Second call with same parameters returns cached result instantly
-var result2 = rule.Execute(parameters);
-```
-
-**Cache behavior:**
-- Opt-in per-rule via `CacheDuration` property (`null` = disabled)
-- Thread-safe via `ConcurrentDictionary`
-- Automatic expiration on read (lazy cleanup)
-- Cache key includes rule ID + all parameter values
-- Only the rule's final result is cached; child rules are still evaluated independently
-- Exceptions are NOT cached — subsequent calls re-evaluate
-
-**Manual invalidation:**
-
-```csharp
-rule.ClearCache();  // Force next evaluation to re-run
-```
-
-**Typical use cases:**
-| Scenario | Cache Duration |
-|----------|---------------|
-| Database lookup rules | 30 seconds – 5 minutes |
-| API call rules | 1 – 10 minutes |
-| CPU-intensive calculations | 1 – 60 minutes |
-| Static reference data | Hours or until `ClearCache()` |
-
-**Important:** Caching is disabled by default. Enable only for idempotent rules — rules whose result won't change for the same input during the cache window.
 
 ## Requirements
 

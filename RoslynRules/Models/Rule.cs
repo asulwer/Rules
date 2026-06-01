@@ -54,7 +54,7 @@ namespace RoslynRules.Models
         /// <summary>
         /// Unique identifier for the rule.
         /// </summary>
-        [Key] public Guid Id { get; private set; } = Guid.NewGuid();
+        [Key] public Guid Id { get; init; } = Guid.NewGuid();
 
         /// <summary>
         /// Human-readable description of the rule&apos;s purpose.
@@ -598,21 +598,23 @@ namespace RoslynRules.Models
             if (_compiledExpression == null && _compiledAction == null && !ChildRules.Any())
                 throw new NotCompiledException(Id);
 
-            // If timeout is configured, wrap execution in a timed task
+            // If timeout is configured, wrap execution in a timeout.
+            // NOTE: This blocks a thread-pool thread. For production use with timeouts,
+            // prefer ExecuteAsync() which uses cooperative cancellation without blocking.
             if (Timeout.HasValue)
             {
-                var cts = new CancellationTokenSource((int)Timeout.Value.TotalMilliseconds);
-                try
+                using var cts = new CancellationTokenSource();
+                var workTask = Task.Run(() => ExecuteCoreInternal(context, parameters), cts.Token);
+                var timeoutTask = Task.Delay(Timeout.Value, cts.Token);
+                var completed = Task.WhenAny(workTask, timeoutTask).GetAwaiter().GetResult();
+
+                if (completed == timeoutTask)
                 {
-                    var task = Task.Run(() => ExecuteCoreInternal(context, parameters), cts.Token);
-                    if (!task.Wait((int)Timeout.Value.TotalMilliseconds, cts.Token))
-                        throw new RuleTimeoutException(Id, Timeout.Value);
-                    return task.Result;
-                }
-                catch (OperationCanceledException) when (cts.IsCancellationRequested)
-                {
+                    cts.Cancel(); // Signal cancellation to the work task
                     throw new RuleTimeoutException(Id, Timeout.Value);
                 }
+
+                return workTask.GetAwaiter().GetResult();
             }
 
             return ExecuteCoreInternal(context, parameters);

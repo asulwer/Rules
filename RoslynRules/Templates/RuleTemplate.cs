@@ -73,7 +73,7 @@ namespace RoslynRules.Templates
             {
                 Description = Description,
                 Expression = substitutedExpression,
-                Action = substitutedAction,
+                Action = substitutedAction ?? string.Empty,
                 IsActive = true
             };
 

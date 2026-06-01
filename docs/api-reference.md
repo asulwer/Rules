@@ -88,6 +88,14 @@ Asynchronous execution for rules containing `await`.
 var result = await rule.ExecuteAsync(parameters);
 ```
 
+#### `ClearCache()`
+
+Removes all cached results for this rule, forcing the next evaluation to re-execute. Thread-safe.
+
+```csharp
+rule.ClearCache();  // Force next Execute/ExecuteAsync to re-run
+```
+
 ## Workflow
 
 Container for top-level rules. Owns the ExpressionCompiler.
@@ -170,10 +178,24 @@ await foreach (var result in workflow.ExecuteAsync(parameters)) { ... }
 
 #### `ExecuteParallelAsync(params RuleParameter[])`
 
-Concurrent async execution using `Task.WhenAll`.
+Concurrent async execution using `Task.WhenAll`. Respects dependency chains.
 
 ```csharp
 var results = await workflow.ExecuteParallelAsync(parameters);
+```
+
+#### `ExecuteBufferedAsync(params RuleParameter[], int)`
+
+Executes rules in buffered chunks, yielding arrays of results. Rules with dependencies are executed in dependency order within each batch. Useful for processing large rule sets in batches.
+
+```csharp
+await foreach (var batch in workflow.ExecuteBufferedAsync(parameters, bufferSize: 10))
+{
+    foreach (var result in batch)
+    {
+        Console.WriteLine($"Result: {result.Success}");
+    }
+}
 ```
 
 ## RuleResult
@@ -245,7 +267,7 @@ RoslynRules uses a custom exception hierarchy for clear error handling.
 | `WorkflowException` | Workflow has no active rules |
 | `DuplicateRuleIdException` | Duplicate rule IDs in workflow |
 
-All exceptions inherit from `RulesException` (which inherits from `InvalidOperationException`).
+All exceptions inherit from `RulesException` (which inherits from `Exception`).
 
 ## ExpressionCompiler
 
