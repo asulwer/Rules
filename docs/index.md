@@ -50,11 +50,12 @@ var rule = new Rule
 };
 
 var wf = new Workflow { Rules = new List<Rule> { rule } };
-var param = new RuleParameter("customer", typeof(Customer), customer);
+var compileParam = new RuleParameter("customer", typeof(Customer));
+var executeParam = new RuleParameter("customer", typeof(Customer), customer);
 
 wf.Validate();
-wf.Compile(new[] { param });
-var results = wf.Execute(new[] { param });
+wf.Compile(new[] { compileParam });
+var results = wf.Execute(new[] { executeParam });
 ```
 
 ## Dependency Injection

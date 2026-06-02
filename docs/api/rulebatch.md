@@ -35,7 +35,8 @@ var batch = new RuleBatch()
 Single compile pass for all rules.
 
 ```csharp
-batch.Compile(parameters);
+var compileParams = new[] { new RuleParameter("customer", typeof(Customer)) };
+batch.Compile(compileParams);
 ```
 
 ### `Evaluate(RuleParameter[])` / `EvaluateParallel(RuleParameter[])`

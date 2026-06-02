@@ -49,11 +49,13 @@ var workflow = new Workflow {
     Rules = new List<Rule> { rule }
 };
 
-var param = new RuleParameter("customer", typeof(Customer), customer);
-workflow.Validate();
-workflow.Compile(new[] { param });
+var compileParam = new RuleParameter("customer", typeof(Customer));
+var executeParam = new RuleParameter("customer", typeof(Customer), customer);
 
-var results = workflow.Execute(new[] { param });
+workflow.Validate();
+workflow.Compile(new[] { compileParam });
+
+var results = workflow.Execute(new[] { executeParam });
 ```
 
 **Tip:** You can compile without values if you separate compilation from execution:

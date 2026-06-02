@@ -35,7 +35,7 @@ Deserializes from JSON string.
 ```csharp
 var workflow = JsonRuleLoader.DeserializeWorkflow(json);
 workflow.Validate();
-workflow.Compile(parameters);
+workflow.Compile(new[] { new RuleParameter("customer", typeof(Customer)) });
 ```
 
 ### `LoadWorkflowFromFile(string)` / `LoadRuleFromFile(string)`

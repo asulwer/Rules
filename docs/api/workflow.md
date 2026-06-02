@@ -44,7 +44,13 @@ workflow.ValidateAll();  // Returns ValidationError[]
 Compiles all active rules. Uses an internal `ExpressionCompiler`.
 
 ```csharp
-workflow.Compile(parameters);
+// Compile: only types matter, values can be null
+var compileParams = new[] { new RuleParameter("customer", typeof(Customer)) };
+workflow.Compile(compileParams);
+
+// Execute: real values required
+var executeParams = new[] { new RuleParameter("customer", typeof(Customer), customer) };
+var results = workflow.Execute(executeParams);
 ```
 
 ### `Execute(params RuleParameter[])`

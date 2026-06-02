@@ -58,10 +58,14 @@ public record ValidationError(string Message, ValidationErrorType ErrorType, Gui
 ## Usage
 
 ```csharp
+var compileParams = new[] { new RuleParameter("customer", typeof(Customer)) };
+var executeParams = new[] { new RuleParameter("customer", typeof(Customer), customer) };
+
 try
 {
     workflow.Validate();
-    workflow.Compile(parameters);
+    workflow.Compile(compileParams);
+    var results = workflow.Execute(executeParams);
 }
 catch (SyntaxErrorException ex)
 {

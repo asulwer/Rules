@@ -81,8 +81,9 @@ Compiles `Expression` and `Action` into typed delegates. **Locks all properties*
 
 ```csharp
 var compiler = new ExpressionCompiler();
-var parameters = new[] { new RuleParameter("c", typeof(Customer), default) };
-rule.Compile(compiler, parameters);
+// Compile: type only, value can be null/default
+var compileParams = new[] { new RuleParameter("c", typeof(Customer)) };
+rule.Compile(compiler, compileParams);
 
 // After compile — immutable:
 rule.Description = "New name"; // ❌ RuleCompilationException
