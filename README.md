@@ -833,13 +833,14 @@ Typical execution for 999 customers:
 
 ### Memory Considerations
 
-Each unique expression compilation loads a new assembly into memory. In long-running applications with dynamic rule generation, this can lead to unbounded memory growth because assemblies loaded via `Assembly.Load` are never unloaded from the default AppDomain.
+Each unique expression compilation loads a new assembly into a collectible `AssemblyLoadContext`. In long-running applications with dynamic rule generation, the `ExpressionCompiler` automatically recycles its load context after a configurable number of compilations (default: 1000) to reclaim memory. For manual control, call `compiler.Unload()` when memory pressure is detected.
 
 **Mitigation strategies:**
 - Reuse compiled rules and expressions when possible (the `ExpressionCompiler` caches delegates)
 - For dynamic expressions, consider periodic application restarts or pooling
 - Use `Rule.CacheDuration` to cache evaluation results and avoid redundant compilation
-- See [Issue #13](https://github.com/asulwer/RoslynRules/issues/13) for future `AssemblyLoadContext` support on .NET Core+
+- Call `compiler.Unload()` to force immediate cleanup of compiled assemblies
+- Adjust `maxCompilesBeforeRecycle` in the `ExpressionCompiler` constructor for your workload
 
 ## Project Structure
 
