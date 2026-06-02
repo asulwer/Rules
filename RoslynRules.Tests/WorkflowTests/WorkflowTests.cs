@@ -53,12 +53,8 @@ namespace RoslynRules.Tests.WorkflowTests
         public void Validate_DuplicateRuleIds_ThrowsWorkflowException()
         {
             var sharedId = Guid.NewGuid();
-            var rule1 = new Rule { Description = "Rule1", Expression = "true", IsActive = true };
-            var rule2 = new Rule { Description = "Rule2", Expression = "true", IsActive = true };
-            
-            // Use reflection to set private Id for test
-            typeof(Rule).GetProperty("Id")!.SetValue(rule1, sharedId);
-            typeof(Rule).GetProperty("Id")!.SetValue(rule2, sharedId);
+            var rule1 = new Rule(sharedId) { Description = "Rule1", Expression = "true", IsActive = true };
+            var rule2 = new Rule(sharedId) { Description = "Rule2", Expression = "true", IsActive = true };
 
             var workflow = new Workflow
             {

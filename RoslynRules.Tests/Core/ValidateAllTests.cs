@@ -47,13 +47,13 @@ namespace RoslynRules.Tests.Core
         public void Workflow_ValidateAll_MultipleErrors_ReturnsAll()
         {
             var wf = new global::RoslynRules.Models.Workflow();
-            var rule1 = new Rule { Expression = "true" };
-            var rule2 = new Rule { Expression = "true" }; // Will have duplicate ID
+            var sharedId = Guid.NewGuid();
+            var rule1 = new Rule(sharedId) { Expression = "true" };
+            var rule2 = new Rule(sharedId) { Expression = "true" }; // Duplicate ID
             var rule3 = new Rule { Expression = "broken syntax @#$" };
             wf.Rules.Add(rule1);
             wf.Rules.Add(rule2);
             wf.Rules.Add(rule3);
-            typeof(Rule).GetProperty("Id")!.SetValue(rule2, rule1.Id);
 
             var errors = wf.ValidateAll();
 
@@ -101,12 +101,11 @@ namespace RoslynRules.Tests.Core
         public void RuleBatch_ValidateAll_DuplicateIds_ReturnsDuplicateRuleIdError()
         {
             var batch = new RuleBatch();
-            var rule1 = new Rule { Expression = "true" };
-            var rule2 = new Rule { Expression = "false" };
+            var sharedId = Guid.NewGuid();
+            var rule1 = new Rule(sharedId) { Expression = "true" };
+            var rule2 = new Rule(sharedId) { Expression = "false" };
             batch.AddRule(rule1);
             batch.AddRule(rule2);
-            // Force duplicate Id
-            typeof(Rule).GetProperty("Id")!.SetValue(rule2, rule1.Id);
 
             var errors = batch.ValidateAll();
 
