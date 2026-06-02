@@ -123,7 +123,7 @@ namespace RoslynRules.Tests.Execution
             };
 
             var act = () => workflow.Validate();
-            act.Should().Throw<Exception>(); // Will be caught as either RuleValidationException or InvalidOperationException
+            act.Should().Throw<CircularReferenceException>();
         }
 
         [Fact]

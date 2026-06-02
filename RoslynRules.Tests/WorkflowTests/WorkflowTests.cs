@@ -50,7 +50,7 @@ namespace RoslynRules.Tests.WorkflowTests
         }
 
         [Fact]
-        public void Validate_DuplicateRuleIds_ThrowsWorkflowException()
+        public void Validate_DuplicateRuleIds_ThrowsDuplicateRuleIdException()
         {
             var sharedId = Guid.NewGuid();
             var rule1 = new Rule(sharedId) { Description = "Rule1", Expression = "true", IsActive = true };
@@ -63,7 +63,7 @@ namespace RoslynRules.Tests.WorkflowTests
             };
 
             var act = () => workflow.Validate();
-            act.Should().Throw<RoslynRules.Exceptions.WorkflowException>()
+            act.Should().Throw<RoslynRules.Exceptions.DuplicateRuleIdException>()
                 .WithMessage("*duplicate rule IDs*");
         }
 
