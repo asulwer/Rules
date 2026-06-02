@@ -606,7 +606,7 @@ namespace RoslynRules.Models
             if (Timeout.HasValue)
             {
                 using var cts = new CancellationTokenSource();
-                var workTask = Task.Run(() => ExecuteCoreInternal(context, parameters), cts.Token);
+                var workTask = Task.Run(() => ExecuteCoreInternal(context, parameters, cts.Token), cts.Token);
                 var timeoutTask = Task.Delay(Timeout.Value, cts.Token);
                 var completed = Task.WhenAny(workTask, timeoutTask).GetAwaiter().GetResult();
 
@@ -627,7 +627,7 @@ namespace RoslynRules.Models
         /// Fires OnRuleExecuting and OnRuleExecuted lifecycle events.
         /// Exceptions propagate naturally — caught by ExecuteWithContext for logging.
         /// </summary>
-        private RuleResult ExecuteCoreInternal(RuleContext? context, RuleParameter[] parameters)
+        private RuleResult ExecuteCoreInternal(RuleContext? context, RuleParameter[] parameters, CancellationToken cancellationToken = default)
         {
             if (!IsActive)
                 return new RuleResult(true, Id, Description, IsActive);
@@ -670,6 +670,7 @@ namespace RoslynRules.Models
             var childResults = new List<RuleResult>();
             foreach (var child in ChildRules.Where(r => r.IsActive))
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 var childResult = child.ExecuteWithContext(context, parameters);
                 childResults.Add(childResult);
                 if (!childResult.Success)
@@ -678,6 +679,8 @@ namespace RoslynRules.Models
                     goto Completed;
                 }
             }
+
+            cancellationToken.ThrowIfCancellationRequested();
 
             // Evaluate compiled Expression if present
             if (_compiledExpression != null)
@@ -689,6 +692,8 @@ namespace RoslynRules.Models
                     goto Completed;
                 }
             }
+
+            cancellationToken.ThrowIfCancellationRequested();
 
             // Execute compiled Action if present
             if (_compiledAction != null)
@@ -868,11 +873,14 @@ namespace RoslynRules.Models
             var childResults = new List<RuleResult>();
             foreach (var child in ChildRules.Where(r => r.IsActive))
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 var childResult = await child.ExecuteWithContextAsync(context, parameters);
                 childResults.Add(childResult);
                 if (!childResult.Success)
                 return new RuleResult(false, Id, Description, IsActive, childResults: childResults);
             }
+
+            cancellationToken.ThrowIfCancellationRequested();
 
             // Evaluate compiled Expression if present
             if (_compiledExpression != null)
@@ -890,6 +898,8 @@ namespace RoslynRules.Models
                 if (!(bool)exprResult!)
                 return new RuleResult(false, Id, Description, IsActive, childResults: childResults);
             }
+
+            cancellationToken.ThrowIfCancellationRequested();
 
             // Execute compiled Action if present
             if (_compiledAction != null)
