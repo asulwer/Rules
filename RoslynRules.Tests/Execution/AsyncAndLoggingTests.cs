@@ -18,6 +18,7 @@ namespace RoslynRules.Tests.Execution
     {
         private readonly RuleParameter[] _parameters;
         private readonly string[] _namespaces;
+        private readonly ExpressionCompiler _compiler;
 
         public AsyncAndLoggingTests()
         {
@@ -26,6 +27,7 @@ namespace RoslynRules.Tests.Execution
                 new RuleParameter("customer", typeof(TestCustomer), new TestCustomer { Age = 25, Name = "Alice" })
             };
             _namespaces = new[] { "RoslynRules.Tests", "System", "System.Threading.Tasks" };
+            _compiler = TestCompiler.Instance;
         }
 
         
@@ -48,8 +50,7 @@ namespace RoslynRules.Tests.Execution
                 IsActive = true
             };
 
-            var compiler = new ExpressionCompiler();
-            rule.Compile(compiler, _parameters, _namespaces);
+                        rule.Compile(_compiler, _parameters, _namespaces);
 
             var result = await rule.ExecuteAsync(_parameters);
 
@@ -66,8 +67,7 @@ namespace RoslynRules.Tests.Execution
                 IsActive = true
             };
 
-            var compiler = new ExpressionCompiler();
-            rule.Compile(compiler, _parameters, _namespaces);
+                        rule.Compile(_compiler, _parameters, _namespaces);
 
             var result = await rule.ExecuteAsync(_parameters);
 
@@ -85,8 +85,7 @@ namespace RoslynRules.Tests.Execution
                 IsActive = true
             };
 
-            var compiler = new ExpressionCompiler();
-            rule.Compile(compiler, _parameters, _namespaces);
+                        rule.Compile(_compiler, _parameters, _namespaces);
 
             var result = await rule.ExecuteAsync(_parameters);
 
@@ -114,8 +113,7 @@ namespace RoslynRules.Tests.Execution
 
             parent.ChildRules.Add(child);
 
-            var compiler = new ExpressionCompiler();
-            parent.Compile(compiler, _parameters, _namespaces);
+                        parent.Compile(_compiler, _parameters, _namespaces);
 
             var result = await parent.ExecuteAsync(_parameters);
 
@@ -134,8 +132,7 @@ namespace RoslynRules.Tests.Execution
                 IsActive = true
             };
 
-            var compiler = new ExpressionCompiler();
-            rule.Compile(compiler, _parameters, _namespaces);
+                        rule.Compile(_compiler, _parameters, _namespaces);
 
             var result = await rule.ExecuteAsync(_parameters);
 
@@ -155,8 +152,7 @@ namespace RoslynRules.Tests.Execution
                 Logger = logger
             };
 
-            var compiler = new ExpressionCompiler();
-            rule.Compile(compiler, _parameters, _namespaces);
+                        rule.Compile(_compiler, _parameters, _namespaces);
             rule.Execute(_parameters);
 
             logger.LogMessages.Should().ContainSingle();
@@ -176,8 +172,7 @@ namespace RoslynRules.Tests.Execution
                 Logger = logger
             };
 
-            var compiler = new ExpressionCompiler();
-            rule.Compile(compiler, _parameters, _namespaces);
+                        rule.Compile(_compiler, _parameters, _namespaces);
             rule.Execute(_parameters);
 
             logger.LogMessages.Should().ContainSingle();
@@ -197,8 +192,7 @@ namespace RoslynRules.Tests.Execution
                 Logger = logger
             };
 
-            var compiler = new ExpressionCompiler();
-            rule.Compile(compiler, _parameters, _namespaces);
+                        rule.Compile(_compiler, _parameters, _namespaces);
             rule.Execute(_parameters);
 
             logger.LogMessages.Should().ContainSingle();
@@ -255,4 +249,6 @@ namespace RoslynRules.Tests.Execution
         }
     }
 }
+
+
 

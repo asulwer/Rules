@@ -10,8 +10,11 @@ namespace RoslynRules.Tests.Execution
         private readonly RuleParameter[] _parameters;
         private readonly string[] _namespaces;
 
+        private readonly ExpressionCompiler _compiler;
+
         public RuleExecutionTests()
         {
+            _compiler = TestCompiler.Instance;
             _parameters = new[]
             {
                 new RuleParameter("customer", typeof(TestCustomer), new TestCustomer { Age = 25, Name = "Alice" })
@@ -29,8 +32,7 @@ namespace RoslynRules.Tests.Execution
                 IsActive = true
             };
 
-            var compiler = new ExpressionCompiler();
-            rule.Compile(compiler, _parameters, _namespaces);
+                        rule.Compile(_compiler, _parameters, _namespaces);
 
             var result = rule.Execute(_parameters);
 
@@ -47,8 +49,7 @@ namespace RoslynRules.Tests.Execution
                 IsActive = true
             };
 
-            var compiler = new ExpressionCompiler();
-            rule.Compile(compiler, _parameters, _namespaces);
+                        rule.Compile(_compiler, _parameters, _namespaces);
 
             var result = rule.Execute(_parameters);
 
@@ -65,8 +66,7 @@ namespace RoslynRules.Tests.Execution
                 IsActive = false
             };
 
-            var compiler = new ExpressionCompiler();
-            rule.Compile(compiler, _parameters, _namespaces);
+                        rule.Compile(_compiler, _parameters, _namespaces);
 
             var result = rule.Execute(_parameters);
 
@@ -91,8 +91,7 @@ namespace RoslynRules.Tests.Execution
                 IsActive = true
             };
 
-            var compiler = new ExpressionCompiler();
-            rule.Compile(compiler, parameters, _namespaces);
+                        rule.Compile(_compiler, parameters, _namespaces);
 
             var result = rule.Execute(parameters);
 
@@ -119,8 +118,7 @@ namespace RoslynRules.Tests.Execution
 
             parent.ChildRules.Add(child);
 
-            var compiler = new ExpressionCompiler();
-            parent.Compile(compiler, _parameters, _namespaces);
+                        parent.Compile(_compiler, _parameters, _namespaces);
 
             var result = parent.Execute(_parameters);
 
@@ -146,8 +144,7 @@ namespace RoslynRules.Tests.Execution
 
             parent.ChildRules.Add(child);
 
-            var compiler = new ExpressionCompiler();
-            parent.Compile(compiler, _parameters, _namespaces);
+                        parent.Compile(_compiler, _parameters, _namespaces);
 
             var result = parent.Execute(_parameters);
 
@@ -170,8 +167,7 @@ namespace RoslynRules.Tests.Execution
                 new RuleParameter("b", typeof(int), 2)
             };
 
-            var compiler = new ExpressionCompiler();
-            var act = () => rule.Compile(compiler, parameters, _namespaces);
+                        var act = () => rule.Compile(_compiler, parameters, _namespaces);
             
             act.Should().Throw<NotSupportedException>()
                 .WithMessage("*Rules support exactly one input parameter*");
@@ -193,3 +189,7 @@ namespace RoslynRules.Tests.Execution
         }
     }
 }
+
+
+
+
