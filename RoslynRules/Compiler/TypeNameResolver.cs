@@ -33,6 +33,12 @@ namespace RoslynRules.Compiler
             if (type == typeof(char))   return "char";
             if (type == typeof(byte))   return "byte";
 
+            // Handle nullable types before generics so they produce int? not Nullable<int>
+            if (Nullable.GetUnderlyingType(type) != null)
+            {
+                return $"{GetTypeName(Nullable.GetUnderlyingType(type)!)}?";
+            }
+
             // Handle generic types like Func<T, TResult>, List<T>, etc.
             if (type.IsGenericType)
             {
@@ -47,14 +53,18 @@ namespace RoslynRules.Compiler
                 return $"{GetTypeName(type.GetElementType()!)}[]";
             }
 
-            // Nullable types.
-            if (Nullable.GetUnderlyingType(type) != null)
+            // Handle nested types: FullName uses '+' separator, but C# requires '.'
+            if (type.IsNested)
             {
-                return $"{GetTypeName(Nullable.GetUnderlyingType(type)!)}?";
+                var declaringType = type.DeclaringType;
+                if (declaringType != null)
+                {
+                    return $"{GetTypeName(declaringType)}.{type.Name}";
+                }
             }
 
             // Fall back to fully-qualified name or simple name.
-            return type.FullName ?? type.Name;
+            return (type.FullName ?? type.Name).Replace('+', '.');
         }
     }
 }
