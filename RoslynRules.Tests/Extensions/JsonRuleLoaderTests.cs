@@ -30,7 +30,7 @@ namespace RoslynRules.Tests.Extensions
             };
 
             var json = JsonRuleLoader.Serialize(workflow);
-            var restored = JsonRuleLoader.Deserialize(json);
+            var restored = JsonRuleLoader.DeserializeWorkflow(json);
 
             restored.Rules.Should().HaveCount(1);
             restored.Rules[0].CacheDuration.Should().Be(TimeSpan.FromMinutes(5));
@@ -55,7 +55,7 @@ namespace RoslynRules.Tests.Extensions
             };
 
             var json = JsonRuleLoader.Serialize(workflow);
-            var restored = JsonRuleLoader.Deserialize(json);
+            var restored = JsonRuleLoader.DeserializeWorkflow(json);
 
             restored.Rules.Should().HaveCount(1);
             restored.Rules[0].Timeout.Should().Be(TimeSpan.FromSeconds(10));
@@ -84,7 +84,7 @@ namespace RoslynRules.Tests.Extensions
             };
 
             var json = JsonRuleLoader.Serialize(workflow);
-            var restored = JsonRuleLoader.Deserialize(json);
+            var restored = JsonRuleLoader.DeserializeWorkflow(json);
 
             restored.Description.Should().Be("Test workflow");
             restored.IsActive.Should().BeTrue();
@@ -116,7 +116,7 @@ namespace RoslynRules.Tests.Extensions
             };
 
             var json = JsonRuleLoader.Serialize(workflow);
-            var restored = JsonRuleLoader.Deserialize(json);
+            var restored = JsonRuleLoader.DeserializeWorkflow(json);
 
             restored.Rules[0].CacheDuration.Should().BeNull();
         }
@@ -145,7 +145,7 @@ namespace RoslynRules.Tests.Extensions
             };
 
             var json = JsonRuleLoader.Serialize(workflow);
-            var restored = JsonRuleLoader.Deserialize(json);
+            var restored = JsonRuleLoader.DeserializeWorkflow(json);
 
             restored.Rules[0].ChildRules.Should().HaveCount(1);
             restored.Rules[0].ChildRules[0].CacheDuration.Should().Be(TimeSpan.FromSeconds(30));
