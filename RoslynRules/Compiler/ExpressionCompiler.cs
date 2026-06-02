@@ -41,26 +41,29 @@ namespace RoslynRules.Compiler
         /// <param name="expression">The C# expression body.</param>
         /// <param name="parameterNames">Ordered parameter names matching the delegate signature.</param>
         /// <param name="additionalNamespaces">Optional extra using namespaces (e.g. "Demo.Models").</param>
+        /// <param name="referenceProvider">Optional custom assembly reference provider for sandboxing. Defaults to safe whitelist.</param>
         /// <returns>A typed delegate that evaluates the expression.</returns>
         /// <exception cref="InvalidOperationException">Thrown when expression compilation fails.</exception>
         [RequiresUnreferencedCode("RoslynRules uses reflection to inspect delegate signatures (GetMethod, GetParameters). This code may not work correctly with trimming or AOT.")]
         public TDelegate Compile<TDelegate>(
             string expression,
             string[] parameterNames,
-            string[]? additionalNamespaces = null) where TDelegate : Delegate
+            string[]? additionalNamespaces = null,
+            AssemblyReferenceProvider? referenceProvider = null) where TDelegate : Delegate
         {
             // STEP 1: Build a unique cache key.
             var cacheKey = BuildCacheKey<TDelegate>(expression, parameterNames, additionalNamespaces);
 
             // Atomic GetOrAdd — compilation happens inside the factory, so only one thread compiles.
-            var del = _cache.GetOrAdd(cacheKey, key => CompileInternal<TDelegate>(expression, parameterNames, additionalNamespaces));
+            var del = _cache.GetOrAdd(cacheKey, key => CompileInternal<TDelegate>(expression, parameterNames, additionalNamespaces, referenceProvider));
             return (TDelegate)del;
         }
 
         private TDelegate CompileInternal<TDelegate>(
             string expression,
             string[] parameterNames,
-            string[]? additionalNamespaces) where TDelegate : Delegate
+            string[]? additionalNamespaces,
+            AssemblyReferenceProvider? referenceProvider) where TDelegate : Delegate
         {
             // Check compile limit and recycle ALC if needed.
             lock (_lock)
@@ -87,8 +90,8 @@ namespace RoslynRules.Compiler
                 parameterTypes,
                 additionalNamespaces);
 
-            // STEP 4: Compile source code into raw assembly bytes.
-            var assemblyBytes = AssemblyCompiler.Compile(code);
+            // STEP 4: Compile source code into raw assembly bytes with sandboxing.
+            var assemblyBytes = AssemblyCompiler.Compile(code, referenceProvider);
 
             // STEP 5: Load assembly into collectible context and create a typed delegate.
             lock (_lock)

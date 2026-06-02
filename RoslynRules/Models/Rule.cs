@@ -485,7 +485,9 @@ namespace RoslynRules.Models
         {
             var paramNames = parameters.Select(p => p.Name).ToArray();
             var method = compiler.GetType().GetMethod("Compile")!.MakeGenericMethod(delegateType);
-            var result = method.Invoke(compiler, new object[] { expression, paramNames, additionalNamespaces ?? Array.Empty<string>() });
+            // The Compile method has 4 parameters: expression, parameterNames, additionalNamespaces, referenceProvider
+            // We pass null for referenceProvider to use the default safe whitelist
+            var result = method.Invoke(compiler, new object?[] { expression, paramNames, additionalNamespaces ?? Array.Empty<string>(), null });
             if (result is not Delegate delegateResult)
                 throw new RuleCompilationException("Compiler did not return a valid delegate.");
             return delegateResult;
