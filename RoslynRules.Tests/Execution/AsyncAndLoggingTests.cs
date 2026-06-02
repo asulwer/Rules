@@ -30,16 +30,6 @@ namespace RoslynRules.Tests.Execution
             _compiler = TestCompiler.Instance;
         }
 
-        
-
-        
-
-        
-
-        
-
-        
-
         [Fact]
         public async Task ExecuteAsync_AsyncExpression_ReturnsTrue()
         {
@@ -50,7 +40,7 @@ namespace RoslynRules.Tests.Execution
                 IsActive = true
             };
 
-                        rule.Compile(_compiler, _parameters, _namespaces);
+            rule.Compile(_compiler, _parameters, _namespaces);
 
             var result = await rule.ExecuteAsync(_parameters);
 
@@ -67,7 +57,7 @@ namespace RoslynRules.Tests.Execution
                 IsActive = true
             };
 
-                        rule.Compile(_compiler, _parameters, _namespaces);
+            rule.Compile(_compiler, _parameters, _namespaces);
 
             var result = await rule.ExecuteAsync(_parameters);
 
@@ -85,7 +75,7 @@ namespace RoslynRules.Tests.Execution
                 IsActive = true
             };
 
-                        rule.Compile(_compiler, _parameters, _namespaces);
+            rule.Compile(_compiler, _parameters, _namespaces);
 
             var result = await rule.ExecuteAsync(_parameters);
 
@@ -113,7 +103,7 @@ namespace RoslynRules.Tests.Execution
 
             parent.ChildRules.Add(child);
 
-                        parent.Compile(_compiler, _parameters, _namespaces);
+            parent.Compile(_compiler, _parameters, _namespaces);
 
             var result = await parent.ExecuteAsync(_parameters);
 
@@ -132,7 +122,7 @@ namespace RoslynRules.Tests.Execution
                 IsActive = true
             };
 
-                        rule.Compile(_compiler, _parameters, _namespaces);
+            rule.Compile(_compiler, _parameters, _namespaces);
 
             var result = await rule.ExecuteAsync(_parameters);
 
@@ -152,7 +142,7 @@ namespace RoslynRules.Tests.Execution
                 Logger = logger
             };
 
-                        rule.Compile(_compiler, _parameters, _namespaces);
+            rule.Compile(_compiler, _parameters, _namespaces);
             rule.Execute(_parameters);
 
             logger.LogMessages.Should().ContainSingle();
@@ -172,7 +162,7 @@ namespace RoslynRules.Tests.Execution
                 Logger = logger
             };
 
-                        rule.Compile(_compiler, _parameters, _namespaces);
+            rule.Compile(_compiler, _parameters, _namespaces);
             rule.Execute(_parameters);
 
             logger.LogMessages.Should().ContainSingle();
@@ -192,7 +182,7 @@ namespace RoslynRules.Tests.Execution
                 Logger = logger
             };
 
-                        rule.Compile(_compiler, _parameters, _namespaces);
+            rule.Compile(_compiler, _parameters, _namespaces);
             rule.Execute(_parameters);
 
             logger.LogMessages.Should().ContainSingle();
@@ -249,6 +239,3 @@ namespace RoslynRules.Tests.Execution
         }
     }
 }
-
-
-
