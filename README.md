@@ -212,7 +212,7 @@ Chain rules so the output of one rule feeds into the next. Use `DependsOnRuleId`
 
 | | Parent-Child (`ParentRuleId`) | DependsOn (`DependsOnRuleId`) |
 |---|---|---|
-| **Relationship** | Structural nesting — child is part of parent | Data-flow — one rule reads another&apos;s output |
+| **Relationship** | Structural nesting — child is part of parent | Data-flow — one rule reads another's output |
 | **Execution** | Child runs first, then parent expression | Dependency runs first, then dependent rule |
 | **Failure impact** | Parent fails if any child fails | Dependent still runs even if dependency fails |
 | **Use for** | Sub-conditions that compose a larger check | Multi-stage pipelines needing earlier outputs |
