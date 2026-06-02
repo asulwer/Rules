@@ -1,5 +1,4 @@
 using System;
-using System.Linq.Expressions;
 
 namespace RoslynRules.Models
 {
@@ -25,11 +24,6 @@ namespace RoslynRules.Models
         public object? Value { get; set; }
 
         /// <summary>
-        /// Cached expression-tree parameter used during Roslyn delegate generation.
-        /// </summary>
-        internal ParameterExpression Expression { get; }
-
-        /// <summary>
         /// Initializes a new parameter definition.
         /// </summary>
         /// <param name="name">Parameter name matching the expression identifier.</param>
@@ -40,7 +34,6 @@ namespace RoslynRules.Models
             Name = name ?? throw new ArgumentNullException(nameof(name));
             Type = type ?? throw new ArgumentNullException(nameof(type));
             Value = value;
-            Expression = System.Linq.Expressions.Expression.Parameter(type, name);
         }
     }
 }
