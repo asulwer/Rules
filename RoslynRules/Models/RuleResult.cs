@@ -9,6 +9,14 @@ namespace RoslynRules.Models
     /// Includes detailed information about which rule ran, why it failed,
     /// and results from child rules for full traceability.
     /// </summary>
+    /// <remarks>
+    /// Uses a readonly struct to avoid per-result heap allocation.
+    /// Stored in generic collections (List&lt;T&gt;, Dictionary&lt;K,V&gt;) which
+    /// hold structs inline without boxing. Interface access (IReadOnlyList,
+    /// IEnumerable) does not box the values themselves in modern .NET.
+    /// Benchmarks show struct is competitive with class for large hierarchies
+    /// and avoids GC pressure for high-throughput scenarios.
+    /// </remarks>
     public readonly struct RuleResult
     {
         /// <summary>
