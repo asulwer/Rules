@@ -105,10 +105,11 @@ namespace RoslynRules.Models
                 return errors.ToArray();
             }
 
-            // 2. Validate each top-level rule.
+            // 2. Validate each top-level rule, passing available IDs for dependency checks.
+            var availableIds = activeRules.Select(r => r.Id).ToList();
             foreach (var rule in activeRules)
             {
-                errors.AddRange(rule.ValidateAll());
+                errors.AddRange(rule.ValidateAll(availableIds));
             }
 
             // 3. Detect duplicate rule IDs within this workflow.

@@ -258,7 +258,7 @@ namespace RoslynRules.Models
         /// correct C#, and that child rules are valid.
         /// </summary>
         /// <exception cref="RuleValidationException">Thrown when structural or syntax validation fails.</exception>
-        public void Validate()
+        public void Validate(IEnumerable<Guid>? availableRuleIds = null)
         {
             // 1. Structural validation: a rule must have something to do.
             if (string.IsNullOrEmpty(Expression) && string.IsNullOrEmpty(Action) && !ChildRules.Any(r => r.IsActive))
@@ -282,10 +282,21 @@ namespace RoslynRules.Models
                 ValidateExpressionSyntax(Action, mustReturnBool: false);
             }
 
-            // 5. Validate child rules recursively (safe now that circular refs are checked).
+            // 5. Validate dependency references if available rule IDs are provided.
+            if (DependsOnRuleId.HasValue && availableRuleIds != null)
+            {
+                var available = availableRuleIds as ICollection<Guid> ?? availableRuleIds.ToList();
+                if (!available.Contains(DependsOnRuleId.Value))
+                {
+                    throw new RuleValidationException(
+                        $"Rule '{Description}' (Id: {Id}) depends on rule {DependsOnRuleId.Value} which does not exist or is inactive in the current workflow.");
+                }
+            }
+
+            // 6. Validate child rules recursively (safe now that circular refs are checked).
             foreach (var child in ChildRules.Where(r => r.IsActive))
             {
-                child.Validate();
+                child.Validate(availableRuleIds);
             }
         }
 
@@ -294,7 +305,7 @@ namespace RoslynRules.Models
         /// Does not throw — returns an empty array if validation succeeds.
         /// </summary>
         /// <returns>Array of validation errors. Empty if valid.</returns>
-        public ValidationError[] ValidateAll()
+        public ValidationError[] ValidateAll(IEnumerable<Guid>? availableRuleIds = null)
         {
             var errors = new List<ValidationError>();
 
@@ -330,10 +341,22 @@ namespace RoslynRules.Models
                 ValidateExpressionSyntax(Action, mustReturnBool: false, errors);
             }
 
-            // 5. Validate child rules recursively.
+            // 5. Validate dependency references if available rule IDs are provided.
+            if (DependsOnRuleId.HasValue && availableRuleIds != null)
+            {
+                var available = availableRuleIds as ICollection<Guid> ?? availableRuleIds.ToList();
+                if (!available.Contains(DependsOnRuleId.Value))
+                {
+                    errors.Add(new ValidationError(
+                        $"Rule '{Description}' (Id: {Id}) depends on rule {DependsOnRuleId.Value} which does not exist or is inactive in the current workflow.",
+                        ValidationErrorType.MissingDependency, Id, Description));
+                }
+            }
+
+            // 6. Validate child rules recursively.
             foreach (var child in ChildRules.Where(r => r.IsActive))
             {
-                errors.AddRange(child.ValidateAll());
+                errors.AddRange(child.ValidateAll(availableRuleIds));
             }
 
             return errors.ToArray();
