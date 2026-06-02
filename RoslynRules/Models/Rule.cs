@@ -613,7 +613,7 @@ namespace RoslynRules.Models
             catch (Exception ex)
             {
                 exception = ex;
-                result = new RuleResult(false, Id, Description, IsActive, exception: ex);
+                result = new RuleResult(false, Id, Description, IsActive, Exception: ex);
             }
 
             sw.Stop();
@@ -708,9 +708,9 @@ namespace RoslynRules.Models
             OnRuleExecuting?.Invoke(this, executingArgs);
             if (executingArgs.Cancel)
             {
-                result = new RuleResult(true, Id, Description, IsActive, value: null,
-                    childResults: new List<RuleResult>(),
-                    exception: executingArgs.CancelReason != null
+                result = new RuleResult(true, Id, Description, IsActive, Value: null,
+                    ChildResults: new List<RuleResult>(),
+                    Exception: executingArgs.CancelReason != null
                         ? new OperationCanceledException(executingArgs.CancelReason)
                         : null);
                 goto Completed;
@@ -727,7 +727,7 @@ namespace RoslynRules.Models
                 childResults.Add(childResult);
                 if (!childResult.Success)
                 {
-                    result = new RuleResult(false, Id, Description, IsActive, childResults: childResults);
+                    result = new RuleResult(false, Id, Description, IsActive, ChildResults: childResults);
                     goto Completed;
                 }
             }
@@ -740,7 +740,7 @@ namespace RoslynRules.Models
                 var exprResult = _compiledExpression.Invoke(paramValue);
                 if (!(bool)exprResult!)
                 {
-                    result = new RuleResult(false, Id, Description, IsActive, childResults: childResults);
+                    result = new RuleResult(false, Id, Description, IsActive, ChildResults: childResults);
                     goto Completed;
                 }
             }
@@ -751,11 +751,11 @@ namespace RoslynRules.Models
             if (_compiledAction != null)
             {
                 var actionResult = _compiledAction.Invoke(paramValue);
-                result = new RuleResult(true, Id, Description, IsActive, actionResult, childResults: childResults);
+                result = new RuleResult(true, Id, Description, IsActive, actionResult, ChildResults: childResults);
                 goto Completed;
             }
 
-            result = new RuleResult(true, Id, Description, IsActive, childResults: childResults);
+            result = new RuleResult(true, Id, Description, IsActive, ChildResults: childResults);
 
         Completed:
             sw.Stop();
@@ -809,7 +809,7 @@ namespace RoslynRules.Models
             catch (Exception ex)
             {
                 exception = ex;
-                result = new RuleResult(false, Id, Description, IsActive, exception: ex);
+                result = new RuleResult(false, Id, Description, IsActive, Exception: ex);
             }
 
             sw.Stop();
@@ -866,9 +866,9 @@ namespace RoslynRules.Models
             OnRuleExecuting?.Invoke(this, executingArgs);
             if (executingArgs.Cancel)
             {
-                result = new RuleResult(true, Id, Description, IsActive, value: null,
-                    childResults: new List<RuleResult>(),
-                    exception: executingArgs.CancelReason != null
+                result = new RuleResult(true, Id, Description, IsActive, Value: null,
+                    ChildResults: new List<RuleResult>(),
+                    Exception: executingArgs.CancelReason != null
                         ? new OperationCanceledException(executingArgs.CancelReason)
                         : null);
             }
@@ -929,7 +929,7 @@ namespace RoslynRules.Models
                 var childResult = await child.ExecuteWithContextAsync(context, parameters);
                 childResults.Add(childResult);
                 if (!childResult.Success)
-                return new RuleResult(false, Id, Description, IsActive, childResults: childResults);
+                return new RuleResult(false, Id, Description, IsActive, ChildResults: childResults);
             }
 
             cancellationToken.ThrowIfCancellationRequested();
@@ -948,7 +948,7 @@ namespace RoslynRules.Models
                 }
                 
                 if (!(bool)exprResult!)
-                return new RuleResult(false, Id, Description, IsActive, childResults: childResults);
+                return new RuleResult(false, Id, Description, IsActive, ChildResults: childResults);
             }
 
             cancellationToken.ThrowIfCancellationRequested();
@@ -965,10 +965,10 @@ namespace RoslynRules.Models
                 {
                     actionResult = _compiledAction.Invoke(paramValue);
                 }
-                return new RuleResult(true, Id, Description, IsActive, actionResult, childResults: childResults);
+                return new RuleResult(true, Id, Description, IsActive, actionResult, ChildResults: childResults);
             }
 
-                return new RuleResult(true, Id, Description, IsActive, childResults: childResults);
+                return new RuleResult(true, Id, Description, IsActive, ChildResults: childResults);
         }
 
         /// <summary>
