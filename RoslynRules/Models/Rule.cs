@@ -256,6 +256,11 @@ namespace RoslynRules.Models
         /// Validates the rule structure and expression syntax before compilation.
         /// Checks that the rule has valid content, that expressions are syntactically
         /// correct C#, and that child rules are valid.
+        /// <br/><br/>
+        /// <b>Note:</b> This method only validates <i>syntax</i>, not semantics.
+        /// Undefined variables or missing types will pass syntax validation but fail
+        /// at compile time. Use <see cref="ValidateSemantics">ValidateSemantics</see>
+        /// for full semantic validation (requires a compiler and parameters).
         /// </summary>
         /// <exception cref="RuleValidationException">Thrown when structural or syntax validation fails.</exception>
         public void Validate(IEnumerable<Guid>? availableRuleIds = null)
@@ -965,5 +970,54 @@ namespace RoslynRules.Models
 
                 return new RuleResult(true, Id, Description, IsActive, childResults: childResults);
         }
-    }
+
+        /// <summary>
+        /// Performs semantic validation by attempting to compile the rule's Expression and Action.
+        /// This catches errors that syntax-only validation misses: undefined identifiers,
+        /// missing types, incorrect method signatures, missing using directives, etc.
+        /// </summary>
+        /// <param name="compiler">Expression compiler for the dry-run compilation.</param>
+        /// <param name="parameters">Parameter definitions used for compilation.</param>
+        /// <param name="additionalNamespaces">Extra namespaces for expression compilation.</param>
+        /// <exception cref="RuleCompilationException">Thrown if semantic errors are found in the Expression or Action.</exception>
+        public void ValidateSemantics(ExpressionCompiler compiler, RuleParameter[] parameters, string[]? additionalNamespaces = null)
+        {
+            if (parameters.Length != 1)
+                throw new NotSupportedException(
+                    $"ValidateSemantics supports exactly one parameter. You provided {parameters.Length}. " +
+                    "Wrap multiple values in a struct/class.");
+
+            if (!string.IsNullOrEmpty(Expression))
+            {
+                try
+                {
+                    var delegateType = BuildDelegateType(typeof(object), parameters);
+                    var exprDelegate = CompileDelegate(compiler, Expression, delegateType, parameters, additionalNamespaces);
+                }
+                catch (Exception ex)
+                {
+                    throw new RuleCompilationException(
+                        $"Semantic error in rule '{Description}' (Id: {Id}) Expression: {ex.Message}", ex);
+                }
+            }
+
+            if (!string.IsNullOrEmpty(Action))
+            {
+                try
+                {
+                    var delegateType = BuildDelegateType(typeof(void), parameters);
+                    var actionDelegate = CompileDelegate(compiler, Action, delegateType, parameters, additionalNamespaces);
+                }
+                catch (Exception ex)
+                {
+                    throw new RuleCompilationException(
+                        $"Semantic error in rule '{Description}' (Id: {Id}) Action: {ex.Message}", ex);
+                }
+            }
+
+            foreach (var child in ChildRules.Where(r => r.IsActive))
+            {
+                child.ValidateSemantics(compiler, parameters, additionalNamespaces);
+            }
+        }    }
 }
