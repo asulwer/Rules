@@ -35,7 +35,7 @@ namespace RoslynRules.Compiler
             Type[] parameterTypes,
             string[]? additionalNamespaces = null)
         {
-            var isAsync = expression.Contains("await ");
+            var isAsync = ContainsAwaitExpression(expression);
             var methodSignature = BuildMethodSignature(returnType, parameterNames, parameterTypes, isAsync);
             
             // For async methods: if expression starts with 'await', don't double-await
@@ -114,6 +114,28 @@ public static class ExpressionAssembly
             }
 
             return string.Join("\n", allUsings.Select(u => $"using {u};"));
+        }
+
+        /// <summary>
+        /// Checks if an expression contains an actual await expression by parsing the syntax tree.
+        /// Avoids false positives from variable names, string literals, or comments.
+        /// </summary>
+        private static bool ContainsAwaitExpression(string expression)
+        {
+            if (string.IsNullOrWhiteSpace(expression))
+                return false;
+
+            try
+            {
+                var tree = Microsoft.CodeAnalysis.CSharp.CSharpSyntaxTree.ParseText(expression);
+                var root = tree.GetRoot();
+                return root.DescendantNodes().Any(n => n is Microsoft.CodeAnalysis.CSharp.Syntax.AwaitExpressionSyntax);
+            }
+            catch
+            {
+                // If parsing fails, fall back to the simple but fragile check
+                return expression.Contains("await");
+            }
         }
     }
 }
