@@ -22,10 +22,6 @@ namespace RoslynRules.Execution
                 return true;
             }
 
-            // Lazy cleanup of expired entry
-            if (entry.Expires <= DateTime.UtcNow)
-                _cache.TryRemove(key, out _);
-
             result = default;
             return false;
         }
