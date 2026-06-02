@@ -30,7 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `JsonRuleLoader` reflection-based ID restoration replaced with `[JsonInclude]` attributes
 - Duplicate "Result Caching" section removed from README
 
-## [1.0.0] - 2026-06-01
+## [1.0.0] - 2026-06-02
 
 ### Added
 
