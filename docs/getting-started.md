@@ -59,12 +59,12 @@ var workflow = new Workflow
 
 ### 4. Define Parameters
 
-For **compilation**, only the parameter **type** and **name** are needed. The value can be `null`.
+For **compilation**, only the parameter **type** and **name** are needed.
 
 ```csharp
-var compileParams = new RuleParameter[]
+var compileParams = new[]
 {
-    new RuleParameter("customer", typeof(Customer))  // value not needed for Compile
+    RuleParameter.ForCompile("customer", typeof(Customer))
 };
 ```
 
@@ -73,9 +73,9 @@ For **execution**, pass a parameter with a real value:
 ```csharp
 var customer = new Customer { Name = "Alice", Age = 25 };
 
-var executeParams = new RuleParameter[]
+var executeParams = new[]
 {
-    new RuleParameter("customer", typeof(Customer), customer)
+    RuleParameter.ForExecute("customer", typeof(Customer), customer)
 };
 ```
 
@@ -85,7 +85,7 @@ var executeParams = new RuleParameter[]
 // Catch errors before compiling
 workflow.Validate();
 
-// Compile once — only types matter
+// Compile once — types and names only
 workflow.Compile(compileParams);
 
 // Execute many times with different values
@@ -97,7 +97,7 @@ foreach (var result in results)
 }
 ```
 
-**Key point:** Compile with null values, execute with real instances. Separate compilation (needs types) from execution (needs values).
+**Key point:** Compile with `ForCompile()` (types only). Execute with `ForExecute()` (real values). Separate compilation from execution.
 
 ## Next Steps
 

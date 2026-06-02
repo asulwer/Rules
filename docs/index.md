@@ -50,8 +50,8 @@ var rule = new Rule
 };
 
 var wf = new Workflow { Rules = new List<Rule> { rule } };
-var compileParam = new RuleParameter("customer", typeof(Customer));
-var executeParam = new RuleParameter("customer", typeof(Customer), customer);
+var compileParam = RuleParameter.ForCompile("customer", typeof(Customer));
+var executeParam = RuleParameter.ForExecute("customer", typeof(Customer), customer);
 
 wf.Validate();
 wf.Compile(new[] { compileParam });

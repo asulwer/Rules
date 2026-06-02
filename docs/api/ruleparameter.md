@@ -31,6 +31,29 @@ public RuleParameter(string name, Type type, object? value = null)
 
 ---
 
+## Factory Methods
+
+### `ForCompile(string name, Type type)`
+
+Creates a parameter for **compilation only** — no value needed.
+
+```csharp
+var compileParam = RuleParameter.ForCompile("customer", typeof(Customer));
+workflow.Compile(new[] { compileParam });
+```
+
+### `ForExecute(string name, Type type, object value)`
+
+Creates a parameter for **execution** — requires a real value.
+
+```csharp
+var customer = new Customer { Name = "Alice", Age = 25 };
+var executeParam = RuleParameter.ForExecute("customer", typeof(Customer), customer);
+var results = workflow.Execute(new[] { executeParam });
+```
+
+---
+
 ## Properties
 
 | Property | Type | Description |
@@ -38,32 +61,37 @@ public RuleParameter(string name, Type type, object? value = null)
 | `Name` | `string` | Parameter name |
 | `Type` | `Type` | CLR type |
 | `Value` | `object?` | Runtime value |
+| `HasValue` | `bool` | True if a runtime value is set |
 
 ---
 
 ## Compile vs Execute
 
-The **type** matters for compilation; the **value** matters for execution.
+| Phase | What Matters | Factory Method |
+|-------|-----------|----------------|
+| **Compile** | Name + Type only (value can be null) | `ForCompile(name, type)` |
+| **Execute** | Name + Type + Value (all required) | `ForExecute(name, type, value)` |
 
 ```csharp
-// Compile with null values
-workflow.Compile(new[]
+// Compile at startup — types only
+var compileParams = new[]
 {
-    new RuleParameter("customer", typeof(Customer))  // value = null
-});
+    RuleParameter.ForCompile("customer", typeof(Customer))
+};
+workflow.Compile(compileParams);
 
-// Execute later with real instances
-var customer = new Customer { Name = "Alice", Age = 25 };
-var results = workflow.Execute(new[]
+// Execute later with real data
+var executeParams = new[]
 {
-    new RuleParameter("customer", typeof(Customer), customer)
-});
+    RuleParameter.ForExecute("customer", typeof(Customer), customer)
+};
+var results = workflow.Execute(executeParams);
 ```
 
-**Use cases for null values:**
-- Compile at startup, execute later with different data
-- Avoid creating dummy objects for compilation
-- Separate compilation (needs types) from execution (needs values)
+**Why separate them?**
+- Compile once at startup (no data needed)
+- Execute many times with different data
+- Prevents accidental name/type mismatches between compile and execute
 
 ---
 
