@@ -440,48 +440,58 @@ namespace RoslynRules.Models
             if (!IsActive)
                 return Array.Empty<RuleResult>();
 
-            var activeRules = Rules.Where(r => r.IsActive).OrderByDescending(r => r.Priority).ToArray();
-            if (activeRules.Length == 0)
+            var orderedRules = GetExecutionOrder();
+            if (orderedRules.Count == 0)
                 return Array.Empty<RuleResult>();
 
-            // Separate rules with and without dependencies
-            var rulesWithDeps = activeRules.Where(r => r.DependsOnRuleId.HasValue).ToList();
-            var independentRules = activeRules.Where(r => !r.DependsOnRuleId.HasValue).ToArray();
-
             var context = new RuleContext();
+            var executed = new HashSet<Guid>();
+            var allResults = new List<RuleResult>(orderedRules.Count);
 
-            // Execute independent rules in parallel first
-            var independentTasks = independentRules.Select(rule => 
-                rule.ExecuteWithContextAsync(context, parameters)).ToArray();
-
-            if (cancellationToken.IsCancellationRequested)
-                throw new OperationCanceledException(cancellationToken);
-
-            var independentResults = await Task.WhenAll(independentTasks);
-
-            // Execute dependent rules sequentially after their dependencies
-            var dependentResults = new List<RuleResult>();
-            foreach (var rule in rulesWithDeps)
+            int index = 0;
+            while (index < orderedRules.Count)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                
-                // Ensure dependency has been executed
-                if (rule.DependsOnRuleId.HasValue && !context.HasResult(rule.DependsOnRuleId.Value))
+
+                // Build a batch: all consecutive rules whose dependencies are satisfied
+                var batch = new List<Rule>();
+                for (int i = index; i < orderedRules.Count; i++)
                 {
-                    var depRule = activeRules.FirstOrDefault(r => r.Id == rule.DependsOnRuleId.Value);
-                    if (depRule != null && !context.HasResult(depRule.Id))
+                    var rule = orderedRules[i];
+                    if (!rule.DependsOnRuleId.HasValue || executed.Contains(rule.DependsOnRuleId.Value))
                     {
-                        var depResult = await depRule.ExecuteWithContextAsync(context, parameters);
-                        dependentResults.Add(depResult);
+                        batch.Add(rule);
+                    }
+                    else
+                    {
+                        break; // Dependencies not yet satisfied, stop batching
                     }
                 }
 
-                var result = await rule.ExecuteWithContextAsync(context, parameters);
-                dependentResults.Add(result);
+                if (batch.Count == 0)
+                {
+                    // Should not happen if GetExecutionOrder is correct, but guard against infinite loop
+                    throw new CircularReferenceException(
+                        orderedRules[index].Id,
+                        $"Dependency resolution failed at rule '{orderedRules[index].Description}'. " +
+                        $"Dependency {orderedRules[index].DependsOnRuleId} not found or not yet executed.");
+                }
+
+                // Execute this batch in parallel
+                var tasks = batch.Select(rule => rule.ExecuteWithContextAsync(context, parameters)).ToArray();
+                var results = await Task.WhenAll(tasks);
+                allResults.AddRange(results);
+
+                foreach (var rule in batch)
+                {
+                    executed.Add(rule.Id);
+                }
+
+                index += batch.Count;
             }
 
-            // Combine and return in original rule order
-            var allResults = independentResults.Concat(dependentResults).ToList();
+            // Return in original rule order (not dependency order)
+            var activeRules = Rules.Where(r => r.IsActive).ToArray();
             return activeRules.Select(r => allResults.First(ar => ar.RuleId == r.Id)).ToArray();
         }
 
