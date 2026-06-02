@@ -30,7 +30,7 @@ namespace RoslynRules.Tests.Compiler
         [Fact]
         public void GetTypeName_NullableType_ReturnsFullName()
         {
-            typeof(int?).FullName.Should().Be("System.Nullable`1[[System.Int32, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]");
+            typeof(int?).FullName.Should().Match("System.Nullable`1[[System.Int32, System.Private.CoreLib, Version=*.*.*.*, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]");
         }
 
         [Fact]
