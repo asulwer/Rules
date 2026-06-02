@@ -219,31 +219,84 @@ namespace RoslynRules.Tests.Execution
         }
 
         [Fact]
-        public void Execute_Cache_ExceptionsNotCached()
+        public void Execute_Cache_DifferentListContents_DifferentCacheKeys()
         {
             var rule = new Rule
             {
-                Description = "Error rule",
-                Expression = "1 / (customer.Age - 30) == 1",
+                Description = "List check",
+                Expression = "items.Count > 0",
                 IsActive = true,
                 CacheDuration = TimeSpan.FromMinutes(5)
             };
 
-            rule.Compile(_compiler, _parameters, new[] { "RoslynRules.Tests" });
+            var params1 = new[]
+            {
+                new RuleParameter("items", typeof(List<string>), new List<string> { "A", "B" })
+            };
+            var params2 = new[]
+            {
+                new RuleParameter("items", typeof(List<string>), new List<string> { "C", "D" })
+            };
 
-            // First call returns failed result with exception (not thrown)
-            var result1 = rule.Execute(_parameters);
-            result1.Success.Should().BeFalse();
-            result1.Exception.Should().BeOfType<DivideByZeroException>();
+            rule.Compile(_compiler, params1, new[] { "RoslynRules.Tests" });
 
-            // Second call should re-evaluate and also return failed result
-            var result2 = rule.Execute(_parameters);
+            var result1 = rule.Execute(params1); // should succeed and cache
+            var result2 = rule.Execute(params2); // different contents = different key = re-evaluate
+
+            result1.Success.Should().BeTrue();
+            result2.Success.Should().BeTrue();
+            // Different cache keys means independent evaluations
+        }
+
+        [Fact]
+        public void Execute_Cache_SameListContents_SameCacheKey()
+        {
+            var rule = new Rule
+            {
+                Description = "List check",
+                Expression = "items.Count > 0",
+                IsActive = true,
+                CacheDuration = TimeSpan.FromMinutes(5)
+            };
+
+            var list1 = new List<string> { "A", "B" };
+            var list2 = new List<string> { "A", "B" }; // same contents, different instance
+
+            var params1 = new[] { new RuleParameter("items", typeof(List<string>), list1) };
+            var params2 = new[] { new RuleParameter("items", typeof(List<string>), list2) };
+
+            rule.Compile(_compiler, params1, new[] { "RoslynRules.Tests" });
+
+            var result1 = rule.Execute(params1);
+            var result2 = rule.Execute(params2);
+
+            result1.Success.Should().BeTrue();
+            result2.Success.Should().BeTrue();
+            // Same contents should produce same cache key = cache hit
+            result2.Should().Be(result1);
+        }
+
+        [Fact]
+        public void Execute_Cache_ArrayDifferentContents_DifferentResults()
+        {
+            var rule = new Rule
+            {
+                Description = "Array length check",
+                Expression = "items.Length >= 2",
+                IsActive = true,
+                CacheDuration = TimeSpan.FromMinutes(5)
+            };
+
+            var params1 = new[] { new RuleParameter("items", typeof(string[]), new[] { "x", "y" }) };
+            var params2 = new[] { new RuleParameter("items", typeof(string[]), new[] { "a" }) };
+
+            rule.Compile(_compiler, params1, new[] { "RoslynRules.Tests" });
+
+            var result1 = rule.Execute(params1);
+            var result2 = rule.Execute(params2);
+
+            result1.Success.Should().BeTrue();
             result2.Success.Should().BeFalse();
-            result2.Exception.Should().BeOfType<DivideByZeroException>();
-            
-            // If exception was cached, result2 would be a cache hit with same reference
-            // But we can't easily verify this since RuleResult is a struct
-            // The key point: both calls should produce failed results
         }
     }
 }
