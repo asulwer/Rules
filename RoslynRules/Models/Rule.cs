@@ -411,13 +411,27 @@ namespace RoslynRules.Models
         }
 
         /// <summary>
-        /// Checks if an expression contains async/await keywords.
+        /// Checks if an expression contains async/await keywords by parsing the syntax tree.
+        /// This avoids false positives from variable names like "awaiting" or string literals.
         /// </summary>
         /// <param name="expression">The expression string.</param>
-        /// <returns>True if the expression contains await.</returns>
+        /// <returns>True if the expression contains an await expression node.</returns>
         private static bool IsAsyncExpression(string expression)
         {
-            return expression.Contains("await");
+            if (string.IsNullOrWhiteSpace(expression))
+                return false;
+
+            try
+            {
+                var tree = Microsoft.CodeAnalysis.CSharp.CSharpSyntaxTree.ParseText(expression);
+                var root = tree.GetRoot();
+                return root.DescendantNodes().Any(n => n is Microsoft.CodeAnalysis.CSharp.Syntax.AwaitExpressionSyntax);
+            }
+            catch
+            {
+                // If parsing fails, fall back to the simple but fragile check
+                return expression.Contains("await");
+            }
         }
 
         /// <summary>
