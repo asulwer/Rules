@@ -102,6 +102,7 @@ namespace RoslynRules.Extensions
             public string Expression { get; set; } = "";
             public string Action { get; set; } = "";
             public double? TimeoutSeconds { get; set; }
+            public double? CacheDurationSeconds { get; set; }
             public Guid? DependsOnRuleId { get; set; }
             public Guid? ParentRuleId { get; set; }
             public List<RuleDto>? ChildRules { get; set; }
@@ -118,6 +119,7 @@ namespace RoslynRules.Extensions
                 Expression = rule.Expression,
                 Action = rule.Action,
                 TimeoutSeconds = rule.Timeout?.TotalSeconds,
+                CacheDurationSeconds = rule.CacheDuration?.TotalSeconds,
                 DependsOnRuleId = rule.DependsOnRuleId,
                 ParentRuleId = rule.ParentRuleId,
                 ChildRules = rule.ChildRules?.Any() == true
@@ -137,6 +139,7 @@ namespace RoslynRules.Extensions
                 Expression = dto.Expression,
                 Action = dto.Action,
                 Timeout = dto.TimeoutSeconds.HasValue ? TimeSpan.FromSeconds(dto.TimeoutSeconds.Value) : null,
+                CacheDuration = dto.CacheDurationSeconds.HasValue ? TimeSpan.FromSeconds(dto.CacheDurationSeconds.Value) : null,
                 DependsOnRuleId = dto.DependsOnRuleId,
                 ParentRuleId = dto.ParentRuleId
             };
