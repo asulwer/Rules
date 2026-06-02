@@ -58,4 +58,16 @@ services.AddSingleton<IRuleEngine, Workflow>();
 ```
 
 [Get Started →](getting-started.md)
-[API Reference →](api-reference.md)
+
+## API Reference
+
+[API Reference →](api-reference.md) — Complete API documentation organized by component:
+
+| Section | Contents |
+|---------|----------|
+| [Core Models](api-reference.md#core-models) | Rule, Workflow, RuleResult, RuleParameter |
+| [Execution](api-reference.md#execution--context) | RuleContext, IRuleEngine, RuleBatch |
+| [Compilation](api-reference.md#compilation) | ExpressionCompiler, Delegate Types |
+| [Configuration](api-reference.md#configuration--data) | JSON, Templates, Predicates |
+| [Runtime Features](api-reference.md#runtime-features) | Priority, Events, Caching |
+| [Exceptions](api-reference.md#exceptions--diagnostics) | Exception hierarchy, ValidationError |
