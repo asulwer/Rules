@@ -13,6 +13,7 @@ namespace RoslynRules.Tests.Execution
     {
         private readonly RuleParameter[] _parameters;
         private readonly string[] _namespaces;
+        private readonly ExpressionCompiler _compiler;
 
         public RuleEdgeCaseTests()
         {
@@ -21,6 +22,7 @@ namespace RoslynRules.Tests.Execution
                 new RuleParameter("customer", typeof(TestCustomer), new TestCustomer { Age = 25, Name = "Alice", IsAdult = false })
             };
             _namespaces = new[] { "RoslynRules.Tests", "System" };
+            _compiler = TestCompiler.Instance;
         }
 
         [Fact]
@@ -33,8 +35,8 @@ namespace RoslynRules.Tests.Execution
                 IsActive = true
             };
 
-            var compiler = new ExpressionCompiler();
-            rule.Compile(compiler, _parameters, _namespaces);
+            
+            rule.Compile(_compiler, _parameters, _namespaces);
 
             var result = rule.Execute(_parameters);
 
@@ -70,8 +72,8 @@ namespace RoslynRules.Tests.Execution
                 Logger = logger
             };
 
-            var compiler = new ExpressionCompiler();
-            rule.Compile(compiler, _parameters, _namespaces);
+            
+            rule.Compile(_compiler, _parameters, _namespaces);
             rule.Execute(_parameters);
 
             logger.EventIds.Should().ContainSingle();
@@ -88,8 +90,8 @@ namespace RoslynRules.Tests.Execution
                 IsActive = true
             };
 
-            var compiler = new ExpressionCompiler();
-            var act = () => rule.Compile(compiler, _parameters, _namespaces);
+            
+            var act = () => rule.Compile(_compiler, _parameters, _namespaces);
             act.Should().Throw<Exception>()
                 .WithInnerException<InvalidOperationException>()
                 .WithMessage("*Compilation failed*");
@@ -111,8 +113,8 @@ namespace RoslynRules.Tests.Execution
                 IsActive = true
             };
 
-            var compiler = new ExpressionCompiler();
-            var act = () => rule.Compile(compiler, parameters, _namespaces);
+            
+            var act = () => rule.Compile(_compiler, parameters, _namespaces);
             act.Should().Throw<NotSupportedException>()
                 .WithMessage("*exactly one*");
         }
@@ -128,8 +130,8 @@ namespace RoslynRules.Tests.Execution
                 IsActive = true
             };
 
-            var compiler = new ExpressionCompiler();
-            rule.Compile(compiler, _parameters, _namespaces);
+            
+            rule.Compile(_compiler, _parameters, _namespaces);
 
             var result = rule.Execute(_parameters);
 
@@ -149,8 +151,8 @@ namespace RoslynRules.Tests.Execution
                 IsActive = true
             };
 
-            var compiler = new ExpressionCompiler();
-            rule.Compile(compiler, _parameters, _namespaces);
+            
+            rule.Compile(_compiler, _parameters, _namespaces);
 
             var result = rule.Execute(_parameters);
 
@@ -170,8 +172,8 @@ namespace RoslynRules.Tests.Execution
             };
 
             var customNamespaces = new[] { "RoslynRules.Tests", "System" };
-            var compiler = new ExpressionCompiler();
-            rule.Compile(compiler, _parameters, customNamespaces);
+            
+            rule.Compile(_compiler, _parameters, customNamespaces);
 
             var result = rule.Execute(_parameters);
             result.Success.Should().BeTrue();
@@ -187,8 +189,8 @@ namespace RoslynRules.Tests.Execution
                 IsActive = true
             };
 
-            var compiler = new ExpressionCompiler();
-            rule.Compile(compiler, _parameters, _namespaces);
+            
+            rule.Compile(_compiler, _parameters, _namespaces);
 
             var act = () => rule.Expression = "false";
             act.Should().Throw<RuleCompilationException>()
@@ -205,8 +207,8 @@ namespace RoslynRules.Tests.Execution
                 IsActive = true
             };
 
-            var compiler = new ExpressionCompiler();
-            rule.Compile(compiler, _parameters, _namespaces);
+            
+            rule.Compile(_compiler, _parameters, _namespaces);
 
             var act = () => rule.Description = "New description";
             act.Should().Throw<RuleCompilationException>();
@@ -223,8 +225,8 @@ namespace RoslynRules.Tests.Execution
                 IsActive = true
             };
 
-            var compiler = new ExpressionCompiler();
-            rule.Compile(compiler, _parameters, _namespaces);
+            
+            rule.Compile(_compiler, _parameters, _namespaces);
 
             var act = () => rule.Action = "customer.IsAdult = false";
             act.Should().Throw<RuleCompilationException>();
@@ -240,8 +242,8 @@ namespace RoslynRules.Tests.Execution
                 IsActive = true
             };
 
-            var compiler = new ExpressionCompiler();
-            rule.Compile(compiler, _parameters, _namespaces);
+            
+            rule.Compile(_compiler, _parameters, _namespaces);
 
             var result = rule.Execute(_parameters);
 
@@ -263,8 +265,8 @@ namespace RoslynRules.Tests.Execution
                 IsActive = true
             };
 
-            var compiler = new ExpressionCompiler();
-            rule.Compile(compiler, parameters, _namespaces);
+            
+            rule.Compile(_compiler, parameters, _namespaces);
 
             var result = rule.Execute(parameters);
 
@@ -274,3 +276,5 @@ namespace RoslynRules.Tests.Execution
         }
     }
 }
+
+
