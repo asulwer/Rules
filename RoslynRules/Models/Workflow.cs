@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using RoslynRules.Execution;
@@ -33,7 +34,7 @@ namespace RoslynRules.Models
         /// <summary>
         /// Unique identifier for the workflow.
         /// </summary>
-        [Key] public Guid Id { get; init; } = Guid.NewGuid();
+        [Key] [JsonInclude] public Guid Id { get; init; } = Guid.NewGuid();
 
         /// <summary>
         /// Human-readable description of the workflow.

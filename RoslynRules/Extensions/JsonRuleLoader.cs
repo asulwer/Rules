@@ -1,8 +1,6 @@
 using RoslynRules.Models;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -10,66 +8,101 @@ namespace RoslynRules.Extensions
 {
     /// <summary>
     /// JSON serialization and deserialization for Rules and Workflows.
-    /// Enables rule definitions to be stored in JSON configuration files,
-    /// loaded at runtime without code changes.
+    /// Uses System.Text.Json with custom converters for trim/AOT-safe
+    /// serialization without reflection-based ID restoration.
     /// </summary>
     public static class JsonRuleLoader
     {
-        private static readonly JsonSerializerOptions Options = new JsonSerializerOptions
+        /// <summary>
+        /// Default JSON options with camelCase naming, indented output,
+        /// and custom converters for TimeSpan serialization.
+        /// </summary>
+        public static JsonSerializerOptions DefaultOptions { get; } = new JsonSerializerOptions
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
             WriteIndented = true,
-            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+            Converters =
+            {
+                new JsonStringEnumConverter(),
+                new TimeSpanJsonConverter()
+            }
         };
 
         /// <summary>
         /// Serializes a workflow to JSON string.
         /// </summary>
         /// <param name="workflow">The workflow to serialize.</param>
+        /// <param name="options">Optional serializer options. Uses DefaultOptions if null.</param>
         /// <returns>JSON string.</returns>
-        public static string Serialize(Workflow workflow)
+        public static string Serialize(Workflow workflow, JsonSerializerOptions? options = null)
         {
-            var dto = new WorkflowDto
-            {
-                Id = workflow.Id,
-                Description = workflow.Description,
-                IsActive = workflow.IsActive,
-                Rules = workflow.Rules.Select(ToRuleDto).ToList()
-            };
-            return JsonSerializer.Serialize(dto, Options);
+            return JsonSerializer.Serialize(workflow, options ?? DefaultOptions);
+        }
+
+        /// <summary>
+        /// Serializes a rule to JSON string.
+        /// </summary>
+        /// <param name="rule">The rule to serialize.</param>
+        /// <param name="options">Optional serializer options. Uses DefaultOptions if null.</param>
+        /// <returns>JSON string.</returns>
+        public static string Serialize(Rule rule, JsonSerializerOptions? options = null)
+        {
+            return JsonSerializer.Serialize(rule, options ?? DefaultOptions);
         }
 
         /// <summary>
         /// Deserializes a workflow from JSON string.
         /// </summary>
         /// <param name="json">JSON string.</param>
+        /// <param name="options">Optional serializer options. Uses DefaultOptions if null.</param>
         /// <returns>Reconstructed workflow.</returns>
-        public static Workflow Deserialize(string json)
+        /// <exception cref="JsonException">Thrown when deserialization fails.</exception>
+        public static Workflow DeserializeWorkflow(string json, JsonSerializerOptions? options = null)
         {
-            var dto = JsonSerializer.Deserialize<WorkflowDto>(json, Options);
-            if (dto == null)
+            var workflow = JsonSerializer.Deserialize<Workflow>(json, options ?? DefaultOptions);
+            if (workflow == null)
                 throw new JsonException("Failed to deserialize workflow from JSON.");
+            return workflow;
+        }
 
-            var restored = new Workflow
-            {
-                Id = dto.Id,
-                Description = dto.Description,
-                IsActive = dto.IsActive,
-                Rules = dto.Rules?.Select(ToRule).ToList() ?? new List<Rule>()
-            };
-
-            return restored;
+        /// <summary>
+        /// Deserializes a rule from JSON string.
+        /// </summary>
+        /// <param name="json">JSON string.</param>
+        /// <param name="options">Optional serializer options. Uses DefaultOptions if null.</param>
+        /// <returns>Reconstructed rule.</returns>
+        /// <exception cref="JsonException">Thrown when deserialization fails.</exception>
+        public static Rule DeserializeRule(string json, JsonSerializerOptions? options = null)
+        {
+            var rule = JsonSerializer.Deserialize<Rule>(json, options ?? DefaultOptions);
+            if (rule == null)
+                throw new JsonException("Failed to deserialize rule from JSON.");
+            return rule;
         }
 
         /// <summary>
         /// Loads a workflow from a JSON file.
         /// </summary>
         /// <param name="filePath">Path to the JSON file.</param>
+        /// <param name="options">Optional serializer options. Uses DefaultOptions if null.</param>
         /// <returns>Reconstructed workflow.</returns>
-        public static Workflow LoadFromFile(string filePath)
+        public static Workflow LoadWorkflowFromFile(string filePath, JsonSerializerOptions? options = null)
         {
             var json = File.ReadAllText(filePath);
-            return Deserialize(json);
+            return DeserializeWorkflow(json, options);
+        }
+
+        /// <summary>
+        /// Loads a rule from a JSON file.
+        /// </summary>
+        /// <param name="filePath">Path to the JSON file.</param>
+        /// <param name="options">Optional serializer options. Uses DefaultOptions if null.</param>
+        /// <returns>Reconstructed rule.</returns>
+        public static Rule LoadRuleFromFile(string filePath, JsonSerializerOptions? options = null)
+        {
+            var json = File.ReadAllText(filePath);
+            return DeserializeRule(json, options);
         }
 
         /// <summary>
@@ -77,83 +110,52 @@ namespace RoslynRules.Extensions
         /// </summary>
         /// <param name="workflow">The workflow to save.</param>
         /// <param name="filePath">Output file path.</param>
-        public static void SaveToFile(Workflow workflow, string filePath)
+        /// <param name="options">Optional serializer options. Uses DefaultOptions if null.</param>
+        public static void SaveWorkflowToFile(Workflow workflow, string filePath, JsonSerializerOptions? options = null)
         {
-            var json = Serialize(workflow);
+            var json = Serialize(workflow, options);
             File.WriteAllText(filePath, json);
         }
 
-        // ==================== DTOs ====================
-
-        private class WorkflowDto
+        /// <summary>
+        /// Saves a rule to a JSON file.
+        /// </summary>
+        /// <param name="rule">The rule to save.</param>
+        /// <param name="filePath">Output file path.</param>
+        /// <param name="options">Optional serializer options. Uses DefaultOptions if null.</param>
+        public static void SaveRuleToFile(Rule rule, string filePath, JsonSerializerOptions? options = null)
         {
-            public Guid Id { get; set; }
-            public string Description { get; set; } = "";
-            public bool IsActive { get; set; } = true;
-            public List<RuleDto>? Rules { get; set; }
+            var json = Serialize(rule, options);
+            File.WriteAllText(filePath, json);
         }
+    }
 
-        private class RuleDto
+    /// <summary>
+    /// Custom JSON converter for TimeSpan that serializes as total seconds
+    /// for human-readable JSON output.
+    /// </summary>
+    internal sealed class TimeSpanJsonConverter : JsonConverter<TimeSpan?>
+    {
+        public override TimeSpan? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
-            public Guid Id { get; set; }
-            public string Description { get; set; } = "";
-            public bool IsActive { get; set; } = true;
-            public int Priority { get; set; } = 0;
-            public string Expression { get; set; } = "";
-            public string Action { get; set; } = "";
-            public double? TimeoutSeconds { get; set; }
-            public double? CacheDurationSeconds { get; set; }
-            public Guid? DependsOnRuleId { get; set; }
-            public Guid? ParentRuleId { get; set; }
-            public List<RuleDto>? ChildRules { get; set; }
-        }
+            if (reader.TokenType == JsonTokenType.Null)
+                return null;
 
-        private static RuleDto ToRuleDto(Rule rule)
-        {
-            return new RuleDto
+            if (reader.TokenType == JsonTokenType.Number)
             {
-                Id = rule.Id,
-                Description = rule.Description,
-                IsActive = rule.IsActive,
-                Priority = rule.Priority,
-                Expression = rule.Expression,
-                Action = rule.Action,
-                TimeoutSeconds = rule.Timeout?.TotalSeconds,
-                CacheDurationSeconds = rule.CacheDuration?.TotalSeconds,
-                DependsOnRuleId = rule.DependsOnRuleId,
-                ParentRuleId = rule.ParentRuleId,
-                ChildRules = rule.ChildRules?.Any() == true
-                    ? rule.ChildRules.Select(ToRuleDto).ToList()
-                    : null
-            };
-        }
-
-        private static Rule ToRule(RuleDto dto)
-        {
-            var rule = new Rule
-            {
-                Id = dto.Id,
-                Description = dto.Description,
-                IsActive = dto.IsActive,
-                Priority = dto.Priority,
-                Expression = dto.Expression,
-                Action = dto.Action,
-                Timeout = dto.TimeoutSeconds.HasValue ? TimeSpan.FromSeconds(dto.TimeoutSeconds.Value) : null,
-                CacheDuration = dto.CacheDurationSeconds.HasValue ? TimeSpan.FromSeconds(dto.CacheDurationSeconds.Value) : null,
-                DependsOnRuleId = dto.DependsOnRuleId,
-                ParentRuleId = dto.ParentRuleId
-            };
-
-            if (dto.ChildRules?.Any() == true)
-            {
-                foreach (var childDto in dto.ChildRules)
-                {
-                    var child = ToRule(childDto);
-                    rule.ChildRules.Add(child);
-                }
+                var seconds = reader.GetDouble();
+                return TimeSpan.FromSeconds(seconds);
             }
 
-            return rule;
+            throw new JsonException($"Expected number or null for TimeSpan, got {reader.TokenType}.");
+        }
+
+        public override void Write(Utf8JsonWriter writer, TimeSpan? value, JsonSerializerOptions options)
+        {
+            if (value.HasValue)
+                writer.WriteNumberValue(value.Value.TotalSeconds);
+            else
+                writer.WriteNullValue();
         }
     }
 }

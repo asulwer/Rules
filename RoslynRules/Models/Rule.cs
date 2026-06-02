@@ -11,6 +11,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -54,7 +55,7 @@ namespace RoslynRules.Models
         /// <summary>
         /// Unique identifier for the rule.
         /// </summary>
-        [Key] public Guid Id { get; init; } = Guid.NewGuid();
+        [Key] [JsonInclude] public Guid Id { get; init; } = Guid.NewGuid();
 
         /// <summary>
         /// Internal constructor for testing purposes. Allows explicit ID assignment
