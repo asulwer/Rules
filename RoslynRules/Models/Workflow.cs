@@ -490,9 +490,10 @@ namespace RoslynRules.Models
                 index += batch.Count;
             }
 
-            // Return in original rule order (not dependency order)
+            // Return results in original rule order (sorted by priority, with dependencies before dependents)
             var activeRules = Rules.Where(r => r.IsActive).ToArray();
-            return activeRules.Select(r => allResults.First(ar => ar.RuleId == r.Id)).ToArray();
+            var resultById = allResults.ToDictionary(r => r.RuleId);
+            return activeRules.Select(r => resultById[r.Id]).ToArray();
         }
 
         /// <summary>
