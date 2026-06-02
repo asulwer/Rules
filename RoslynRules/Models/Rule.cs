@@ -395,8 +395,8 @@ namespace RoslynRules.Models
             {
                 var isAsync = IsAsyncExpression(Action);
                 var delegateType = isAsync
-                    ? BuildAsyncDelegateType(typeof(object), parameters)
-                    : BuildDelegateType(typeof(object), parameters);
+                    ? BuildAsyncDelegateType(typeof(void), parameters)
+                    : BuildDelegateType(typeof(void), parameters);
                 var rawDelegate = CompileDelegate(compiler, Action, delegateType, parameters, additionalNamespaces);
                 _compiledAction = CompiledDelegateFactory.Wrap(rawDelegate);
             }

@@ -36,12 +36,35 @@ namespace RoslynRules.Compiler
             string[]? additionalNamespaces = null)
         {
             var isAsync = ContainsAwaitExpression(expression);
-            var methodSignature = BuildMethodSignature(returnType, parameterNames, parameterTypes, isAsync);
+            
+            // Unwrap Task/Task<T> to get the logical return type for the method signature
+            var logicalReturnType = returnType;
+            if (returnType == typeof(Task))
+            {
+                logicalReturnType = typeof(void);
+            }
+            else if (returnType.IsGenericType && returnType.GetGenericTypeDefinition() == typeof(Task<>))
+            {
+                logicalReturnType = returnType.GetGenericArguments()[0];
+            }
+            
+            var methodSignature = BuildMethodSignature(logicalReturnType, parameterNames, parameterTypes, isAsync);
             
             // For async methods: if expression starts with 'await', don't double-await
-            var returnKeyword = isAsync 
-                ? (expression.TrimStart().StartsWith("await ") ? "return " : "return await ")
-                : (returnType == typeof(void) ? "" : "return ");
+            // For void return types (sync or async), don't add 'return'
+            string returnKeyword;
+            if (logicalReturnType == typeof(void))
+            {
+                returnKeyword = "";
+            }
+            else if (isAsync)
+            {
+                returnKeyword = expression.TrimStart().StartsWith("await ") ? "return " : "return await ";
+            }
+            else
+            {
+                returnKeyword = "return ";
+            }
             var usingStatements = BuildUsingStatements(additionalNamespaces, isAsync);
 
             var code = $@"

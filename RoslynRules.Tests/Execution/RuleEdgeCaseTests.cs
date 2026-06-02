@@ -39,7 +39,7 @@ namespace RoslynRules.Tests.Execution
             var result = rule.Execute(_parameters);
 
             result.Success.Should().BeTrue();
-            result.Value.Should().Be(true); // Assignment returns true
+            result.Value.Should().BeNull(); // Actions return null, not the assignment result
             var customer = (TestCustomer)_parameters[0].Value!;
             customer.IsAdult.Should().BeTrue();
         }
