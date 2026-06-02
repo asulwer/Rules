@@ -43,7 +43,8 @@ jobs:
           # Extract version from the tag
           VERSION=$(echo ${{ github.ref }} | sed 's/refs\/tags\/v//')
           # Create the NuGet package with the version from the tag
-          dotnet pack --configuration Release --no-build --output ./nuget_packages /p:PackageVersion=$VERSION
+          # Pack only the library project, excluding Demo and Tests
+          dotnet pack './RoslynRules/RoslynRules.csproj' --configuration Release --no-build --output ./nuget_packages /p:PackageVersion=$VERSION
 
       - name: Publish NuGet package to NuGet.org
         env:
