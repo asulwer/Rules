@@ -13,51 +13,81 @@ Complete reference for all RoslynRules public APIs, organized by component.
 
 ### Core Models
 
-| Class | Purpose |
-|-------|---------|
-| [Rule](api/rule.md) | Individual rule with Expression, Action, child rules |
-| [Workflow](api/workflow.md) | Container for top-level rules |
-| [RuleResult](api/ruleresult.md) | Execution result with child traceability |
-| [RuleParameter](api/ruleparameter.md) | Parameter definition (name, type, value) |
+<table>
+  <thead>
+    <tr><th>Class</th><th>Purpose</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><a href="api/rule.html">Rule</a></td><td>Individual rule with Expression, Action, child rules</td></tr>
+    <tr><td><a href="api/workflow.html">Workflow</a></td><td>Container for top-level rules</td></tr>
+    <tr><td><a href="api/ruleresult.html">RuleResult</a></td><td>Execution result with child traceability</td></tr>
+    <tr><td><a href="api/ruleparameter.html">RuleParameter</a></td><td>Parameter definition (name, type, value)</td></tr>
+  </tbody>
+</table>
 
 ### Execution & Context
 
-| Class | Purpose |
-|-------|---------|
-| [RuleContext](api/rulecontext.md) | Access dependency rule results during execution |
-| [IRuleEngine](api/iruleengine.md) | Abstraction for DI and mocking |
-| [RuleBatch](api/rulebatch.md) | Batch evaluation for 10+ rules |
+<table>
+  <thead>
+    <tr><th>Class</th><th>Purpose</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><a href="api/rulecontext.html">RuleContext</a></td><td>Access dependency rule results during execution</td></tr>
+    <tr><td><a href="api/iruleengine.html">IRuleEngine</a></td><td>Abstraction for DI and mocking</td></tr>
+    <tr><td><a href="api/rulebatch.html">RuleBatch</a></td><td>Batch evaluation for 10+ rules</td></tr>
+  </tbody>
+</table>
 
 ### Compilation
 
-| Class | Purpose |
-|-------|---------|
-| [ExpressionCompiler](api/expressioncompiler.md) | Compile C# expressions to typed delegates |
-| [Delegate Types](api/delegate-types.md) | Supported expression signatures |
+<table>
+  <thead>
+    <tr><th>Class</th><th>Purpose</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><a href="api/expressioncompiler.html">ExpressionCompiler</a></td><td>Compile C# expressions to typed delegates</td></tr>
+    <tr><td><a href="api/delegate-types.html">Delegate Types</a></td><td>Supported expression signatures</td></tr>
+  </tbody>
+</table>
 
 ### Configuration & Data
 
-| Class | Purpose |
-|-------|---------|
-| [JSON Serialization](api/json-serialization.md) | Save/load rules from JSON |
-| [Rule Templates](api/rule-templates.md) | Reusable parameterized rule templates |
-| [Rule Predicates](api/rule-predicates.md) | Built-in validation factory methods |
+<table>
+  <thead>
+    <tr><th>Class</th><th>Purpose</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><a href="api/json-serialization.html">JSON Serialization</a></td><td>Save/load rules from JSON</td></tr>
+    <tr><td><a href="api/rule-templates.html">Rule Templates</a></td><td>Reusable parameterized rule templates</td></tr>
+    <tr><td><a href="api/rule-predicates.html">Rule Predicates</a></td><td>Built-in validation factory methods</td></tr>
+  </tbody>
+</table>
 
 ### Runtime Features
 
-| Topic | Purpose |
-|-------|---------|
-| [Rule Priority](api/rule-priority.md) | Control execution order |
-| [Lifecycle Events](api/lifecycle-events.md) | Pre/post execution hooks |
-| [Result Caching](api/result-caching.md) | Memoization for expensive rules |
+<table>
+  <thead>
+    <tr><th>Topic</th><th>Purpose</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><a href="api/rule-priority.html">Rule Priority</a></td><td>Control execution order</td></tr>
+    <tr><td><a href="api/lifecycle-events.html">Lifecycle Events</a></td><td>Pre/post execution hooks</td></tr>
+    <tr><td><a href="api/result-caching.html">Result Caching</a></td><td>Memoization for expensive rules</td></tr>
+  </tbody>
+</table>
 
 ### Exceptions & Diagnostics
 
-| Class | Purpose |
-|-------|---------|
-| [Exceptions](api/exceptions.md) | Typed exception hierarchy |
-| [ValidationError](api/exceptions.md#validationerror) | Structured validation errors |
+<table>
+  <thead>
+    <tr><th>Class</th><th>Purpose</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><a href="api/exceptions.html">Exceptions</a></td><td>Typed exception hierarchy</td></tr>
+    <tr><td><a href="api/exceptions.html#validationerror">ValidationError</a></td><td>Structured validation errors</td></tr>
+  </tbody>
+</table>
 
 ---
 
-**Looking for examples?** See the [Examples](examples/) section for real-world use cases.
+**Looking for examples?** See the <a href="examples/">Examples</a> section for real-world use cases.
