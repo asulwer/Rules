@@ -106,15 +106,12 @@ namespace RoslynRules.Tests.Integration
             {
                 Rules = new List<Rule>
                 {
-                    new Rule
+                    new Rule(ruleId)
                     {
                         Description = "Rule with ID"
                     }
                 }
             };
-
-            // Set a known ID
-            typeof(Rule).GetProperty("Id")?.SetValue(original.Rules[0], ruleId);
 
             var json = JsonRuleLoader.Serialize(original);
             var restored = JsonRuleLoader.Deserialize(json);

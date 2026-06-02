@@ -57,6 +57,16 @@ namespace RoslynRules.Models
         [Key] public Guid Id { get; init; } = Guid.NewGuid();
 
         /// <summary>
+        /// Internal constructor for testing purposes. Allows explicit ID assignment
+        /// without reflection, which is required for AOT/trimming compatibility.
+        /// </summary>
+        /// <param name="id">Explicit rule ID.</param>
+        internal Rule(Guid id)
+        {
+            Id = id;
+        }
+
+        /// <summary>
         /// Human-readable description of the rule&apos;s purpose.
         /// </summary>
         public string Description 

@@ -210,11 +210,9 @@ namespace RoslynRules.Tests.Execution
         public void Validate_DuplicateRuleIds_ThrowsDuplicateRuleIdException()
         {
             var workflow = new global::RoslynRules.Models.Workflow();
-            var rule1 = new Rule { Description = "Rule 1", Expression = "true" };
-            var rule2 = new Rule { Description = "Rule 2", Expression = "true" };
-            
-            // Force same ID
-            typeof(Rule).GetProperty("Id")?.SetValue(rule2, rule1.Id);
+            var sharedId = Guid.NewGuid();
+            var rule1 = new Rule(sharedId) { Description = "Rule 1", Expression = "true" };
+            var rule2 = new Rule(sharedId) { Description = "Rule 2", Expression = "true" };
             
             workflow.Rules.Add(rule1);
             workflow.Rules.Add(rule2);
