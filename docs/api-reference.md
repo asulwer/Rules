@@ -877,3 +877,60 @@ var workflow = new Workflow
     }
 };
 ```
+
+## AssemblyReferenceProvider
+
+Controls which assemblies are available to compiled expressions. Used for sandboxing to prevent arbitrary code execution.
+
+### Constructor
+
+`csharp
+// Default safe whitelist - no custom assemblies, no extra blocks
+var provider = new AssemblyReferenceProvider();
+
+// Custom whitelist - only these assemblies + Roslyn internals
+var customProvider = new AssemblyReferenceProvider(
+    allowedAssemblyNames: new[] { "MyApp.Domain", "MyApp.Services" },
+    blockedAssemblyNames: new[] { "System.IO" }  // extra blocks beyond defaults
+);
+`
+
+### Default Whitelist
+
+The default whitelist includes only safe, commonly-used assemblies:
+
+| Assembly | Purpose |
+|----------|---------|
+| System.Runtime / System.Private.CoreLib | Core .NET types |
+| System.Linq / System.Linq.Expressions | LINQ |
+| System.Collections | Collections |
+| System.Text.Json | JSON serialization |
+| System.Text.RegularExpressions | Regex |
+| RoslynRules | Rule engine |
+| Microsoft.CodeAnalysis.* / Microsoft.CSharp | Roslyn compiler |
+
+### Blocked Assemblies
+
+The following dangerous assemblies are explicitly excluded:
+
+- System.IO / System.IO.FileSystem - file system access
+- System.Diagnostics.Process - process spawning
+- System.Net.Http / System.Net.Sockets - network access
+- System.Security.Cryptography - cryptographic operations
+- System.Reflection.Emit - dynamic code generation
+- System.Runtime.Loader - assembly loading
+- System.Data.* - database access
+- Microsoft.Win32.Registry - registry access
+
+### Using with ExpressionCompiler
+
+`csharp
+var provider = new AssemblyReferenceProvider();
+var compiler = new ExpressionCompiler(referenceProvider: provider);
+
+var rule = new Rule { Expression = "customer.Age >= 18" };
+rule.Compile(compiler, parameters);
+`
+
+> **Note:** If eferenceProvider is 
+ull (default), ExpressionCompiler uses a static shared AssemblyReferenceProvider with the default whitelist.

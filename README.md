@@ -24,6 +24,7 @@ A high-performance rewrite of [Microsoft RulesEngine](https://github.com/microso
 | Execution modes | Sequential | **Sequential + Parallel + Async + Streaming** |
 | Rule chaining | No | **DependsOnRuleId with topological sort** |
 | Built-in predicates | No | **25+ static factory methods** |
+| Expression sandboxing | None | **Assembly whitelist + dangerous assembly blacklist** |
 
 ## Quick Start
 
