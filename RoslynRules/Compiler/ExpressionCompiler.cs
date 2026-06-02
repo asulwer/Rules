@@ -14,12 +14,30 @@ namespace RoslynRules.Compiler
     public class ExpressionCompiler
     {
         private readonly ConcurrentDictionary<string, Delegate> _cache = new();
+        private readonly int _maxCompilesBeforeRecycle;
+        private readonly object _lock = new();
+        private int _compileCount = 0;
+        private ExpressionAssemblyLoadContext _context;
+
+        /// <summary>
+        /// Creates a new ExpressionCompiler with optional compile limit.
+        /// </summary>
+        /// <param name="maxCompilesBeforeRecycle">
+        /// Maximum unique compilations before the internal AssemblyLoadContext is unloaded
+        /// and a new one created. Set to 0 for no limit (default: 1000).
+        /// Lower this in memory-constrained environments.
+        /// </param>
+        public ExpressionCompiler(int maxCompilesBeforeRecycle = 1000)
+        {
+            _maxCompilesBeforeRecycle = maxCompilesBeforeRecycle;
+            _context = CreateContext();
+        }
 
         /// <summary>
         /// Compiles a C# expression string into a strongly-typed delegate.
         /// Results are cached; subsequent calls with the same signature return the cached delegate.
         /// </summary>
-        /// <typeparam name="TDelegate">The delegate type, e.g. Func<Customer, bool>.</typeparam>
+        /// <typeref name="TDelegate">The delegate type, e.g. Func&lt;Customer, bool&gt;.</typeref>
         /// <param name="expression">The C# expression body.</param>
         /// <param name="parameterNames">Ordered parameter names matching the delegate signature.</param>
         /// <param name="additionalNamespaces">Optional extra using namespaces (e.g. "Demo.Models").</param>
@@ -44,6 +62,16 @@ namespace RoslynRules.Compiler
             string[] parameterNames,
             string[]? additionalNamespaces) where TDelegate : Delegate
         {
+            // Check compile limit and recycle ALC if needed.
+            lock (_lock)
+            {
+                if (_maxCompilesBeforeRecycle > 0 && _compileCount >= _maxCompilesBeforeRecycle)
+                {
+                    RecycleContext();
+                }
+                _compileCount++;
+            }
+
             // STEP 2: Reflect the delegate type to discover its signature.
             var delegateType = typeof(TDelegate);
             var invokeMethod = delegateType.GetMethod("Invoke")!;
@@ -62,8 +90,62 @@ namespace RoslynRules.Compiler
             // STEP 4: Compile source code into raw assembly bytes.
             var assemblyBytes = AssemblyCompiler.Compile(code);
 
-            // STEP 5: Load assembly and create a typed delegate.
-            return (TDelegate)DelegateFactory.CreateDelegate(assemblyBytes, delegateType);
+            // STEP 5: Load assembly into collectible context and create a typed delegate.
+            lock (_lock)
+            {
+                return (TDelegate)DelegateFactory.CreateDelegate(assemblyBytes, delegateType, _context);
+            }
+        }
+
+        /// <summary>
+        /// Forces immediate unload of the current AssemblyLoadContext and clears the delegate cache.
+        /// Use this when memory pressure is detected or before disposing the compiler.
+        /// </summary>
+        public void Unload()
+        {
+            lock (_lock)
+            {
+                _cache.Clear();
+                RecycleContext();
+                _compileCount = 0;
+            }
+        }
+
+        /// <summary>
+        /// Returns the number of unique compilations performed by this compiler.
+        /// </summary>
+        public int CompileCount => _compileCount;
+
+        /// <summary>
+        /// Returns the current AssemblyLoadContext name (for diagnostics).
+        /// </summary>
+        public string CurrentContextName
+        {
+            get
+            {
+                lock (_lock)
+                {
+                    return _context.ToString();
+                }
+            }
+        }
+
+        private void RecycleContext()
+        {
+            // Unload the current context. The ALC becomes collectible once all
+            // delegates loaded from it are no longer referenced. Since the cache
+            // holds strong references to delegates, we must clear it first.
+            var oldContext = _context;
+            _context = CreateContext();
+
+            // Note: The old ALC is now eligible for GC collection. The actual unload
+            // happens on the next GC cycle after all references are released.
+            oldContext.Unload();
+        }
+
+        private static ExpressionAssemblyLoadContext CreateContext()
+        {
+            return new ExpressionAssemblyLoadContext(Guid.NewGuid().ToString("N")[..8]);
         }
 
         /// <summary>

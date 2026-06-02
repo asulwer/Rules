@@ -1,26 +1,30 @@
 using RoslynRules.Exceptions;
 using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Reflection;
 
 namespace RoslynRules.Compiler
 {
     /// <summary>
-    /// Loads a compiled assembly and creates a typed delegate from its Evaluate method.
+    /// Loads a compiled assembly from a collectible AssemblyLoadContext
+    /// and creates a typed delegate from its Evaluate method.
     /// </summary>
     internal static class DelegateFactory
     {
         /// <summary>
-        /// Loads the assembly bytes, extracts the Evaluate method, and creates a typed delegate.
+        /// Loads the assembly bytes into a collectible context, extracts the Evaluate method,
+        /// and creates a typed delegate.
         /// </summary>
         /// <param name="assemblyBytes">Raw bytes of the compiled assembly.</param>
-        /// <param name="delegateType">The delegate type to create (e.g., Func<Customer, bool>).</param>
+        /// <param name="delegateType">The delegate type to create (e.g., Func&lt;Customer, bool&gt;).</param>
+        /// <param name="context">The collectible load context to load the assembly into.</param>
         /// <returns>A typed delegate pointing to the compiled Evaluate method.</returns>
         [RequiresUnreferencedCode("RoslynRules loads generated assemblies and resolves methods by name. This code may not work correctly with trimming or AOT.")]
-        public static Delegate CreateDelegate(byte[] assemblyBytes, Type delegateType)
+        public static Delegate CreateDelegate(byte[] assemblyBytes, Type delegateType, ExpressionAssemblyLoadContext context)
         {
-            // Load the compiled assembly into the current AppDomain.
-            var assembly = Assembly.Load(assemblyBytes);
+            // Load the compiled assembly into the collectible context.
+            var assembly = context.LoadAssembly(assemblyBytes);
 
             // The generated class is always named "ExpressionAssembly".
             var type = assembly.GetType("ExpressionAssembly");

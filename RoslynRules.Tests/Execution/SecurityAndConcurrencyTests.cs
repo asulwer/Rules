@@ -190,10 +190,61 @@ namespace RoslynRules.Tests.Execution
             // This tests the null-check path in DelegateFactory by passing invalid assembly bytes
             var invalidBytes = new byte[] { 0x4D, 0x5A }; // MZ header only, not a valid assembly
 
+            var context = new RoslynRules.Compiler.ExpressionAssemblyLoadContext("test");
             var ex = Assert.Throws<BadImageFormatException>(() =>
-                RoslynRules.Compiler.DelegateFactory.CreateDelegate(invalidBytes, typeof(Func<int, bool>)));
+                RoslynRules.Compiler.DelegateFactory.CreateDelegate(invalidBytes, typeof(Func<int, bool>), context));
 
             Assert.NotNull(ex);
+        }
+
+        [Fact]
+        public void ExpressionCompiler_CompileLimit_RecyclesContext()
+        {
+            var compiler = new ExpressionCompiler(maxCompilesBeforeRecycle: 3);
+            var paramNames = new[] { "x" };
+
+            // Compile 3 unique expressions
+            var d1 = compiler.Compile<Func<int, bool>>("x == 1", paramNames);
+            var d2 = compiler.Compile<Func<int, bool>>("x == 2", paramNames);
+            var d3 = compiler.Compile<Func<int, bool>>("x == 3", paramNames);
+
+            Assert.Equal(3, compiler.CompileCount);
+            var contextBefore = compiler.CurrentContextName;
+
+            // 4th compile triggers recycle
+            var d4 = compiler.Compile<Func<int, bool>>("x == 4", paramNames);
+            var contextAfter = compiler.CurrentContextName;
+
+            Assert.NotEqual(contextBefore, contextAfter);
+            Assert.Equal(4, compiler.CompileCount);
+
+            // All delegates still work
+            Assert.True(d1(1));
+            Assert.True(d2(2));
+            Assert.True(d3(3));
+            Assert.True(d4(4));
+        }
+
+        [Fact]
+        public void ExpressionCompiler_Unload_ClearsCacheAndRecyclesContext()
+        {
+            var compiler = new ExpressionCompiler();
+            var paramNames = new[] { "x" };
+
+            var d1 = compiler.Compile<Func<int, bool>>("x == 1", paramNames);
+            Assert.True(d1(1));
+            Assert.Equal(1, compiler.CompileCount);
+
+            var contextBefore = compiler.CurrentContextName;
+            compiler.Unload();
+            var contextAfter = compiler.CurrentContextName;
+
+            Assert.Equal(0, compiler.CompileCount);
+            Assert.NotEqual(contextBefore, contextAfter);
+
+            // After unload, recompiling the same expression works
+            var d2 = compiler.Compile<Func<int, bool>>("x == 1", paramNames);
+            Assert.True(d2(1));
         }
     }
 }
