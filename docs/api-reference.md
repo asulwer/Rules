@@ -12,6 +12,7 @@ Complete reference for all RoslynRules public APIs, organized by component.
 ## Quick Navigation
 
 ### Core Models
+
 | Class | Purpose |
 |-------|---------|
 | [Rule](api/rule.md) | Individual rule with Expression, Action, child rules |
@@ -20,6 +21,7 @@ Complete reference for all RoslynRules public APIs, organized by component.
 | [RuleParameter](api/ruleparameter.md) | Parameter definition (name, type, value) |
 
 ### Execution & Context
+
 | Class | Purpose |
 |-------|---------|
 | [RuleContext](api/rulecontext.md) | Access dependency rule results during execution |
@@ -27,12 +29,14 @@ Complete reference for all RoslynRules public APIs, organized by component.
 | [RuleBatch](api/rulebatch.md) | Batch evaluation for 10+ rules |
 
 ### Compilation
+
 | Class | Purpose |
 |-------|---------|
 | [ExpressionCompiler](api/expressioncompiler.md) | Compile C# expressions to typed delegates |
 | [Delegate Types](api/delegate-types.md) | Supported expression signatures |
 
 ### Configuration & Data
+
 | Class | Purpose |
 |-------|---------|
 | [JSON Serialization](api/json-serialization.md) | Save/load rules from JSON |
@@ -40,6 +44,7 @@ Complete reference for all RoslynRules public APIs, organized by component.
 | [Rule Predicates](api/rule-predicates.md) | Built-in validation factory methods |
 
 ### Runtime Features
+
 | Topic | Purpose |
 |-------|---------|
 | [Rule Priority](api/rule-priority.md) | Control execution order |
@@ -47,6 +52,7 @@ Complete reference for all RoslynRules public APIs, organized by component.
 | [Result Caching](api/result-caching.md) | Memoization for expensive rules |
 
 ### Exceptions & Diagnostics
+
 | Class | Purpose |
 |-------|---------|
 | [Exceptions](api/exceptions.md) | Typed exception hierarchy |

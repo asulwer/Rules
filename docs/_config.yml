@@ -4,6 +4,9 @@ description: High-performance .NET rules engine with Roslyn compilation
 baseurl: "/RoslynRules"
 url: "https://asulwer.github.io"
 
+# Markdown engine - GFM for table support
+markdown: GFM
+
 # Use just-the-docs via remote_theme (GitHub Pages supports this)
 remote_theme: just-the-docs/just-the-docs@v0.10.0
 
