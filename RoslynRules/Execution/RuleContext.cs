@@ -1,20 +1,21 @@
 using RoslynRules.Models;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 
 namespace RoslynRules.Execution
 {
     /// <summary>
-    /// Provides access to the results of previously executed rules within a workflow.
+    /// Provides thread-safe access to the results of previously executed rules within a workflow.
     /// Used when rules depend on each other (DependsOnRuleId) to share outputs.
     /// </summary>
     public class RuleContext
     {
-        private readonly Dictionary<Guid, RuleResult> _results = new Dictionary<Guid, RuleResult>();
+        private readonly ConcurrentDictionary<Guid, RuleResult> _results = new ConcurrentDictionary<Guid, RuleResult>();
 
         /// <summary>
         /// Stores the result of a rule execution.
-        /// Called by the workflow engine after each rule completes.
+        /// Thread-safe. Called by the workflow engine after each rule completes.
         /// </summary>
         /// <param name="ruleId">The unique identifier of the rule.</param>
         /// <param name="result">The execution result.</param>
