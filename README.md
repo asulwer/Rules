@@ -112,6 +112,28 @@ var workflow = JsonRuleLoader.LoadFromFile("rules.json");
 workflow.Compile(parameters);
 ```
 
+## Multi-Parameter Rules
+
+Rules can accept multiple parameters directly — no wrapper struct needed.
+
+```csharp
+var rule = new Rule
+{
+    Description = "Price check",
+    Expression = "price > 0 && quantity > 0",
+    IsActive = true
+};
+
+var parameters = new[]
+{
+    new RuleParameter("price", typeof(decimal), 9.99m),
+    new RuleParameter("quantity", typeof(int), 5)
+};
+
+rule.Compile(compiler, parameters);
+var result = rule.Execute(parameters);
+```
+
 ## What makes it different
 
 **Not an interpreter.**

@@ -15,6 +15,7 @@ Quick-reference code snippets for common scenarios.
 - [Basic Boolean Rule](#basic-boolean-rule)
 - [Rule with Action](#rule-with-action)
 - [Parent with Child Rules](#parent-with-child-rules)
+- [Multiple Parameters](#multiple-parameters)
 - [Async Rule](#async-rule)
 - [Returning Multiple Values](#returning-multiple-values)
 - [Workflow with Multiple Rules](#workflow-with-multiple-rules)
@@ -89,6 +90,49 @@ var child2 = new Rule
 
 parent.ChildRules.Add(child1);
 parent.ChildRules.Add(child2);
+```
+
+## Multiple Parameters
+
+Pass multiple parameters directly — up to 16.
+
+```csharp
+var rule = new Rule
+{
+    Description = "Price check",
+    Expression = "price > 0 && quantity > 0",
+    IsActive = true
+};
+
+var parameters = new[]
+{
+    new RuleParameter("price", typeof(decimal), 9.99m),
+    new RuleParameter("quantity", typeof(int), 5)
+};
+
+var compiler = new ExpressionCompiler();
+rule.Compile(compiler, parameters);
+
+var result = rule.Execute(parameters);
+// result.Success = true
+```
+
+**Parameter names in expressions** match exactly:
+
+```csharp
+var rule = new Rule
+{
+    Expression = "x > y"
+};
+
+var parameters = new[]
+{
+    new RuleParameter("x", typeof(int), 10),
+    new RuleParameter("y", typeof(int), 5)
+};
+
+rule.Compile(compiler, parameters);
+rule.Execute(parameters); // Success = true
 ```
 
 ## Async Rule

@@ -79,6 +79,26 @@ var executeParams = new[]
 };
 ```
 
+### Multiple Parameters
+
+Rules can accept multiple parameters directly — up to 16.
+
+```csharp
+var rule = new Rule
+{
+    Description = "Price validation",
+    Expression = "price > 0 && quantity > 0"
+};
+
+var parameters = new[]
+{
+    RuleParameter.ForCompile("price", typeof(decimal)),
+    RuleParameter.ForCompile("quantity", typeof(int))
+};
+
+rule.Compile(compiler, parameters);
+```
+
 ### 5. Validate, Compile, Execute
 
 ```csharp
