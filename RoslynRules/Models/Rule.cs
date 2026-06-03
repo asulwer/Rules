@@ -419,7 +419,8 @@ namespace RoslynRules.Models
         /// <param name="compiler">The expression compiler instance.</param>
         /// <param name="parameters">Parameter definitions used for compilation.</param>
         /// <param name="additionalNamespaces">Extra namespaces for expression compilation.</param>
-        public void Compile(ExpressionCompiler compiler, RuleParameter[] parameters, string[]? additionalNamespaces = null)
+        /// <param name="referenceProvider">Optional custom assembly reference provider for sandboxing.</param>
+        public void Compile(ExpressionCompiler compiler, RuleParameter[] parameters, string[]? additionalNamespaces = null, Compiler.AssemblyReferenceProvider? referenceProvider = null)
         {
             // Validate parameter constraints.
             if (parameters.Length != 1)
@@ -440,7 +441,7 @@ namespace RoslynRules.Models
                 var delegateType = isAsync
                     ? BuildAsyncDelegateType(typeof(bool), parameters)
                     : BuildDelegateType(typeof(bool), parameters);
-                var rawDelegate = CompileDelegate(compiler, Expression, delegateType, parameters, additionalNamespaces);
+                var rawDelegate = CompileDelegate(compiler, Expression, delegateType, parameters, additionalNamespaces, referenceProvider);
                 _compiledExpression = CompiledDelegateFactory.Wrap(rawDelegate);
             }
 
@@ -450,14 +451,14 @@ namespace RoslynRules.Models
                 var delegateType = isAsync
                     ? BuildAsyncDelegateType(typeof(void), parameters)
                     : BuildDelegateType(typeof(void), parameters);
-                var rawDelegate = CompileDelegate(compiler, Action, delegateType, parameters, additionalNamespaces);
+                var rawDelegate = CompileDelegate(compiler, Action, delegateType, parameters, additionalNamespaces, referenceProvider);
                 _compiledAction = CompiledDelegateFactory.Wrap(rawDelegate);
             }
 
             // Compile children recursively
             foreach (var child in ChildRules.Where(r => r.IsActive))
             {
-                child.Compile(compiler, parameters, additionalNamespaces);
+                child.Compile(compiler, parameters, additionalNamespaces, referenceProvider);
             }
 
             _isCompiled = true; // Lock properties after compilation
@@ -548,13 +549,11 @@ namespace RoslynRules.Models
         /// Invokes the compiler via reflection to create a typed delegate.
         /// </summary>
         [RequiresUnreferencedCode("RoslynRules invokes the compiler via reflection (GetMethod, MakeGenericMethod). This code may not work correctly with trimming or AOT.")]
-        private static Delegate CompileDelegate(ExpressionCompiler compiler, string expression, Type delegateType, RuleParameter[] parameters, string[]? additionalNamespaces)
+        private static Delegate CompileDelegate(ExpressionCompiler compiler, string expression, Type delegateType, RuleParameter[] parameters, string[]? additionalNamespaces, Compiler.AssemblyReferenceProvider? referenceProvider = null)
         {
             var paramNames = parameters.Select(p => p.Name).ToArray();
             var method = compiler.GetType().GetMethod("Compile")!.MakeGenericMethod(delegateType);
-            // The Compile method has 4 parameters: expression, parameterNames, additionalNamespaces, referenceProvider
-            // We pass null for referenceProvider to use the default safe whitelist
-            var result = method.Invoke(compiler, new object?[] { expression, paramNames, additionalNamespaces ?? Array.Empty<string>(), null });
+            var result = method.Invoke(compiler, new object?[] { expression, paramNames, additionalNamespaces ?? Array.Empty<string>(), referenceProvider });
             if (result is not Delegate delegateResult)
                 throw new RuleCompilationException("Compiler did not return a valid delegate.");
             return delegateResult;

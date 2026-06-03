@@ -215,11 +215,11 @@ namespace RoslynRules.Models
         /// </summary>
         /// <param name="parameters">Parameter definitions used for compilation.</param>
         /// <param name="additionalNamespaces">Extra namespaces for expression compilation.</param>
-        public void Compile(RuleParameter[] parameters, string[]? additionalNamespaces = null)
+        public void Compile(RuleParameter[] parameters, string[]? additionalNamespaces = null, Compiler.AssemblyReferenceProvider? referenceProvider = null)
         {
             foreach (var rule in Rules.Where(r => r.IsActive))
             {
-                rule.Compile(_compiler, parameters, additionalNamespaces);
+                rule.Compile(_compiler, parameters, additionalNamespaces, referenceProvider);
             }
         }
 
