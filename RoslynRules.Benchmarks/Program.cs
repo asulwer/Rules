@@ -1,7 +1,13 @@
+using BenchmarkDotNet.Running;
 using RoslynRules.Benchmarks;
 
+// Run BenchmarkDotNet benchmarks
+BenchmarkRunner.Run<CompilerPipelineDotNetBenchmark>();
+
+// Run existing manual benchmarks
+Console.WriteLine();
 Console.WriteLine("========================================");
-Console.WriteLine("  RoslynRules Comprehensive Benchmarks");
+Console.WriteLine("  Manual Benchmarks");
 Console.WriteLine("========================================");
 Console.WriteLine();
 
