@@ -31,6 +31,10 @@ namespace RoslynRules.Models
         [NotMapped] private CompiledDelegate? _compiledAction;
         [NotMapped] private bool _isCompiled;
 
+        // Stores the compile-time parameter schema for validation at execution.
+        [NotMapped] private Type? _compiledParameterType;
+        [NotMapped] private string? _compiledParameterName;
+
         // Result cache for memoization.
         [NotMapped] private readonly Execution.RuleCache _resultCache = new();
 
@@ -417,6 +421,16 @@ namespace RoslynRules.Models
         /// <param name="additionalNamespaces">Extra namespaces for expression compilation.</param>
         public void Compile(ExpressionCompiler compiler, RuleParameter[] parameters, string[]? additionalNamespaces = null)
         {
+            // Validate parameter constraints.
+            if (parameters.Length != 1)
+                throw new NotSupportedException(
+                    $"Rules support exactly one input parameter. You provided {parameters.Length}. " +
+                    "Wrap multiple inputs in a struct/class.");
+
+            // Store parameter schema for execution-time validation.
+            _compiledParameterType = parameters[0].Type;
+            _compiledParameterName = parameters[0].Name;
+
             // Validate no circular references before compiling.
             ValidateNoCircularReferences();
 
@@ -676,6 +690,45 @@ namespace RoslynRules.Models
         }
 
         /// <summary>
+        /// Validates that execution-time parameters match the compile-time schema.
+        /// Checks parameter count, name match, and type compatibility.
+        /// </summary>
+        /// <param name="parameters">Runtime parameters passed to Execute.</param>
+        /// <exception cref="RuleValidationException">Thrown when parameter name or type mismatch is detected.</exception>
+        private void ValidateExecutionParameters(RuleParameter[] parameters)
+        {
+            // Skip validation if this rule has no compiled delegates (e.g., only child rules).
+            if (_compiledParameterType == null)
+                return;
+
+            if (parameters.Length != 1)
+                throw new NotSupportedException(
+                    $"Rules support exactly one parameter. You provided {parameters.Length}. " +
+                    "Wrap multiple values in a struct/class.");
+
+            var param = parameters[0];
+
+            // Validate name matches compile-time name.
+            if (!string.Equals(param.Name, _compiledParameterName, StringComparison.Ordinal))
+            {
+                throw new RuleValidationException(
+                    $"Parameter name mismatch for rule '{Description}' (Id: {Id}). " +
+                    $"Expected parameter name '{_compiledParameterName}' (compiled), but received '{param.Name}'. " +
+                    "Ensure Execute() uses the same parameter name as Compile().");
+            }
+
+            // Validate type is assignable to compile-time type.
+            if (!param.Type.IsAssignableTo(_compiledParameterType))
+            {
+                var valueTypeName = param.Value?.GetType()?.Name ?? "null";
+                throw new RuleValidationException(
+                    $"Parameter type mismatch for rule '{Description}' (Id: {Id}). " +
+                    $"Expected type '{_compiledParameterType.Name}' (compiled), but received '{param.Type.Name}'. " +
+                    $"Value type '{valueTypeName}' is not assignable to '{_compiledParameterType.Name}'.");
+            }
+        }
+
+        /// <summary>
         /// Core execution logic without timeout or logging.
         /// Fires OnRuleExecuting and OnRuleExecuted lifecycle events.
         /// Exceptions propagate naturally — caught by ExecuteWithContext for logging.
@@ -692,6 +745,9 @@ namespace RoslynRules.Models
 
             if (_compiledExpression == null && _compiledAction == null && !ChildRules.Any())
                 throw new NotCompiledException(Id);
+
+            // Validate execute-time parameters match compile-time schema.
+            ValidateExecutionParameters(parameters);
 
             // Check cache first
             if (CacheDuration.HasValue)
@@ -919,6 +975,9 @@ namespace RoslynRules.Models
 
             if (_compiledExpression == null && _compiledAction == null && !ChildRules.Any())
                 throw new NotCompiledException(Id);
+
+            // Validate execute-time parameters match compile-time schema.
+            ValidateExecutionParameters(parameters);
 
             var paramValue = parameters[0].Value;
 

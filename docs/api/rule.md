@@ -93,14 +93,36 @@ rule.Description = "New name"; // ❌ RuleCompilationException
 
 Synchronous execution. Bottom-up order: children → Expression → Action.
 
+Validates that execution-time parameters match the compile-time schema established during `Compile()`. Throws `RuleValidationException` on name or type mismatch.
+
 ```csharp
 var result = rule.Execute(parameters);
 // result.Success = true if all children pass AND Expression passes
 ```
 
+**Parameter validation:**
+- Parameter **name** must match exactly (case-sensitive, ordinal comparison)
+- Parameter **type** must be assignable to the compile-time type (supports inheritance)
+
+```csharp
+// Compile with "customer" as Customer
+rule.Compile(compiler, new[] { new RuleParameter("customer", typeof(Customer)) });
+
+// Execute with matching name and type — succeeds
+rule.Execute(new[] { new RuleParameter("customer", typeof(Customer), alice) });
+
+// Execute with wrong name — throws RuleValidationException
+rule.Execute(new[] { new RuleParameter("cust", typeof(Customer), alice) });
+
+// Execute with incompatible type — throws RuleValidationException
+rule.Execute(new[] { new RuleParameter("customer", typeof(Order), order) });
+```
+
 ### `ExecuteAsync(params RuleParameter[])`
 
 Asynchronous execution for rules containing `await`.
+
+Same parameter validation as `Execute` — throws `RuleValidationException` on name or type mismatch.
 
 ```csharp
 var result = await rule.ExecuteAsync(parameters);

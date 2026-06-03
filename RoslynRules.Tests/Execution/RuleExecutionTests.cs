@@ -187,9 +187,80 @@ namespace RoslynRules.Tests.Execution
             act.Should().Throw<RoslynRules.Exceptions.NotCompiledException>()
                 .WithMessage("*must be compiled before execution*");
         }
+        [Fact]
+        public void Execute_ParameterNameMismatch_ThrowsInvalidOperationException()
+        {
+            var rule = new Rule
+            {
+                Description = "Name mismatch test",
+                Expression = "customer.Age >= 18",
+                IsActive = true
+            };
+
+            var compileParams = new[]
+            {
+                new RuleParameter("customer", typeof(TestCustomer), new TestCustomer { Age = 25, Name = "Alice" })
+            };
+            var executeParams = new[]
+            {
+                new RuleParameter("cust", typeof(TestCustomer), new TestCustomer { Age = 25, Name = "Alice" })
+            };
+
+                        rule.Compile(_compiler, compileParams, _namespaces);
+
+            var act = () => rule.Execute(executeParams);
+            act.Should().Throw<RoslynRules.Exceptions.RuleValidationException>()
+                .WithMessage("*Expected parameter name 'customer'*")
+                .WithMessage("*but received 'cust'*");
+        }
+
+        [Fact]
+        public void Execute_ParameterTypeMismatch_ThrowsArgumentException()
+        {
+            var rule = new Rule
+            {
+                Description = "Type mismatch test",
+                Expression = "customer.Age >= 18",
+                IsActive = true
+            };
+
+            var compileParams = new[]
+            {
+                new RuleParameter("customer", typeof(TestCustomer), new TestCustomer { Age = 25, Name = "Alice" })
+            };
+            var executeParams = new[]
+            {
+                new RuleParameter("customer", typeof(string), "not a customer")
+            };
+
+                        rule.Compile(_compiler, compileParams, _namespaces);
+
+            var act = () => rule.Execute(executeParams);
+            act.Should().Throw<RoslynRules.Exceptions.RuleValidationException>()
+                .WithMessage("*Expected type 'TestCustomer'*")
+                .WithMessage("*but received 'String'*");
+        }
+
+        [Fact]
+        public void Execute_ParameterNameAndTypeMatch_Succeeds()
+        {
+            var rule = new Rule
+            {
+                Description = "Matching parameters",
+                Expression = "customer.Age >= 18",
+                IsActive = true
+            };
+
+            var parameters = new[]
+            {
+                new RuleParameter("customer", typeof(TestCustomer), new TestCustomer { Age = 25, Name = "Alice" })
+            };
+
+                        rule.Compile(_compiler, parameters, _namespaces);
+
+            var result = rule.Execute(parameters);
+
+            result.Success.Should().BeTrue();
+        }
     }
 }
-
-
-
-

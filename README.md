@@ -415,6 +415,32 @@ var results = wf.Execute(new[]
 });
 ```
 
+**Parameter validation at Execute:**
+
+The parameter name and type used during `Execute()` must match what was provided to `Compile()`. Mismatches throw `RuleValidationException` with a clear message:
+
+```csharp
+// Compile with parameter name "customer"
+wf.Compile(new[]
+{
+    new RuleParameter("customer", typeof(Customer), default(Customer))
+});
+
+// Execute with wrong name — throws RuleValidationException
+wf.Execute(new[]
+{
+    new RuleParameter("cust", typeof(Customer), new Customer())  // ❌ "cust" ≠ "customer"
+});
+
+// Execute with wrong type — throws RuleValidationException  
+wf.Execute(new[]
+{
+    new RuleParameter("customer", typeof(Order), new Order())  // ❌ Order is not assignable to Customer
+});
+```
+
+This protects against accidental parameter mismatches when compilation and execution happen in different parts of your codebase.
+
 This is useful when:
 - You compile at startup and execute later with different data
 - You want to avoid creating dummy objects just for compilation
