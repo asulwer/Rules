@@ -38,6 +38,8 @@ Quick-reference code snippets for common scenarios.
 | [Real-World Use Cases](real-world-use-cases.md) | Form validation, fraud detection, feature flags, compliance, pricing |
 | [EF Core Serialization](ef-serialization.md) | DbContext setup, storing/loading rules, temporal tables |
 | [When to Use What](when-to-use-what.md) | Decision matrix, execution modes, choosing by rule count |
+| [Localization](localization.md) | i18n with DescriptionKey and IRuleDescriptionProvider |
+| [Visualization](visualization.md) | DOT/Mermaid dependency graphs |
 
 ## Basic Boolean Rule
 
