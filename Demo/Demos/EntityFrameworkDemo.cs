@@ -1,5 +1,6 @@
 using Demo.Data;
 using Microsoft.EntityFrameworkCore;
+using RoslynRules.Extensions;
 using RoslynRules.Models;
 
 namespace Demo.Demos;
@@ -8,61 +9,83 @@ public static class EntityFrameworkDemo
 {
     public static async Task Run()
     {
-        // Create and seed the in-memory database
-        await using var db = new GroceryDbContext();
-        await SeedDatabase(db);
+        // ── Phase 1: Define and persist a workflow to EF ──
+        await using var rulesDb = new RulesDbContext();
 
-        // Fetch data into memory before compiling rules
-        var items = await db.GroceryItems.ToListAsync();
-        var lists = await db.GroceryLists.Include(l => l.Items).ToListAsync();
-
-        // Rule 1: Check if list has perishable items (Dairy or Produce)
-        var perishableRule = new Rule
+        var workflow = new Workflow
         {
-            Description = "Has perishable items",
-            Expression = "items.Any(i => i.Category == \"Dairy\" || i.Category == \"Produce\")"
+            Description = "Grocery validation rules",
+            Rules = new List<Rule>
+            {
+                new Rule
+                {
+                    Description = "Has perishable items",
+                    Expression = "items.Any(i => i.Category == \"Dairy\" || i.Category == \"Produce\")"
+                },
+                new Rule
+                {
+                    Description = "Under $30 budget",
+                    Expression = "items.Sum(i => i.Price) <= 30m"
+                },
+                new Rule
+                {
+                    Description = "All items in stock",
+                    Expression = "items.All(i => i.InStock == true)"
+                }
+            }
         };
 
-        // Rule 2: Check if total is under $30
-        var budgetRule = new Rule
+        // Serialize workflow to JSON and store in EF
+        var json = JsonRuleLoader.Serialize(workflow);
+        var entity = new WorkflowEntity
         {
-            Description = "Under $30 budget",
-            Expression = "items.Sum(i => i.Price) <= 30m"
+            Name = workflow.Description,
+            JsonPayload = json
         };
+        rulesDb.Workflows.Add(entity);
+        await rulesDb.SaveChangesAsync();
+        Console.WriteLine($"  Stored workflow '{entity.Name}' to EF (Id: {entity.Id})");
 
-        // Compile rules
+        // ── Phase 2: Load workflow back from EF ──
+        var loadedEntity = await rulesDb.Workflows.FirstAsync();
+        var restoredWorkflow = JsonRuleLoader.DeserializeWorkflow(loadedEntity.JsonPayload);
+        Console.WriteLine($"  Restored workflow with {restoredWorkflow.Rules.Count} rules");
+
+        // ── Phase 3: Seed grocery data ──
+        await using var groceryDb = new GroceryDbContext();
+        await SeedGroceryData(groceryDb);
+
+        var items = await groceryDb.GroceryItems.ToListAsync();
+        var lists = await groceryDb.GroceryLists.Include(l => l.Items).ToListAsync();
+
+        // ── Phase 4: Compile restored workflow ──
         var compileParams = new[] { new RuleParameter("items", typeof(List<GroceryItem>)) };
-        perishableRule.Compile(DemoRunner.Compiler, compileParams, null, DemoRunner.ReferenceProvider);
-        budgetRule.Compile(DemoRunner.Compiler, compileParams, null, DemoRunner.ReferenceProvider);
+        restoredWorkflow.Compile(compileParams, null, DemoRunner.ReferenceProvider);
 
-        // Execute against each grocery list by looking up item details from the DB
+        // ── Phase 5: Execute against each grocery list ──
         foreach (var list in lists)
         {
-            // Map list items to full grocery item details
             var listItems = list.Items
                 .Select(li => items.FirstOrDefault(g => g.Name == li.ItemName))
                 .Where(g => g != null)
+                .Cast<GroceryItem>()
                 .ToList();
 
             var execParams = new[] { new RuleParameter("items", typeof(List<GroceryItem>), listItems) };
+            var results = restoredWorkflow.Execute(execParams).ToArray();
 
-            var perishableResult = perishableRule.Execute(execParams);
-            var budgetResult = budgetRule.Execute(execParams);
-
+            Console.WriteLine();
             Console.WriteLine($"  List: {list.Name} ({listItems.Count} items)");
-            DemoRunner.PrintResult(perishableResult, "  Has perishables");
-            DemoRunner.PrintResult(budgetResult, "  Under $30");
 
-            // Show item breakdown
+            foreach (var result in results)
+                DemoRunner.PrintResult(result, $"    {result.RuleDescription}");
+
             foreach (var item in listItems)
-            {
-                var stock = item.InStock ? "in stock" : "OUT OF STOCK";
-                Console.WriteLine($"    - {item.Name}: ${item.Price:F2} ({item.Category}, {stock})");
-            }
+                Console.WriteLine($"    - {item.Name}: ${item.Price:F2} ({item.Category}, {(item.InStock ? "in stock" : "OUT")})");
         }
     }
 
-    private static async Task SeedDatabase(GroceryDbContext db)
+    private static async Task SeedGroceryData(GroceryDbContext db)
     {
         var groceryItems = new List<GroceryItem>
         {
