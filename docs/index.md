@@ -97,6 +97,7 @@ services.AddSingleton<IRuleEngine, Workflow>();
 | <a href="api/rule.html">Rule</a> | Properties, compilation, execution, lifecycle |
 | <a href="api/rule-localization.html">Localization</a> | i18n, `DescriptionKey`, `IRuleDescriptionProvider` |
 | <a href="api/rule-visualization.html">Visualization</a> | DOT/Mermaid dependency graphs |
+| <a href="api/rule-metrics.html">Metrics</a> | Eval count, avg time, failure rate |
 | <a href="api/workflow.html">Workflow</a> | Execution modes, parallel, async |
 | <a href="api/rulecontext.html">RuleContext</a> | Dependency result access |
 | <a href="api/iruleengine.html">IRuleEngine</a> | DI registration, mocking |
