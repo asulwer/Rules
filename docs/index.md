@@ -112,6 +112,7 @@ services.AddSingleton<IRuleEngine, Workflow>();
 | <a href="api/result-caching.html">Caching</a> | Memoization, TTL |
 | <a href="api/exceptions.html">Exceptions</a> | Typed exception hierarchy |
 | <a href="api/assemblyreferenceprovider.html">Sandboxing</a> | Assembly whitelist/blacklist |
+| <a href="aot-compatibility.html">AOT</a> | Native AOT compatibility |
 
 ## Examples
 
