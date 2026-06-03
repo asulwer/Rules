@@ -36,9 +36,30 @@ public static class SeedData
                 },
                 new Rule
                 {
-                    Description = "All items in stock",
-                    Expression = "items.All(i => i.InStock == true)"
-                }
+                    Description = "Quality checks",
+                    Expression = "items.All(i => i.Price > 0)",
+                    ChildRules = new List<Rule>
+                    {
+                        new Rule
+                        {
+                            Description = "No out of stock",
+                            Expression = "items.All(i => i.InStock == true)"
+                        },
+                        new Rule
+                        {
+                            Description = "Has dairy",
+                            Expression = "items.Any(i => i.Category == \"Dairy\")",
+                            ChildRules = new List<Rule>
+                            {
+                                new Rule
+                                {
+                                    Description = "Fresh milk check",
+                                    Expression = "items.Any(i => i.Name == \"Milk\" && i.InStock)"
+                                }
+                            }
+                        }
+                    }
+                },
             }
         };
 
