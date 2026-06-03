@@ -264,10 +264,24 @@ namespace RoslynRules.Models
         [NotMapped] public ILogger? Logger { get; set; }
 
         /// <summary>
+        /// Execution metrics for this rule: eval count, average time, failure rate, last execution.
+        /// Updated atomically during execution. Access is thread-safe.
+        /// </summary>
+        [NotMapped]
+        [JsonIgnore]
+        public RuleMetrics Metrics => new RuleMetrics(_metrics.EvalCount, _metrics.FailureCount, _metrics.TotalTicks, _metrics.LastExecuted?.Ticks ?? 0);
+
+        /// <summary>
         /// Clears the cached result for this rule, forcing the next evaluation to re-execute.
+        /// Also resets execution metrics.
         /// Thread-safe.
         /// </summary>
-        public void ClearCache() => _resultCache.Clear();
+        public void ClearCache()
+        {
+            _resultCache.Clear();
+            _metrics.Reset();
+        }
+        private RuleMetrics _metrics;
 
         /// <summary>
         /// Returns a localized description of the rule.

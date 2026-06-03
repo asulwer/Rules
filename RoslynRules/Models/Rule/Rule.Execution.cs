@@ -52,6 +52,11 @@ namespace RoslynRules.Models
             }
 
             sw.Stop();
+
+            // Record metrics
+            var failed = exception != null || !result.Success;
+            _metrics.Record(sw.ElapsedTicks, failed);
+
             LogExecuted(new RuleExecutedEvent
             {
                 RuleId = Id,
@@ -292,6 +297,11 @@ namespace RoslynRules.Models
             }
 
             sw.Stop();
+
+            // Record metrics
+            var failed = exception != null || !result.Success;
+            _metrics.Record(sw.ElapsedTicks, failed);
+
             LogExecuted(new RuleExecutedEvent
             {
                 RuleId = Id,
