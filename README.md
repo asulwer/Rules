@@ -34,8 +34,6 @@ workflow.Compile(parameters);
 var results = workflow.Execute(parameters);
 ```
 
-## The one-minute pitch
-
 | Instead of... | RoslynRules does... |
 |--------------|---------------------|
 | Interpreting expressions at runtime | **Compiles to typed delegates** (Roslyn → IL) |
