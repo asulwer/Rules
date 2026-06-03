@@ -26,6 +26,20 @@ High-performance .NET rules engine with Roslyn compilation, typed delegates, and
   </tbody>
 </table>
 
+## Extension Packages
+
+### RoslynRules.EntityFrameworkCore
+
+Install: `dotnet add package RoslynRules.EntityFrameworkCore`
+
+Provides EF Core entity models (`RuleEntity`, `WorkflowEntity`) with lazy loading support. Convert to sealed domain models for execution via `ToDomainModel()`. See the [EF Core example](examples/ef-serialization.md).
+
+### RoslynRules.Json
+
+Install: `dotnet add package RoslynRules.Json`
+
+JSON serialization for workflows and rules. See [JSON Serialization](api/json-serialization.md).
+
 ## EF Core Integration Note
 
 <code>Rule</code> is <code>sealed</code> to enforce immutability after compilation. This prevents EF Core lazy loading proxies from working (proxies require subclassing). Use <strong>eager loading</strong> (<code>Include</code>/<code>ThenInclude</code>) or <strong>explicit loading</strong> (<code>Load()</code>) instead. See the <a href="examples/ef-serialization.md">EF Core example</a>.
