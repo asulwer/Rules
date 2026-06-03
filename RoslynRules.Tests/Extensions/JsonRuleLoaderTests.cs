@@ -1,5 +1,5 @@
 using FluentAssertions;
-using RoslynRules.Extensions;
+using RoslynRules.Json;
 using RoslynRules.Models;
 using System;
 using Xunit;

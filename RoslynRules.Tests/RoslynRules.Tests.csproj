@@ -27,6 +27,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\RoslynRules\RoslynRules.csproj" />
+    <ProjectReference Include="..\RoslynRules.Json\RoslynRules.Json.csproj" />
   </ItemGroup>
 
 </Project>

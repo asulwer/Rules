@@ -108,8 +108,8 @@ namespace RoslynRules.Tests.Execution
                 }
             };
 
-            var json = RoslynRules.Extensions.JsonRuleLoader.Serialize(original);
-            var restored = RoslynRules.Extensions.JsonRuleLoader.DeserializeWorkflow(json);
+            var json = RoslynRules.Json.JsonRuleLoader.Serialize(original);
+            var restored = RoslynRules.Json.JsonRuleLoader.DeserializeWorkflow(json);
 
             Assert.Equal(original.Id, restored.Id);
             Assert.Single(restored.Rules);
@@ -139,8 +139,8 @@ namespace RoslynRules.Tests.Execution
                 Rules = { parent }
             };
 
-            var json = RoslynRules.Extensions.JsonRuleLoader.Serialize(workflow);
-            var restored = RoslynRules.Extensions.JsonRuleLoader.DeserializeWorkflow(json);
+            var json = RoslynRules.Json.JsonRuleLoader.Serialize(workflow);
+            var restored = RoslynRules.Json.JsonRuleLoader.DeserializeWorkflow(json);
 
             Assert.Single(restored.Rules);
             Assert.Single(restored.Rules[0].ChildRules);

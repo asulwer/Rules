@@ -22,6 +22,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RoslynRules.Benchmarks", "R
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RoslynRules.EFCore", "RoslynRules.EFCore\RoslynRules.EFCore.csproj", "{5FBA2D1A-E117-4FED-8820-39659429FD43}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RoslynRules.Json", "RoslynRules.Json\RoslynRules.Json.csproj", "{D8E7D52A-5173-4E57-B649-F2BA63617C90}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -92,6 +94,18 @@ Global
 		{5FBA2D1A-E117-4FED-8820-39659429FD43}.Release|x64.Build.0 = Release|Any CPU
 		{5FBA2D1A-E117-4FED-8820-39659429FD43}.Release|x86.ActiveCfg = Release|Any CPU
 		{5FBA2D1A-E117-4FED-8820-39659429FD43}.Release|x86.Build.0 = Release|Any CPU
+		{D8E7D52A-5173-4E57-B649-F2BA63617C90}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D8E7D52A-5173-4E57-B649-F2BA63617C90}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D8E7D52A-5173-4E57-B649-F2BA63617C90}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{D8E7D52A-5173-4E57-B649-F2BA63617C90}.Debug|x64.Build.0 = Debug|Any CPU
+		{D8E7D52A-5173-4E57-B649-F2BA63617C90}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{D8E7D52A-5173-4E57-B649-F2BA63617C90}.Debug|x86.Build.0 = Debug|Any CPU
+		{D8E7D52A-5173-4E57-B649-F2BA63617C90}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D8E7D52A-5173-4E57-B649-F2BA63617C90}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D8E7D52A-5173-4E57-B649-F2BA63617C90}.Release|x64.ActiveCfg = Release|Any CPU
+		{D8E7D52A-5173-4E57-B649-F2BA63617C90}.Release|x64.Build.0 = Release|Any CPU
+		{D8E7D52A-5173-4E57-B649-F2BA63617C90}.Release|x86.ActiveCfg = Release|Any CPU
+		{D8E7D52A-5173-4E57-B649-F2BA63617C90}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,4 +1,4 @@
-using RoslynRules.Extensions;
+using RoslynRules.Json;
 using RoslynRules.Models;
 using Demo.Models;
 
