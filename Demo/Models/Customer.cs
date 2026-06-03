@@ -1,4 +1,5 @@
-using System.ComponentModel.DataAnnotations;
+using System;
+using System.Collections.Generic;
 
 namespace Demo.Models
 {
@@ -10,7 +11,6 @@ namespace Demo.Models
         /// <summary>
         /// Unique identifier for the customer.
         /// </summary>
-        [Key]
         public Guid Id { get; set; } = Guid.NewGuid();
 
         /// <summary>
