@@ -1,6 +1,6 @@
 using Demo.Data;
 using Microsoft.EntityFrameworkCore;
-using RoslynRules.Models;
+using RoslynRules.EntityFrameworkCore.Entities;
 
 namespace Demo.Data;
 
@@ -19,39 +19,39 @@ public static class SeedData
     {
         if (await db.Workflows.AnyAsync()) return;
 
-        var workflow = new Workflow
+        var workflow = new WorkflowEntity
         {
             Description = "Grocery validation rules",
-            Rules = new List<Rule>
+            Rules = new List<RuleEntity>
             {
-                new Rule
+                new()
                 {
                     Description = "Has perishable items",
                     Expression = "items.Any(i => i.Category == \"Dairy\" || i.Category == \"Produce\")"
                 },
-                new Rule
+                new()
                 {
                     Description = "Under $30 budget",
                     Expression = "items.Sum(i => i.Price) <= 30m"
                 },
-                new Rule
+                new()
                 {
                     Description = "Quality checks",
                     Expression = "items.All(i => i.Price > 0)",
-                    ChildRules = new List<Rule>
+                    ChildRules = new List<RuleEntity>
                     {
-                        new Rule
+                        new()
                         {
                             Description = "No out of stock",
                             Expression = "items.All(i => i.InStock == true)"
                         },
-                        new Rule
+                        new()
                         {
                             Description = "Has dairy",
                             Expression = "items.Any(i => i.Category == \"Dairy\")",
-                            ChildRules = new List<Rule>
+                            ChildRules = new List<RuleEntity>
                             {
-                                new Rule
+                                new()
                                 {
                                     Description = "Fresh milk check",
                                     Expression = "items.Any(i => i.Name == \"Milk\" && i.InStock)"
@@ -59,7 +59,7 @@ public static class SeedData
                             }
                         }
                     }
-                },
+                }
             }
         };
 

@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
-using RoslynRules.EFCore.Entities;
+using RoslynRules.EntityFrameworkCore.Entities;
 
-namespace RoslynRules.EFCore;
+namespace RoslynRules.EntityFrameworkCore;
 
 public static class DbContextExtensions
 {

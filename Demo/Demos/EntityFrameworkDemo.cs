@@ -1,5 +1,6 @@
 using Demo.Data;
 using Microsoft.EntityFrameworkCore;
+using RoslynRules.EntityFrameworkCore.Entities;
 using RoslynRules.Models;
 
 namespace Demo.Demos;
@@ -8,32 +9,25 @@ public static class EntityFrameworkDemo
 {
     public static async Task Run()
     {
+        // ── Load workflow from DB ──
         await using var rulesDb = new RulesDbContext();
-        await using var groceryDb = new GroceryDbContext();
 
-        // ── Explicit Loading: load workflow without any children ──
-        var workflow = await rulesDb.Workflows.FirstAsync();
-        Console.WriteLine($"  Loaded '{workflow.Description}' (no rules yet)");
+        var entity = await rulesDb.Workflows
+            .AsNoTracking()
+            .Include(w => w.Rules)
+            .FirstAsync();
 
-        // ── Explicitly load top-level rules ──
-        await rulesDb.Entry(workflow)
-            .Collection(w => w.Rules)
-            .LoadAsync();
-        Console.WriteLine($"  Loaded {workflow.Rules.Count} top-level rules");
-
-        // ── Recursively load child rules for each rule ──
-        foreach (var rule in workflow.Rules)
-        {
-            await LoadChildRulesRecursive(rulesDb, rule);
-        }
-
-        // Count total rules including nested children
-        var totalRules = CountRulesRecursive(workflow.Rules);
-        Console.WriteLine($"  Total rules (including nested): {totalRules}");
+        Console.WriteLine($"  Loaded '{entity.Description}' from DB ({entity.Rules.Count} top-level rules)");
 
         // ── Load grocery data ──
+        await using var groceryDb = new GroceryDbContext();
+
         var items = await groceryDb.GroceryItems.ToListAsync();
         var lists = await groceryDb.GroceryLists.Include(l => l.Items).ToListAsync();
+
+        // ── Convert to domain model ──
+        var workflow = entity.ToDomainModel();
+        Console.WriteLine($"  Converted to domain model with {workflow.Rules.Count} top-level rules");
 
         // ── Compile and execute ──
         var compileParams = new[] { new RuleParameter("items", typeof(List<GroceryItem>)) };
@@ -59,26 +53,5 @@ public static class EntityFrameworkDemo
             foreach (var item in listItems)
                 Console.WriteLine($"    - {item.Name}: ${item.Price:F2} ({item.Category}, {(item.InStock ? "in stock" : "OUT")})");
         }
-    }
-
-    /// <summary>
-    /// Recursively loads child rules using explicit loading.
-    /// Each call queries the database for that rule's children.
-    /// </summary>
-    private static async Task LoadChildRulesRecursive(RulesDbContext db, Rule rule)
-    {
-        await db.Entry(rule)
-            .Collection(r => r.ChildRules)
-            .LoadAsync();
-
-        foreach (var child in rule.ChildRules)
-        {
-            await LoadChildRulesRecursive(db, child);
-        }
-    }
-
-    private static int CountRulesRecursive(IEnumerable<Rule> rules)
-    {
-        return rules.Sum(r => 1 + CountRulesRecursive(r.ChildRules));
     }
 }

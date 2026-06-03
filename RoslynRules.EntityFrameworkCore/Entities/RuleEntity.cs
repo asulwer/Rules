@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace RoslynRules.EFCore.Entities;
+namespace RoslynRules.EntityFrameworkCore.Entities;
 
 /// <summary>
 /// EF Core entity for Rule. NOT sealed — supports lazy loading proxies.

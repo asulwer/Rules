@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace RoslynRules.EFCore.Entities;
+namespace RoslynRules.EntityFrameworkCore.Entities;
 
 /// <summary>
 /// EF Core entity for Workflow. NOT sealed — supports lazy loading proxies.

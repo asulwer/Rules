@@ -1,21 +1,21 @@
 ---
 layout: default
-title: EF Core Integration
+title: Entity Framework Core Integration
 parent: Examples
 nav_order: 9
 ---
 
 [← Back to Examples Index](index.md)
 
-# EF Core Integration
+# Entity Framework Core Integration
 
-Install the `RoslynRules.EFCore` package:
+Install the `RoslynRules.EntityFrameworkCore` package:
 
 ```bash
-dotnet add package RoslynRules.EFCore
+dotnet add package RoslynRules.EntityFrameworkCore
 ```
 
-Store and load rules from a database using Entity Framework Core. The `RoslynRules.EFCore` package provides separate entity models that support lazy loading while keeping the core `Rule` model sealed and immutable.
+Store and load rules from a database using Entity Framework Core. The `RoslynRules.EntityFrameworkCore` package provides separate entity models that support lazy loading while keeping the core `Rule` model sealed and immutable.
 
 ## Quick Start
 
@@ -23,7 +23,7 @@ Store and load rules from a database using Entity Framework Core. The `RoslynRul
 
 ```csharp
 using Microsoft.EntityFrameworkCore;
-using RoslynRules.EFCore;
+using RoslynRules.EntityFrameworkCore;
 
 public class AppDbContext : DbContext
 {
@@ -85,4 +85,4 @@ The `ToDomainModel()` method recursively converts the entity graph to sealed `Ru
 
 - [Real-World Use Cases](real-world-use-cases.md)
 - [API Reference: Workflow](../api/workflow.md)
-- [NuGet Package](https://www.nuget.org/packages/RoslynRules.EFCore)
+- [NuGet Package](https://www.nuget.org/packages/RoslynRules.EntityFrameworkCore)

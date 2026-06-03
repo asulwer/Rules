@@ -12,6 +12,7 @@
   <ItemGroup>
     <ProjectReference Include="..\RoslynRules\RoslynRules.csproj" />
     <ProjectReference Include="..\RoslynRules.Json\RoslynRules.Json.csproj" />
+    <ProjectReference Include="..\RoslynRules.EntityFrameworkCore\RoslynRules.EntityFrameworkCore.csproj" />
   </ItemGroup>
 
   <ItemGroup>

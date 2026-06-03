@@ -20,7 +20,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RoslynRules.Tests", "Roslyn
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RoslynRules.Benchmarks", "RoslynRules.Benchmarks\RoslynRules.Benchmarks.csproj", "{69323F7D-3A48-4147-BF77-C473CAB2D75E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RoslynRules.EFCore", "RoslynRules.EFCore\RoslynRules.EFCore.csproj", "{5FBA2D1A-E117-4FED-8820-39659429FD43}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RoslynRules.EntityFrameworkCore", "RoslynRules.EntityFrameworkCore\RoslynRules.EntityFrameworkCore.csproj", "{5FBA2D1A-E117-4FED-8820-39659429FD43}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RoslynRules.Json", "RoslynRules.Json\RoslynRules.Json.csproj", "{D8E7D52A-5173-4E57-B649-F2BA63617C90}"
 EndProject

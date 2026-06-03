@@ -7,10 +7,10 @@
     <IsPackable>true</IsPackable>
 
     <!-- NuGet Package Metadata -->
-    <PackageId>RoslynRules.EFCore</PackageId>
+    <PackageId>RoslynRules.EntityFrameworkCore</PackageId>
     <Version>1.0.0</Version>
     <Authors>Aaron Sulwer</Authors>
-    <Description>EF Core integration for RoslynRules. Provides entity models with lazy loading support while keeping the core Rule model sealed and immutable.</Description>
+    <Description>Entity Framework Core integration for RoslynRules. Provides entity models with lazy loading support while keeping the core Rule model sealed and immutable.</Description>
     <PackageTags>roslynrules;rules;efcore;entity-framework;lazy-loading;workflow</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <RepositoryUrl>https://github.com/asulwer/RoslynRules</RepositoryUrl>
