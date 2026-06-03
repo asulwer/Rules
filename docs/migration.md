@@ -18,7 +18,7 @@ nav_order: 5
 | `Rule.RuleName` | `Rule.Description` |
 | `Rule.SuccessEvent` | Use `Rule.Action` |
 | `Rule.ErrorMessage` | Not needed — exceptions on failure |
-| Multi-parameter | Single parameter only |
+| Multi-parameter | ✅ Supported directly (up to 16) |
 | `DynamicInvoke` | Typed delegates |
 
 ## Example Migration
@@ -76,20 +76,20 @@ var results = workflow.Execute(new[]
 
 ## Breaking Changes
 
-1. **Single parameter only** — Wrap multiple inputs in a struct
-2. **No built-in error message** — Handle exceptions in caller
-3. **Expression uses parameter name** — Not `input1`, use declared name
-4. **Compile once** — Call `Compile()` before executing
+1. **No built-in error message** — Handle exceptions in caller
+2. **Expression uses parameter name** — Not `input1`, use declared name
+3. **Compile once** — Call `Compile()` before executing
 
 ## Benefits of Migrating
 
 | Metric | Improvement |
 |--------|-------------|
 | Execution speed | 10-100x faster (no System.Linq.Dynamic.Core) |
-| Memory | Lower allocation (single parameter) |
+| Memory | Lower allocation |
 | Thread safety | Immutable rules, no locks |
 | Validation | Catch errors before runtime |
 | Async | Native async/await support |
+| Multi-parameter | Up to 16 parameters directly |
 
 ## License
 

@@ -174,17 +174,13 @@ namespace RoslynRules.Models
         /// <exception cref="RuleCompilationException">Thrown if semantic errors are found in the Expression or Action.</exception>
         public void ValidateSemantics(ExpressionCompiler compiler, RuleParameter[] parameters, string[]? additionalNamespaces = null)
         {
-            if (parameters.Length != 1)
-                throw new NotSupportedException(
-                    $"ValidateSemantics supports exactly one parameter. You provided {parameters.Length}. " +
-                    "Wrap multiple values in a struct/class.");
-
             if (!string.IsNullOrEmpty(Expression))
             {
                 try
                 {
                     var delegateType = BuildDelegateType(typeof(object), parameters);
-                    var exprDelegate = CompileDelegate(compiler, Expression, delegateType, parameters, additionalNamespaces);
+                    var paramNames = parameters.Select(p => p.Name).ToArray();
+                    var exprDelegate = CompileDelegate(compiler, Expression, delegateType, paramNames, additionalNamespaces);
                 }
                 catch (Exception ex)
                 {
@@ -198,7 +194,8 @@ namespace RoslynRules.Models
                 try
                 {
                     var delegateType = BuildDelegateType(typeof(void), parameters);
-                    var actionDelegate = CompileDelegate(compiler, Action, delegateType, parameters, additionalNamespaces);
+                    var paramNames = parameters.Select(p => p.Name).ToArray();
+                    var actionDelegate = CompileDelegate(compiler, Action, delegateType, paramNames, additionalNamespaces);
                 }
                 catch (Exception ex)
                 {

@@ -152,12 +152,12 @@ namespace RoslynRules.Tests.Execution
         }
 
         [Fact]
-        public void Compile_MultipleParameters_ThrowsNotSupportedException()
+        public void Compile_MultipleParameters_CompilesSuccessfully()
         {
             var rule = new Rule
             {
                 Description = "Multi-param",
-                Expression = "true",
+                Expression = "a > 0 && b > 0",
                 IsActive = true
             };
 
@@ -167,10 +167,12 @@ namespace RoslynRules.Tests.Execution
                 new RuleParameter("b", typeof(int), 2)
             };
 
-                        var act = () => rule.Compile(_compiler, parameters, _namespaces);
+            // Act - should not throw
+            rule.Compile(_compiler, parameters, _namespaces);
             
-            act.Should().Throw<NotSupportedException>()
-                .WithMessage("*Rules support exactly one input parameter*");
+            // Assert - rule should be executable (no exception = compiled successfully)
+            var result = rule.Execute(parameters);
+            result.Success.Should().BeTrue();
         }
 
         [Fact]

@@ -23,15 +23,8 @@ namespace RoslynRules.Models
         /// <param name="referenceProvider">Optional custom assembly reference provider for sandboxing.</param>
         public void Compile(Compiler.ExpressionCompiler compiler, RuleParameter[] parameters, string[]? additionalNamespaces = null, Compiler.AssemblyReferenceProvider? referenceProvider = null)
         {
-            // Validate parameter constraints.
-            if (parameters.Length != 1)
-                throw new NotSupportedException(
-                    $"Rules support exactly one input parameter. You provided {parameters.Length}. " +
-                    "Wrap multiple inputs in a struct/class.");
-
-            // Store parameter schema for execution-time validation.
-            _compiledParameterType = parameters[0].Type;
-            _compiledParameterName = parameters[0].Name;
+            // Store parameter schemas for execution-time validation.
+            _compiledParameters = parameters;
 
             // Validate no circular references before compiling.
             ValidateNoCircularReferences();
@@ -42,7 +35,8 @@ namespace RoslynRules.Models
                 var delegateType = isAsync
                     ? BuildAsyncDelegateType(typeof(bool), parameters)
                     : BuildDelegateType(typeof(bool), parameters);
-                var rawDelegate = CompileDelegate(compiler, Expression, delegateType, parameters, additionalNamespaces, referenceProvider);
+                var paramNames = parameters.Select(p => p.Name).ToArray();
+                var rawDelegate = CompileDelegate(compiler, Expression, delegateType, paramNames, additionalNamespaces, referenceProvider);
                 _compiledExpression = CompiledDelegateFactory.Wrap(rawDelegate);
             }
 
@@ -52,7 +46,8 @@ namespace RoslynRules.Models
                 var delegateType = isAsync
                     ? BuildAsyncDelegateType(typeof(void), parameters)
                     : BuildDelegateType(typeof(void), parameters);
-                var rawDelegate = CompileDelegate(compiler, Action, delegateType, parameters, additionalNamespaces, referenceProvider);
+                var paramNames = parameters.Select(p => p.Name).ToArray();
+                var rawDelegate = CompileDelegate(compiler, Action, delegateType, paramNames, additionalNamespaces, referenceProvider);
                 _compiledAction = CompiledDelegateFactory.Wrap(rawDelegate);
             }
 
@@ -91,68 +86,125 @@ namespace RoslynRules.Models
 
         /// <summary>
         /// Builds a Func or Action delegate type matching the parameter signature.
-        /// Supports exactly one input parameter and one return type (or void).
-        /// For multiple inputs/outputs, wrap them in a struct or class.
+        /// Supports any number of parameters.
         /// </summary>
         /// <example>
-        /// Single input, single return: Func<Customer, bool>
-        /// Single input, void return: Action<Customer>
-        /// Single input, composite return: Func<Customer, Returned>
+        /// Single input, single return: Func&lt;Customer, bool&gt;
+        /// Single input, void return: Action&lt;Customer&gt;
+        /// Multiple inputs: Func&lt;int, string, bool&gt;
         /// </example>
         [RequiresUnreferencedCode("RoslynRules builds delegate types via MakeGenericType which trimming may strip.")]
         private static Type BuildDelegateType(Type returnType, RuleParameter[] parameters)
         {
-            if (parameters.Length > 1)
-                throw new NotSupportedException(
-                    $"Rules support exactly one input parameter. You provided {parameters.Length}. " +
-                    "Wrap multiple inputs in a struct/class.");
-
-            var paramType = parameters[0].Type;
+            var paramTypes = parameters.Select(p => p.Type).ToArray();
             
             if (returnType == typeof(void))
             {
-                return typeof(Action<>).MakeGenericType(paramType);
+                if (paramTypes.Length == 0)
+                    return typeof(Action);
+                
+                // Action<T1, T2, ...> — up to 16 params natively supported
+                var actionType = GetActionType(paramTypes.Length);
+                return actionType.MakeGenericType(paramTypes);
             }
             else
             {
-                return typeof(Func<,>).MakeGenericType(paramType, returnType);
+                // Func<T1, T2, ..., TReturn> — up to 16 params natively supported
+                var allTypes = paramTypes.Concat(new[] { returnType }).ToArray();
+                var funcType = GetFuncType(allTypes.Length);
+                return funcType.MakeGenericType(allTypes);
             }
         }
 
         /// <summary>
-        /// Builds an async delegate type returning Task<TReturn> or Task.
+        /// Builds an async delegate type returning Task&lt;TReturn&gt; or Task.
+        /// Supports any number of parameters.
         /// </summary>
         /// <param name="returnType">The result type (not Task, the inner type).</param>
         /// <param name="parameters">Parameter definitions.</param>
-        /// <returns>Func<TParam, Task<TReturn>> or Func<TParam, Task>.</returns>
+        /// <returns>Func&lt;T1, T2, ..., Task&lt;TReturn&gt;&gt; or Func&lt;T1, T2, ..., Task&gt;.</returns>
         [RequiresUnreferencedCode("RoslynRules builds async delegate types via MakeGenericType which trimming may strip.")]
         private static Type BuildAsyncDelegateType(Type returnType, RuleParameter[] parameters)
         {
-            if (parameters.Length > 1)
-                throw new NotSupportedException(
-                    $"Rules support exactly one input parameter. You provided {parameters.Length}. " +
-                    "Wrap multiple inputs in a struct/class.");
-
-            var paramType = parameters[0].Type;
+            var paramTypes = parameters.Select(p => p.Type).ToArray();
             
             if (returnType == typeof(void))
             {
-                return typeof(Func<,>).MakeGenericType(paramType, typeof(Task));
+                var allTypes = paramTypes.Concat(new[] { typeof(Task) }).ToArray();
+                var funcType = GetFuncType(allTypes.Length);
+                return funcType.MakeGenericType(allTypes);
             }
             else
             {
                 var taskType = typeof(Task<>).MakeGenericType(returnType);
-                return typeof(Func<,>).MakeGenericType(paramType, taskType);
+                var allTypes = paramTypes.Concat(new[] { taskType }).ToArray();
+                var funcType = GetFuncType(allTypes.Length);
+                return funcType.MakeGenericType(allTypes);
             }
+        }
+
+        /// <summary>
+        /// Gets the open generic Func type for the given arity (number of type parameters).
+        /// Supports up to 16 parameters (Func`17).
+        /// </summary>
+        private static Type GetFuncType(int arity)
+        {
+            return arity switch
+            {
+                2 => typeof(Func<,>),
+                3 => typeof(Func<,,>),
+                4 => typeof(Func<,,,>),
+                5 => typeof(Func<,,,,>),
+                6 => typeof(Func<,,,,,>),
+                7 => typeof(Func<,,,,,,>),
+                8 => typeof(Func<,,,,,,,>),
+                9 => typeof(Func<,,,,,,,,>),
+                10 => typeof(Func<,,,,,,,,,>),
+                11 => typeof(Func<,,,,,,,,,,>),
+                12 => typeof(Func<,,,,,,,,,,,>),
+                13 => typeof(Func<,,,,,,,,,,,,>),
+                14 => typeof(Func<,,,,,,,,,,,,,>),
+                15 => typeof(Func<,,,,,,,,,,,,,,>),
+                16 => typeof(Func<,,,,,,,,,,,,,,,>),
+                17 => typeof(Func<,,,,,,,,,,,,,,,,>),
+                _ => throw new NotSupportedException($"Rules support up to 16 parameters. Found {arity - 1} parameters.")
+            };
+        }
+
+        /// <summary>
+        /// Gets the open generic Action type for the given arity (number of type parameters).
+        /// Supports up to 16 parameters (Action`16).
+        /// </summary>
+        private static Type GetActionType(int arity)
+        {
+            return arity switch
+            {
+                1 => typeof(Action<>),
+                2 => typeof(Action<,>),
+                3 => typeof(Action<,,>),
+                4 => typeof(Action<,,,>),
+                5 => typeof(Action<,,,,>),
+                6 => typeof(Action<,,,,,>),
+                7 => typeof(Action<,,,,,,>),
+                8 => typeof(Action<,,,,,,,>),
+                9 => typeof(Action<,,,,,,,,>),
+                10 => typeof(Action<,,,,,,,,,>),
+                11 => typeof(Action<,,,,,,,,,,>),
+                12 => typeof(Action<,,,,,,,,,,,>),
+                13 => typeof(Action<,,,,,,,,,,,,>),
+                14 => typeof(Action<,,,,,,,,,,,,,>),
+                15 => typeof(Action<,,,,,,,,,,,,,,>),
+                16 => typeof(Action<,,,,,,,,,,,,,,,>),
+                _ => throw new NotSupportedException($"Rules support up to 16 parameters. Found {arity} parameters.")
+            };
         }
 
         /// <summary>
         /// Invokes the compiler via reflection to create a typed delegate.
         /// </summary>
         [RequiresUnreferencedCode("RoslynRules invokes the compiler via reflection (GetMethod, MakeGenericMethod). This code may not work correctly with trimming or AOT.")]
-        private static Delegate CompileDelegate(Compiler.ExpressionCompiler compiler, string expression, Type delegateType, RuleParameter[] parameters, string[]? additionalNamespaces, Compiler.AssemblyReferenceProvider? referenceProvider = null)
+        private static Delegate CompileDelegate(Compiler.ExpressionCompiler compiler, string expression, Type delegateType, string[] paramNames, string[]? additionalNamespaces, Compiler.AssemblyReferenceProvider? referenceProvider = null)
         {
-            var paramNames = parameters.Select(p => p.Name).ToArray();
             var method = compiler.GetType().GetMethod("Compile")!.MakeGenericMethod(delegateType);
             var result = method.Invoke(compiler, new object?[] { expression, paramNames, additionalNamespaces ?? Array.Empty<string>(), referenceProvider });
             if (result is not Delegate delegateResult)

@@ -19,6 +19,7 @@ internal class Program
         await DemoRunner.Run("JSON Round-Trip", JsonRoundTripDemo.Run);
         await DemoRunner.Run("Workflow vs RuleBatch", WorkflowVsRuleBatchDemo.Run);
         await DemoRunner.Run("Template Instantiation", TemplateInstantiationDemo.Run);
+        await DemoRunner.Run("Multi-Parameter", MultiParameterDemo.Run);
         await DemoRunner.Run("Caching", CachingDemo.Run);
         await DemoRunner.Run("Priority Ordering", PriorityOrderingDemo.Run);
         await DemoRunner.Run("Entity Framework", EntityFrameworkDemo.Run);

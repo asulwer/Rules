@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Multi-parameter rule support — rules now accept up to 16 parameters directly (no wrapper struct needed)
+- `CompiledMultiParamDelegate` and `CompiledAsyncMultiParamDelegate` for multi-parameter invocation
 - Rule templates (`RuleTemplate`) with placeholder-based expression substitution
 - `PlaceholderKind` enum supporting Type, Identifier, and Value placeholders
 - Result caching (`Rule.CacheDuration`) with automatic expiration

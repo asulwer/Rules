@@ -95,20 +95,42 @@ var results = workflow.Execute(executeParams);
 
 ---
 
-## Single Parameter Limitation
+## Multiple Parameters
 
-RoslynRules supports exactly **one parameter**. Wrap multiple values in a struct or class.
+RoslynRules supports up to **16 parameters**. Pass multiple `RuleParameter` instances to `Compile` and `Execute`.
 
 ```csharp
-// ❌ Not supported
-new RuleParameter("a", typeof(int), a),
-new RuleParameter("b", typeof(int), b)
+var parameters = new[]
+{
+    new RuleParameter("name", typeof(string), "Alice"),
+    new RuleParameter("age", typeof(int), 25)
+};
 
-// ✅ Wrap in a struct
-public record Input(int A, int B);
-new RuleParameter("input", typeof(Input), new Input(a, b))
-// Expression: "input.A > input.B"
+var rule = new Rule
+{
+    Description = "Adult named Alice",
+    Expression = "name.Length > 0 && age >= 18"
+};
+
+rule.Compile(compiler, parameters);
+var result = rule.Execute(parameters);
 ```
+
+**Parameter names in expressions** must match exactly:
+
+```csharp
+// Expression uses the parameter names directly
+new Rule { Expression = "x > y" }
+    .Compile(compiler, new[] {
+        new RuleParameter("x", typeof(int), 10),
+        new RuleParameter("y", typeof(int), 5)
+    });
+```
+
+**Limitations:**
+- Maximum 16 parameters (standard .NET `Func`/`Action` delegate limit)
+- Parameter names must be valid C# identifiers
+- Parameter types must be serializable to the compiler's context
 
 ---
 

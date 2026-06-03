@@ -98,7 +98,7 @@ namespace RoslynRules.Tests.Execution
         }
 
         [Fact]
-        public void Compile_MultipleParameters_ThrowsNotSupported()
+        public void Compile_MultipleParameters_CompilesSuccessfully()
         {
             var parameters = new[]
             {
@@ -109,14 +109,68 @@ namespace RoslynRules.Tests.Execution
             var rule = new Rule
             {
                 Description = "Multi-param",
-                Expression = "true",
+                Expression = "a > 0 && b > 0",
                 IsActive = true
             };
 
             
-            var act = () => rule.Compile(_compiler, parameters, _namespaces);
-            act.Should().Throw<NotSupportedException>()
-                .WithMessage("*exactly one*");
+            // Act - should compile and execute successfully
+            rule.Compile(_compiler, parameters, _namespaces);
+            
+            // Assert - rule should be executable (no exception = compiled successfully)
+            var result = rule.Execute(parameters);
+            result.Success.Should().BeTrue();
+        }
+
+        [Fact]
+        public void Execute_MultipleParameters_DifferentTypes()
+        {
+            var parameters = new[]
+            {
+                new RuleParameter("name", typeof(string), "Alice"),
+                new RuleParameter("age", typeof(int), 25)
+            };
+
+            var rule = new Rule
+            {
+                Description = "Multi-param types",
+                Expression = "name.Length > 0 && age >= 18",
+                IsActive = true
+            };
+
+            rule.Compile(_compiler, parameters, _namespaces);
+            
+            var result = rule.Execute(parameters);
+            result.Success.Should().BeTrue();
+        }
+
+        [Fact]
+        public void Execute_MultipleParameters_FailsWhenExpressionFalse()
+        {
+            var parameters = new[]
+            {
+                new RuleParameter("x", typeof(int), 5),
+                new RuleParameter("y", typeof(int), 3)
+            };
+
+            var rule = new Rule
+            {
+                Description = "Multi-param false",
+                Expression = "x > y",
+                IsActive = true
+            };
+
+            rule.Compile(_compiler, parameters, _namespaces);
+            
+            // Should fail when x <= y
+            var failParams = new[]
+            {
+                new RuleParameter("x", typeof(int), 1),
+                new RuleParameter("y", typeof(int), 10)
+            };
+            
+            var result = rule.Execute(failParams);
+            result.Success.Should().BeFalse();
         }
 
         [Fact]
