@@ -78,29 +78,17 @@ namespace RoslynRules.Exceptions
     }
 
     /// <summary>
-    /// Thrown when rule execution fails at runtime (exceptions in compiled expressions).
-    /// </summary>
-    public class RuleExecutionException : RulesException
-    {
-        public Guid RuleId { get; }
-
-        public RuleExecutionException(Guid ruleId, Exception inner)
-            : base($"Rule (Id: {ruleId}) execution failed: {inner.Message}", inner)
-        {
-            RuleId = ruleId;
-        }
-    }
-
-    /// <summary>
     /// Thrown when a rule exceeds its configured timeout during execution.
     /// </summary>
-    public class RuleTimeoutException : RuleExecutionException
+    public class RuleTimeoutException : RulesException
     {
+        public Guid RuleId { get; }
         public TimeSpan Timeout { get; }
 
         public RuleTimeoutException(Guid ruleId, TimeSpan timeout)
-            : base(ruleId, new TimeoutException($"Rule (Id: {ruleId}) exceeded timeout of {timeout.TotalSeconds}s."))
+            : base($"Rule (Id: {ruleId}) exceeded timeout of {timeout.TotalSeconds}s.")
         {
+            RuleId = ruleId;
             Timeout = timeout;
         }
     }
