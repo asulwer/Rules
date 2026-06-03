@@ -57,6 +57,23 @@ namespace RoslynRules.Models
         }
                 
         /// <summary>
+        /// Detects if EF Core lazy loading proxies are being used (not supported on sealed types).
+        /// Throws a clear exception with guidance on supported loading strategies.
+        /// </summary>
+        private void DetectLazyLoading()
+        {
+            // EF Core lazy loading proxies create runtime subclasses.
+            // Rule is sealed — if GetType() != typeof(Rule), it&apos;s a proxy.
+            if (GetType() != typeof(Rule))
+            {
+                throw new InvalidOperationException(
+                    "Lazy loading detected on Rule, but Rule is sealed and does not support EF Core lazy loading proxies. " +
+                    "Use eager loading (.Include(r => r.ChildRules).ThenInclude(...)) or explicit loading (entry.Collection(r => r.ChildRules).Load()) instead. " +
+                    "See docs/index.md#ef-core-integration-note for examples.");
+            }
+        }
+
+        /// <summary>
         /// Unique identifier for the rule.
         /// </summary>
         [Key] [JsonInclude] public Guid Id { get; init; } = Guid.NewGuid();
@@ -192,10 +209,16 @@ namespace RoslynRules.Models
         /// <summary>
         /// Child rules that must all succeed for this parent rule to succeed.
         /// Evaluated bottom-up before the parent&apos;s Expression and Action.
+        /// Lazy loading is NOT supported — Rule is sealed to enforce immutability.
+        /// Use eager loading (Include/ThenInclude) or explicit loading (Load()) with EF Core.
         /// </summary>
         public IList<Rule> ChildRules 
         { 
-            get => _childRules;
+            get
+            {
+                DetectLazyLoading();
+                return _childRules;
+            }
             set { EnsureNotCompiled(nameof(ChildRules)); _childRules = value; }
         }
         private IList<Rule> _childRules = new List<Rule>();

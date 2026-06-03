@@ -26,6 +26,10 @@ High-performance .NET rules engine with Roslyn compilation, typed delegates, and
   </tbody>
 </table>
 
+## EF Core Integration Note
+
+<code>Rule</code> is <code>sealed</code> to enforce immutability after compilation. This prevents EF Core lazy loading proxies from working (proxies require subclassing). Use <strong>eager loading</strong> (<code>Include</code>/<code>ThenInclude</code>) or <strong>explicit loading</strong> (<code>Load()</code>) instead. See the <a href="examples/ef-serialization.md">EF Core example</a>.
+
 ## When to Use Which Execution Mode
 
 <table>
