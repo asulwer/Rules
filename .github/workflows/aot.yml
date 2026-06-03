@@ -1,5 +1,8 @@
 name: AOT Compatibility
 
+permissions:
+  contents: read
+
 on:
   push:
     branches: [master, main]
@@ -15,6 +18,8 @@ on:
 jobs:
   aot-test:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
 
     steps:
       - name: Checkout code
