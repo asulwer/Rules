@@ -90,6 +90,26 @@ namespace RoslynRules.Models
         private string _description = string.Empty;
 
         /// <summary>
+        /// Localization key for the rule description. When set, <see cref="GetLocalizedDescription"/>
+        /// uses <see cref="IRuleDescriptionProvider"/> to resolve the key to a localized string.
+        /// Falls back to <see cref="Description"/> when null or when no provider is available.
+        /// </summary>
+        public string? DescriptionKey
+        {
+            get => _descriptionKey;
+            set { EnsureNotCompiled(nameof(DescriptionKey)); _descriptionKey = value; }
+        }
+        private string? _descriptionKey;
+
+        /// <summary>
+        /// Optional description provider for localization. Set this to enable
+        /// <see cref="GetLocalizedDescription"/> to resolve <see cref="DescriptionKey"/>.
+        /// </summary>
+        [NotMapped]
+        [JsonIgnore]
+        public IRuleDescriptionProvider? DescriptionProvider { get; set; }
+
+        /// <summary>
         /// When false, the rule is skipped during execution.
         /// </summary>
         public bool IsActive 
@@ -248,6 +268,24 @@ namespace RoslynRules.Models
         /// Thread-safe.
         /// </summary>
         public void ClearCache() => _resultCache.Clear();
+
+        /// <summary>
+        /// Returns a localized description of the rule.
+        /// If <see cref="DescriptionKey"/> is set and <see cref="DescriptionProvider"/> is available,
+        /// resolves the key through the provider. Otherwise falls back to <see cref="Description"/>.
+        /// </summary>        /// <param name="culture">Optional culture code (e.g., "en-US", "fr-FR"). Null uses the default culture.</param>
+        /// <returns>The localized or default rule description.</returns>
+        public string GetLocalizedDescription(string? culture = null)
+        {
+            if (!string.IsNullOrEmpty(DescriptionKey) && DescriptionProvider != null)
+            {
+                var localized = DescriptionProvider.GetDescription(DescriptionKey, culture);
+                if (!string.IsNullOrEmpty(localized))
+                    return localized;
+            }
+
+            return Description;
+        }
 
         /// <summary>
         /// Returns a string that represents the current object.
