@@ -8,11 +8,9 @@ public static class EntityFrameworkDemo
 {
     public static async Task Run()
     {
-        // ── Phase 1: Seed workflow + rules into DB if not present ──
+        // ── Load workflow from DB ──
         await using var rulesDb = new RulesDbContext();
-        await SeedRulesIfEmpty(rulesDb);
 
-        // ── Phase 2: Pull workflow from database ──
         var workflow = await rulesDb.Workflows
             .AsNoTracking()
             .Include(w => w.Rules)
@@ -20,18 +18,16 @@ public static class EntityFrameworkDemo
 
         Console.WriteLine($"  Loaded '{workflow.Description}' from DB ({workflow.Rules.Count} rules)");
 
-        // ── Phase 3: Seed grocery data ──
+        // ── Load grocery data ──
         await using var groceryDb = new GroceryDbContext();
-        await SeedGroceryData(groceryDb);
 
         var items = await groceryDb.GroceryItems.ToListAsync();
         var lists = await groceryDb.GroceryLists.Include(l => l.Items).ToListAsync();
 
-        // ── Phase 4: Compile pulled workflow ──
+        // ── Compile and execute ──
         var compileParams = new[] { new RuleParameter("items", typeof(List<GroceryItem>)) };
         workflow.Compile(compileParams, null, DemoRunner.ReferenceProvider);
 
-        // ── Phase 5: Execute against each grocery list ──
         foreach (var list in lists)
         {
             var listItems = list.Items
@@ -52,85 +48,5 @@ public static class EntityFrameworkDemo
             foreach (var item in listItems)
                 Console.WriteLine($"    - {item.Name}: ${item.Price:F2} ({item.Category}, {(item.InStock ? "in stock" : "OUT")})");
         }
-    }
-
-    private static async Task SeedRulesIfEmpty(RulesDbContext db)
-    {
-        if (await db.Workflows.AnyAsync())
-            return;
-
-        var workflow = new Workflow
-        {
-            Description = "Grocery validation rules",
-            Rules = new List<Rule>
-            {
-                new Rule
-                {
-                    Description = "Has perishable items",
-                    Expression = "items.Any(i => i.Category == \"Dairy\" || i.Category == \"Produce\")"
-                },
-                new Rule
-                {
-                    Description = "Under $30 budget",
-                    Expression = "items.Sum(i => i.Price) <= 30m"
-                },
-                new Rule
-                {
-                    Description = "All items in stock",
-                    Expression = "items.All(i => i.InStock == true)"
-                }
-            }
-        };
-
-        db.Workflows.Add(workflow);
-        await db.SaveChangesAsync();
-        Console.WriteLine($"  Seeded workflow '{workflow.Description}' to DB");
-    }
-
-    private static async Task SeedGroceryData(GroceryDbContext db)
-    {
-        if (await db.GroceryItems.AnyAsync())
-            return;
-
-        var groceryItems = new List<GroceryItem>
-        {
-            new() { Name = "Milk", Category = "Dairy", Price = 3.49m, InStock = true },
-            new() { Name = "Bread", Category = "Bakery", Price = 2.99m, InStock = true },
-            new() { Name = "Eggs", Category = "Dairy", Price = 4.29m, InStock = true },
-            new() { Name = "Cheese", Category = "Dairy", Price = 5.99m, InStock = false },
-            new() { Name = "Apples", Category = "Produce", Price = 1.99m, InStock = true },
-            new() { Name = "Chicken", Category = "Meat", Price = 8.99m, InStock = true },
-            new() { Name = "Rice", Category = "Pantry", Price = 3.79m, InStock = true },
-            new() { Name = "Coffee", Category = "Beverages", Price = 7.99m, InStock = false }
-        };
-
-        await db.GroceryItems.AddRangeAsync(groceryItems);
-
-        var weeklyList = new GroceryList
-        {
-            Name = "Weekly Shopping",
-            Items = new List<GroceryListItem>
-            {
-                new() { ItemName = "Milk", Quantity = 1 },
-                new() { ItemName = "Bread", Quantity = 2 },
-                new() { ItemName = "Eggs", Quantity = 1 },
-                new() { ItemName = "Apples", Quantity = 5 }
-            }
-        };
-
-        var partyList = new GroceryList
-        {
-            Name = "Party Prep",
-            Items = new List<GroceryListItem>
-            {
-                new() { ItemName = "Cheese", Quantity = 3 },
-                new() { ItemName = "Chicken", Quantity = 2 },
-                new() { ItemName = "Rice", Quantity = 1 },
-                new() { ItemName = "Coffee", Quantity = 2 }
-            }
-        };
-
-        await db.GroceryLists.AddRangeAsync(weeklyList, partyList);
-        await db.SaveChangesAsync();
     }
 }

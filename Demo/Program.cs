@@ -1,3 +1,4 @@
+using Demo.Data;
 using Demo.Demos;
 
 namespace Demo;
@@ -7,6 +8,7 @@ internal class Program
     static async Task Main(string[] args)
     {
         DemoRunner.LoadCustomers();
+        await SeedData.InitializeAsync();
 
         await DemoRunner.Run("Basic Predicates", BasicPredicatesDemo.Run);
         await DemoRunner.Run("Rule Chaining", RuleChainingDemo.Run);
