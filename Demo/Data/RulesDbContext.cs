@@ -28,10 +28,5 @@ public class RulesDbContext : DbContext
             .WithOne()
             .HasForeignKey(r => r.ParentRuleId)
             .OnDelete(DeleteBehavior.Cascade);
-
-        // Ignore compiled delegate fields (runtime-only, not persisted)
-        modelBuilder.Entity<Rule>().Ignore("CompiledExpression");
-        modelBuilder.Entity<Rule>().Ignore("CompiledAction");
-        modelBuilder.Entity<Rule>().Ignore("ResultCache");
     }
 }
