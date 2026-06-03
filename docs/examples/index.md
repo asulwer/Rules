@@ -52,15 +52,6 @@ var rule = new Rule
 };
 ```
 
-```csharp
-var rule = new Rule
-{
-    Description = "Adult check",
-    Expression = "customer.Age >= 18",
-    IsActive = true
-};
-```
-
 ## Rule with Action
 
 ```csharp
