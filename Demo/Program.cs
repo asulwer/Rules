@@ -19,6 +19,7 @@ internal class Program
         await DemoRunner.Run("Template Instantiation", TemplateInstantiationDemo.Run);
         await DemoRunner.Run("Caching", CachingDemo.Run);
         await DemoRunner.Run("Priority Ordering", PriorityOrderingDemo.Run);
+        await DemoRunner.Run("Entity Framework", EntityFrameworkDemo.Run);
         await DemoRunner.Run("Workflow Compile", WorkflowCompileDemo.Run);
         await DemoRunner.Run("Lifecycle Events", LifecycleEventsDemo.Run);
 

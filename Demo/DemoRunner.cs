@@ -18,7 +18,7 @@ public static class DemoRunner
     {
         // Add Demo assembly to whitelist so expressions can resolve Customer, Order types
         ReferenceProvider = new RoslynRules.Compiler.AssemblyReferenceProvider(
-            RoslynRules.Compiler.AssemblyReferenceProvider.DefaultWhitelist.Concat(new[] { "Demo" }));
+            RoslynRules.Compiler.AssemblyReferenceProvider.DefaultWhitelist.Concat(new[] { "Demo", "Microsoft.EntityFrameworkCore" }));
     }
 
     public static void LoadCustomers()
