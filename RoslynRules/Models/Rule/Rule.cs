@@ -2,10 +2,7 @@ using Microsoft.Extensions.Logging;
 using RoslynRules.Exceptions;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 using System.Diagnostics.CodeAnalysis;
-using System.Text.Json.Serialization;
 
 namespace RoslynRules.Models
 {
@@ -19,19 +16,18 @@ namespace RoslynRules.Models
     public sealed partial class Rule
     {
         // Compiled delegates wrapped for fast invocation (no DynamicInvoke).
-        [NotMapped] private CompiledDelegate? _compiledExpression;
-        [NotMapped] private CompiledDelegate? _compiledAction;
-        [NotMapped] private bool _isCompiled;
+        private CompiledDelegate? _compiledExpression;
+        private CompiledDelegate? _compiledAction;
+        private bool _isCompiled;
 
         // Stores the compile-time parameter schema for validation at execution.
-        [NotMapped] private Type? _compiledParameterType;
-        [NotMapped] private string? _compiledParameterName;
+        private Type? _compiledParameterType;
+        private string? _compiledParameterName;
 
         // Result cache for memoization.
-        [NotMapped] private readonly Execution.RuleCache _resultCache = new();
+        private readonly Execution.RuleCache _resultCache = new();
 
         /// <summary>
-        /// EF Core requires a parameterless constructor.
         /// Initializes a new rule with default values.
         /// </summary>
         public Rule()
@@ -40,38 +36,21 @@ namespace RoslynRules.Models
 
         /// <summary>
         /// Throws if an attempt is made to mutate a property after compilation.
+        /// Ensures thread-safe read-only access post-compile.
         /// </summary>
-        /// <param name="propertyName">Name of the property being modified.</param>
         private void EnsureNotCompiled(string propertyName)
         {
             if (_isCompiled)
                 throw new RuleCompilationException($"Cannot modify {propertyName} after rule has been compiled.");
         }
-                
-        /// <summary>
-        /// Detects if EF Core lazy loading proxies are being used (not supported on sealed types).
-        /// Throws a clear exception with guidance on supported loading strategies.
-        /// </summary>
-        private void DetectLazyLoading()
-        {
-            // EF Core lazy loading proxies create runtime subclasses.
-            // Rule is sealed — if GetType() != typeof(Rule), it&apos;s a proxy.
-            if (GetType() != typeof(Rule))
-            {
-                throw new InvalidOperationException(
-                    "Lazy loading detected on Rule, but Rule is sealed and does not support EF Core lazy loading proxies. " +
-                    "Use eager loading (.Include(r => r.ChildRules).ThenInclude(...)) or explicit loading (entry.Collection(r => r.ChildRules).Load()) instead. " +
-                    "See docs/index.md#ef-core-integration-note for examples.");
-            }
-        }
 
         /// <summary>
         /// Unique identifier for the rule.
         /// </summary>
-        [Key] [JsonInclude] public Guid Id { get; init; } = Guid.NewGuid();
+        public Guid Id { get; init; } = Guid.NewGuid();
 
         /// <summary>
-        /// Public constructor for external factory methods (e.g. EF Core mapping).
+        /// Public constructor for external factory methods.
         /// Preserves the specified ID without generating a new one.
         /// </summary>
         public Rule(Guid id)
@@ -80,7 +59,7 @@ namespace RoslynRules.Models
         }
 
         /// <summary>
-        /// Human-readable description of the rule&apos;s purpose.
+        /// Human-readable description of the rule's purpose.
         /// </summary>
         public string Description 
         { 
@@ -105,8 +84,6 @@ namespace RoslynRules.Models
         /// Optional description provider for localization. Set this to enable
         /// <see cref="GetLocalizedDescription"/> to resolve <see cref="DescriptionKey"/>.
         /// </summary>
-        [NotMapped]
-        [JsonIgnore]
         public IRuleDescriptionProvider? DescriptionProvider { get; set; }
 
         /// <summary>
@@ -198,7 +175,7 @@ namespace RoslynRules.Models
         /// <summary>
         /// Duration to cache rule evaluation results. Null means no caching.
         /// When set, repeated executions with identical parameters return cached results.
-        /// Child rules are evaluated independently; only this rule&apos;s final result is cached.
+        /// Child rules are evaluated independently; only this rule's final result is cached.
         /// </summary>
         public TimeSpan? CacheDuration
         {
@@ -219,24 +196,18 @@ namespace RoslynRules.Models
 
         /// <summary>
         /// Child rules that must all succeed for this parent rule to succeed.
-        /// Evaluated bottom-up before the parent&apos;s Expression and Action.
-        /// Lazy loading is NOT supported — Rule is sealed to enforce immutability.
-        /// Use eager loading (Include/ThenInclude) or explicit loading (Load()) with EF Core.
+        /// Evaluated bottom-up before the parent's Expression and Action.
         /// </summary>
         public IList<Rule> ChildRules 
         { 
-            get
-            {
-                DetectLazyLoading();
-                return _childRules;
-            }
+            get => _childRules;
             set { EnsureNotCompiled(nameof(ChildRules)); _childRules = value; }
         }
         private IList<Rule> _childRules = new List<Rule>();
 
         /// <summary>
         /// Foreign key referencing another rule that this rule depends on.
-        /// When set, the dependency rule&apos;s result is made available during execution.
+        /// When set, the dependency rule's result is made available during execution.
         /// The dependent rule executes after its dependency.
         /// </summary>
         public Guid? DependsOnRuleId
@@ -249,7 +220,6 @@ namespace RoslynRules.Models
         /// <summary>
         /// Navigation property to the rule this rule depends on.
         /// </summary>
-        [NotMapped]
         public Rule? DependsOnRule
         {
             get => _dependsOnRule;
@@ -261,14 +231,12 @@ namespace RoslynRules.Models
         /// Optional logger for observing rule execution.
         /// Set this to any ILogger implementation (Serilog, NLog, etc.).
         /// </summary>
-        [NotMapped] public ILogger? Logger { get; set; }
+        public ILogger? Logger { get; set; }
 
         /// <summary>
         /// Execution metrics for this rule: eval count, average time, failure rate, last execution.
         /// Updated atomically during execution. Access is thread-safe.
         /// </summary>
-        [NotMapped]
-        [JsonIgnore]
         public RuleMetrics Metrics => new RuleMetrics(_metrics.EvalCount, _metrics.FailureCount, _metrics.TotalTicks, _metrics.LastExecuted?.Ticks ?? 0);
 
         /// <summary>

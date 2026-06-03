@@ -3,10 +3,8 @@ using RoslynRules.Compiler;
 using RoslynRules.Exceptions;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using RoslynRules.Execution;
@@ -25,7 +23,7 @@ namespace RoslynRules.Models
         private ExpressionCompiler _compiler = new ExpressionCompiler();
 
         /// <summary>
-        /// EF Core requires a parameterless constructor.
+        /// Initializes a new workflow with default values.
         /// </summary>
         public Workflow()
         {
@@ -34,7 +32,7 @@ namespace RoslynRules.Models
         /// <summary>
         /// Unique identifier for the workflow.
         /// </summary>
-        [Key] [JsonInclude] public Guid Id { get; init; } = Guid.NewGuid();
+        public Guid Id { get; init; } = Guid.NewGuid();
 
         /// <summary>
         /// Human-readable description of the workflow.
@@ -49,7 +47,7 @@ namespace RoslynRules.Models
         /// <summary>
         /// Top-level rules in this workflow. Child rules are nested inside their parents.
         /// </summary>
-        public virtual IList<Rule> Rules { get; set; } = new List<Rule>();
+        public IList<Rule> Rules { get; set; } = new List<Rule>();
 
         // ==================== VALIDATION ====================
 
