@@ -229,78 +229,29 @@ namespace RoslynRules.Models
         /// Builds a topologically sorted list of rules respecting both Priority and DependsOnRuleId.
         /// Rules with dependencies execute after their dependencies.
         /// Within the same dependency level, higher Priority executes first.
+        /// Delegates to GraphAlgorithms.TopologicalSort for the core algorithm.
         /// </summary>
         /// <returns>Rules in execution order.</returns>
         private List<Rule> GetExecutionOrder()
         {
             var activeRules = Rules.Where(r => r.IsActive).ToList();
-            if (!activeRules.Any(r => r.DependsOnRuleId.HasValue))
-            {
-                // No dependencies — simple priority sort
-                return activeRules.OrderByDescending(r => r.Priority).ToList();
-            }
 
-            // Kahn&apos;s algorithm for topological sort with priority
-            var inDegree = new Dictionary<Guid, int>();
-            var adjacency = new Dictionary<Guid, List<Guid>>();
-
-            foreach (var rule in activeRules)
+            // Stable comparer: higher priority first, then preserve original list order
+            var indexMap = activeRules.Select((r, i) => new { r.Id, Index = i }).ToDictionary(x => x.Id, x => x.Index);
+            var priorityComparer = Comparer<Rule>.Create((a, b) =>
             {
-                inDegree[rule.Id] = 0;
-                adjacency[rule.Id] = new List<Guid>();
-            }
-
-            foreach (var rule in activeRules)
-            {
-                if (rule.DependsOnRuleId.HasValue && adjacency.ContainsKey(rule.DependsOnRuleId.Value))
-                {
-                    adjacency[rule.DependsOnRuleId.Value].Add(rule.Id);
-                    inDegree[rule.Id]++;
-                }
-            }
-
-            var result = new List<Rule>();
-            var queue = new SortedSet<Rule>(Comparer<Rule>.Create((a, b) =>
-            {
-                // Higher priority first; use Id as tiebreaker for stable sort
                 var priorityCompare = b.Priority.CompareTo(a.Priority);
-                return priorityCompare != 0 ? priorityCompare : a.Id.CompareTo(b.Id);
-            }));
+                if (priorityCompare != 0) return priorityCompare;
+                // Stable sort: preserve original list order for equal priorities
+                return indexMap[a.Id].CompareTo(indexMap[b.Id]);
+            });
 
-            // Start with all rules that have no dependencies
-            foreach (var rule in activeRules.Where(r => inDegree[r.Id] == 0))
-            {
-                queue.Add(rule);
-            }
-
-            while (queue.Count > 0)
-            {
-                var current = queue.Min;
-                if (current == null) break;
-                queue.Remove(current);
-                result.Add(current);
-
-                foreach (var neighborId in adjacency[current.Id])
-                {
-                    inDegree[neighborId]--;
-                    if (inDegree[neighborId] == 0)
-                    {
-                        var neighbor = activeRules.First(r => r.Id == neighborId);
-                        queue.Add(neighbor);
-                    }
-                }
-            }
-
-            // Cycle detection: if we didn&apos;t process all rules, there&apos;s a cycle
-            if (result.Count != activeRules.Count)
-            {
-                var unprocessed = activeRules.First(r => !result.Any(res => res.Id == r.Id));
-                throw new CircularReferenceException(unprocessed.Id, $"Dependency cycle detected at rule &apos;{unprocessed.Description}&apos;");
-            }
-
-            return result;
+            return GraphAlgorithms.TopologicalSort(
+                activeRules,
+                r => r.Id,
+                r => r.DependsOnRuleId,
+                priorityComparer);
         }
-
         // ==================== SYNCHRONOUS EXECUTION ====================
 
         /// <summary>
