@@ -1,6 +1,5 @@
 using Demo.Data;
 using Microsoft.EntityFrameworkCore;
-using RoslynRules.Extensions;
 using RoslynRules.Models;
 
 namespace Demo.Demos;
@@ -9,7 +8,7 @@ public static class EntityFrameworkDemo
 {
     public static async Task Run()
     {
-        // ── Phase 1: Define and persist a workflow to EF ──
+        // ── Phase 1: Define and persist workflow + rules to EF ──
         await using var rulesDb = new RulesDbContext();
 
         var workflow = new Workflow
@@ -35,21 +34,17 @@ public static class EntityFrameworkDemo
             }
         };
 
-        // Serialize workflow to JSON and store in EF
-        var json = JsonRuleLoader.Serialize(workflow);
-        var entity = new WorkflowEntity
-        {
-            Name = workflow.Description,
-            JsonPayload = json
-        };
-        rulesDb.Workflows.Add(entity);
+        rulesDb.Workflows.Add(workflow);
         await rulesDb.SaveChangesAsync();
-        Console.WriteLine($"  Stored workflow '{entity.Name}' to EF (Id: {entity.Id})");
+        Console.WriteLine($"  Stored workflow '{workflow.Description}' to EF (Id: {workflow.Id})");
 
-        // ── Phase 2: Load workflow back from EF ──
-        var loadedEntity = await rulesDb.Workflows.FirstAsync();
-        var restoredWorkflow = JsonRuleLoader.DeserializeWorkflow(loadedEntity.JsonPayload);
-        Console.WriteLine($"  Restored workflow with {restoredWorkflow.Rules.Count} rules");
+        // ── Phase 2: Load workflow with rules from EF ──
+        var loadedWorkflow = await rulesDb.Workflows
+            .AsNoTracking()
+            .Include(w => w.Rules)
+            .FirstAsync(w => w.Id == workflow.Id);
+
+        Console.WriteLine($"  Loaded workflow with {loadedWorkflow.Rules.Count} rules");
 
         // ── Phase 3: Seed grocery data ──
         await using var groceryDb = new GroceryDbContext();
@@ -58,9 +53,9 @@ public static class EntityFrameworkDemo
         var items = await groceryDb.GroceryItems.ToListAsync();
         var lists = await groceryDb.GroceryLists.Include(l => l.Items).ToListAsync();
 
-        // ── Phase 4: Compile restored workflow ──
+        // ── Phase 4: Compile loaded workflow ──
         var compileParams = new[] { new RuleParameter("items", typeof(List<GroceryItem>)) };
-        restoredWorkflow.Compile(compileParams, null, DemoRunner.ReferenceProvider);
+        loadedWorkflow.Compile(compileParams, null, DemoRunner.ReferenceProvider);
 
         // ── Phase 5: Execute against each grocery list ──
         foreach (var list in lists)
@@ -72,7 +67,7 @@ public static class EntityFrameworkDemo
                 .ToList();
 
             var execParams = new[] { new RuleParameter("items", typeof(List<GroceryItem>), listItems) };
-            var results = restoredWorkflow.Execute(execParams).ToArray();
+            var results = loadedWorkflow.Execute(execParams).ToArray();
 
             Console.WriteLine();
             Console.WriteLine($"  List: {list.Name} ({listItems.Count} items)");
