@@ -20,9 +20,8 @@ namespace RoslynRules.Models
         private CompiledDelegate? _compiledAction;
         private bool _isCompiled;
 
-        // Stores the compile-time parameter schema for validation at execution.
-        private Type? _compiledParameterType;
-        private string? _compiledParameterName;
+        // Stores the compile-time parameter schemas for validation at execution.
+        private RuleParameter[] _compiledParameters = Array.Empty<RuleParameter>();
 
         // Result cache for memoization.
         private readonly Execution.RuleCache _resultCache = new();

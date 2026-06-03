@@ -84,11 +84,6 @@ namespace RoslynRules.Models
             if (!IsActive)
                 return new RuleResult(true, Id, GetLocalizedDescription(), IsActive);
 
-            if (parameters.Length != 1)
-                throw new NotSupportedException(
-                    $"Rules support exactly one parameter. You provided {parameters.Length}. " +
-                    "Wrap multiple values in a struct/class.");
-
             if (_compiledExpression == null && _compiledAction == null && !ChildRules.Any())
                 throw new NotCompiledException(Id);
 
@@ -123,33 +118,40 @@ namespace RoslynRules.Models
         private void ValidateExecutionParameters(RuleParameter[] parameters)
         {
             // Skip validation if this rule has no compiled delegates (e.g., only child rules).
-            if (_compiledParameterType == null)
+            if (_compiledParameters.Length == 0)
                 return;
 
-            if (parameters.Length != 1)
-                throw new NotSupportedException(
-                    $"Rules support exactly one parameter. You provided {parameters.Length}. " +
-                    "Wrap multiple values in a struct/class.");
-
-            var param = parameters[0];
-
-            // Validate name matches compile-time name.
-            if (!string.Equals(param.Name, _compiledParameterName, StringComparison.Ordinal))
+            if (parameters.Length != _compiledParameters.Length)
             {
                 throw new RuleValidationException(
-                    $"Parameter name mismatch for rule '{Description}' (Id: {Id}). " +
-                    $"Expected parameter name '{_compiledParameterName}' (compiled), but received '{param.Name}'. " +
-                    "Ensure Execute() uses the same parameter name as Compile().");
+                    $"Parameter count mismatch for rule '{Description}' (Id: {Id}). " +
+                    $"Expected {_compiledParameters.Length} parameters (compiled), but received {parameters.Length}. " +
+                    "Ensure Execute() uses the same parameter count as Compile().");
             }
 
-            // Validate type is assignable to compile-time type.
-            if (!param.Type.IsAssignableTo(_compiledParameterType))
+            for (int i = 0; i < parameters.Length; i++)
             {
-                var valueTypeName = param.Value?.GetType()?.Name ?? "null";
-                throw new RuleValidationException(
-                    $"Parameter type mismatch for rule '{Description}' (Id: {Id}). " +
-                    $"Expected type '{_compiledParameterType.Name}' (compiled), but received '{param.Type.Name}'. " +
-                    $"Value type '{valueTypeName}' is not assignable to '{_compiledParameterType.Name}'.");
+                var compiled = _compiledParameters[i];
+                var runtime = parameters[i];
+
+                // Validate name matches compile-time name.
+                if (!string.Equals(runtime.Name, compiled.Name, StringComparison.Ordinal))
+                {
+                    throw new RuleValidationException(
+                        $"Parameter name mismatch for rule '{Description}' (Id: {Id}). " +
+                        $"Expected parameter name '{compiled.Name}' (compiled), but received '{runtime.Name}'. " +
+                        "Ensure Execute() uses the same parameter names as Compile().");
+                }
+
+                // Validate type is assignable to compile-time type.
+                if (!runtime.Type.IsAssignableTo(compiled.Type))
+                {
+                    var valueTypeName = runtime.Value?.GetType()?.Name ?? "null";
+                    throw new RuleValidationException(
+                        $"Parameter type mismatch for rule '{Description}' (Id: {Id}), parameter '{runtime.Name}'. " +
+                        $"Expected type '{compiled.Type.Name}' (compiled), but received '{runtime.Type.Name}'. " +
+                        $"Value type '{valueTypeName}' is not assignable to '{compiled.Type.Name}'.");
+                }
             }
         }
 
@@ -162,11 +164,6 @@ namespace RoslynRules.Models
         {
             if (!IsActive)
                 return new RuleResult(true, Id, GetLocalizedDescription(), IsActive);
-
-            if (parameters.Length != 1)
-                throw new NotSupportedException(
-                    $"Rules support exactly one parameter. You provided {parameters.Length}. " +
-                    "Wrap multiple values in a struct/class.");
 
             if (_compiledExpression == null && _compiledAction == null && !ChildRules.Any())
                 throw new NotCompiledException(Id);
@@ -198,7 +195,9 @@ namespace RoslynRules.Models
                 goto Completed;
             }
 
-            var paramValue = parameters[0].Value;
+            // For multi-parameter delegates, pass the full RuleParameter[] array.
+            // For single-parameter delegates, pass just the value directly (fast path).
+            var paramValue = _compiledParameters.Length > 1 ? parameters : parameters[0].Value;
 
             // Bottom-up: evaluate all active children first
             var childResults = new List<RuleResult>();
@@ -331,11 +330,6 @@ namespace RoslynRules.Models
             if (!IsActive)
                 return new RuleResult(true, Id, GetLocalizedDescription(), IsActive);
 
-            if (parameters.Length != 1)
-                throw new NotSupportedException(
-                    $"Rules support exactly one parameter. You provided {parameters.Length}. " +
-                    "Wrap multiple values in a struct/class.");
-
             if (_compiledExpression == null && _compiledAction == null && !ChildRules.Any())
                 throw new NotCompiledException(Id);
 
@@ -400,18 +394,15 @@ namespace RoslynRules.Models
             if (!IsActive)
                 return new RuleResult(true, Id, GetLocalizedDescription(), IsActive);
 
-            if (parameters.Length != 1)
-                throw new NotSupportedException(
-                    $"Rules support exactly one parameter. You provided {parameters.Length}. " +
-                    "Wrap multiple values in a struct/class.");
-
             if (_compiledExpression == null && _compiledAction == null && !ChildRules.Any())
                 throw new NotCompiledException(Id);
 
             // Validate execute-time parameters match compile-time schema.
             ValidateExecutionParameters(parameters);
 
-            var paramValue = parameters[0].Value;
+            // For multi-parameter delegates, pass the full RuleParameter[] array.
+            // For single-parameter delegates, pass just the value directly (fast path).
+            var paramValue = _compiledParameters.Length > 1 ? parameters : parameters[0].Value;
 
             // Bottom-up: evaluate all active children first (async)
             var childResults = new List<RuleResult>();
