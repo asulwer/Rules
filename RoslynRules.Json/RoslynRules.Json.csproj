@@ -4,9 +4,23 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <IsPackable>true</IsPackable>
+
+    <!-- NuGet Package Metadata -->
     <PackageId>RoslynRules.Json</PackageId>
-    <Description>JSON serialization support for RoslynRules workflows and rules</Description>
+    <Version>1.0.0</Version>
+    <Authors>Aaron Sulwer</Authors>
+    <Description>JSON serialization support for RoslynRules workflows and rules. Provides JsonRuleLoader for saving and loading rules from JSON.</Description>
+    <PackageTags>roslynrules;rules;json;serialization;workflow</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <RepositoryUrl>https://github.com/asulwer/RoslynRules</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/asulwer/RoslynRules</PackageProjectUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\RoslynRules\RoslynRules.csproj" />

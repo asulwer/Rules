@@ -9,10 +9,16 @@ nav_order: 8
 
 # JSON Serialization
 
+Install the `RoslynRules.Json` package:
+
+```bash
+dotnet add package RoslynRules.Json
+```
+
 Save and load rules/workflows from JSON for configuration-driven setups.
 
 ```csharp
-using RoslynRules.Extensions;
+using RoslynRules.Json;
 ```
 
 ---
@@ -56,47 +62,27 @@ JsonRuleLoader.SaveWorkflowToFile(workflow, "rules.json");
 
 ---
 
-## JSON Format
+## JSON Options
 
-```json
-{
-  "description": "Customer validation",
-  "isActive": true,
-  "rules": [
-    {
-      "description": "Adult check",
-      "expression": "customer.Age >= 18",
-      "action": "customer.IsAdult = true",
-      "isActive": true,
-      "priority": 100,
-      "childRules": [
-        {
-          "description": "Name check",
-          "expression": "!string.IsNullOrEmpty(customer.Name)",
-          "isActive": true
-        }
-      ]
-    }
-  ]
-}
-```
-
----
-
-## Options
-
-Default options: camelCase naming, indented, nulls ignored, `JsonStringEnumConverter`, custom `TimeSpan` converter.
+Custom `JsonSerializerOptions` with camelCase naming and indented output.
 
 ```csharp
-var options = new JsonSerializerOptions(JsonRuleLoader.DefaultOptions)
+var options = new JsonSerializerOptions
 {
-    WriteIndented = false  // Compact output
+    PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+    WriteIndented = true,
+    DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+    Converters = { new JsonStringEnumConverter() }
 };
+
+var json = JsonRuleLoader.Serialize(workflow, options);
 ```
 
 ---
 
-## Related
+## See Also
 
-- [Workflow](workflow.md) — Serializable container
-- [Rule](rule.md) — Serializable rule
+- [Getting Started](getting-started.md)
+- [API Reference: Workflow](workflow.md)
+- [API Reference: Rule](rule.md)
+- [NuGet Package](https://www.nuget.org/packages/RoslynRules.Json)
