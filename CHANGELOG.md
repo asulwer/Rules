@@ -49,6 +49,95 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Removed `[NotMapped]`, `[Key]`, `[JsonInclude]`, `[JsonIgnore]` attributes from core models
 - `Customer.cs` in Demo no longer references `System.ComponentModel.DataAnnotations`
 
+## [1.0.5] - 2026-06-02
+
+### Changed
+
+- Version bump for package release
+
+## [1.0.4] - 2026-06-02
+
+### Changed
+
+- `release.yml` CI workflow updated for independent package versioning
+
+### Fixed
+
+- NuGet package creation excludes Demo and Tests projects
+
+## [1.0.3] - 2026-06-02
+
+### Added
+
+- `RoslynRules.Json` extension package with `JsonRuleLoader`
+- `RoslynRules.EntityFrameworkCore` extension package (renamed from `RoslynRules.EFCore`)
+- `RuleParameter.ForCompile()` and `ForExecute()` factory methods
+- Built-in rule predicates library (`RulePredicates`)
+- Rule composition/template system (`RuleTemplate`, `PlaceholderKind`)
+- Result caching (`Rule.CacheDuration`) with automatic expiration
+- `Rule.ClearCache()` for manual cache invalidation
+- `IRuleEngine` abstraction for DI and testing
+- Lifecycle events (`OnRuleExecuting`, `OnRuleExecuted`)
+- Per-rule timeout with `RuleTimeoutException`
+- `ValidateSemantics()` for compile-time semantic validation
+- `ValidateAll()` — non-throwing validation returning all errors
+- `TryGetValue<T>()` on `RuleContext`
+- Source Link support for debugging
+- Multi-targeting `net8.0` and `net9.0`
+- Comprehensive demo with 12 feature showcases
+
+### Changed
+
+- `RuleResult` converted from class to readonly record struct
+- JSON serialization uses direct model serialization (no DTOs)
+- Tests reorganized into categorized folders
+- `RulesException` documented correctly as inheriting from `Exception`
+- Documentation restructured with Jekyll-compatible navigation
+
+### Fixed
+
+- `ExpressionCompiler` cache race condition
+- `RuleCache` lazy cleanup race condition
+- `Workflow.ExecuteParallelAsync` dependency-level batching
+- Cooperative cancellation in sync and async execution
+- `CacheKeyBuilder` handling of reference types and collections
+- `RulePredicates` parameter name validation
+- Actions compiled as void to prevent assignment result leak
+- Roslyn syntax tree for await detection
+- `DependsOnRuleId` validation in `Rule.Validate()`
+- `RuleContext` thread-safety with `ConcurrentDictionary`
+- CompiledDelegate null-safety
+
+## [1.0.2] - 2026-06-01
+
+### Added
+
+- `AssemblyReferenceProvider` sandboxing for expression compilation
+- Collectible `AssemblyLoadContext` for expression assemblies
+- Assembly memory leak prevention with `Unload()` and `maxCompilesBeforeRecycle`
+- AOT/trimming annotations (`RequiresUnreferencedCode`, `RequiresDynamicCode`)
+- Comprehensive benchmarks (RuleResult struct vs class, compile, execute, cache)
+- `.editorconfig` for consistent formatting
+- Security policy (`SECURITY.md`)
+- Contributing guidelines (`CONTRIBUTING.md`)
+
+### Changed
+
+- `Rule` and `RuleBatch` sealed (Workflow excluded for EF Core compatibility at the time)
+- Target framework updated: `net8.0` and `net9.0`, dropped `netstandard2.1`
+- Language version bumped to C# 12.0
+- `TreatWarningsAsErrors` enabled
+
+### Fixed
+
+- Async deadlock prevention with `ConfigureAwait(false)`
+
+## [1.0.1] - 2026-05-31
+
+### Fixed
+
+- NuGet push `--skip-duplicate` flag to handle already-published packages
+
 ## [1.0.0] - 2026-05-31
 
 ### Added
