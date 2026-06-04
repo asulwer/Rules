@@ -50,5 +50,8 @@ jobs:
         uses: softprops/action-gh-release@v3
         with:
           files: ./nuget_packages/*.nupkg
+          tag_name: ${{ github.ref_name }}
+          name: ${{ github.ref_name }}
+          generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
