@@ -49,7 +49,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Removed `[NotMapped]`, `[Key]`, `[JsonInclude]`, `[JsonIgnore]` attributes from core models
 - `Customer.cs` in Demo no longer references `System.ComponentModel.DataAnnotations`
 
-## [1.0.0] - 2026-06-02
+## [1.0.0] - 2026-05-31
 
 ### Added
 
