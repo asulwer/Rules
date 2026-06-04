@@ -1,3 +1,10 @@
+---
+layout: default
+title: AOT Compatibility
+parent: Documentation
+nav_order: 7
+---
+
 # AOT Compatibility
 
 RoslynRules can be referenced from AOT-published applications, but with important limitations.

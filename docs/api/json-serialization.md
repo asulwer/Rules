@@ -67,6 +67,15 @@ JsonRuleLoader.SaveWorkflowToFile(workflow, "rules.json");
 Custom `JsonSerializerOptions` with camelCase naming and indented output.
 
 ```csharp
+
+---
+
+## Related
+
+- [Rule](rule.md) — Serialized model
+- [Workflow](workflow.md) — Serialized container
+- [Rule Templates](rule-templates.md) — Serialize templates before instantiation
+
 var options = new JsonSerializerOptions
 {
     PropertyNamingPolicy = JsonNamingPolicy.CamelCase,

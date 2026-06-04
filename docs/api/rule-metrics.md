@@ -82,6 +82,15 @@ rule.ClearCache();
 Console.WriteLine(rule.Metrics.EvalCount); // 0
 ```
 
+---
+
+## Related
+
+- [Rule](rule.md) — `Metrics` property
+- [Result Caching](result-caching.md) — Cache and metrics interaction
+- [Performance Tuning](../performance-tuning.md) — Optimize based on metrics
+
+
 ## Dashboard Integration
 
 Export metrics for monitoring:

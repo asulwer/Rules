@@ -1,3 +1,10 @@
+---
+layout: default
+title: Rule Visualization
+parent: API Reference
+nav_order: 13
+---
+
 # Rule Graph Visualization
 
 Generate dependency diagrams from your workflows for debugging, documentation, and code review. RoslynRules outputs both Graphviz DOT and Mermaid formats.
@@ -146,3 +153,12 @@ Generate diagrams in CI to catch unintended dependency changes:
 Labels are automatically escaped for their target format:
 - DOT: quotes, backslashes, newlines
 - Mermaid: brackets, parentheses, braces
+
+---
+
+## Related
+
+- [Rule](rule.md) — `ChildRules` and `DependsOnRuleId` properties
+- [Workflow](workflow.md) — Generate workflow-wide diagrams
+- [Examples: Visualization](../examples/visualization.md) — CI/CD workflow diagrams
+

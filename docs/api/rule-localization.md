@@ -1,3 +1,10 @@
+---
+layout: default
+title: Rule Localization
+parent: API Reference
+nav_order: 12
+---
+
 # Rule Localization (i18n)
 
 RoslynRules supports localized rule descriptions via `DescriptionKey` and `IRuleDescriptionProvider`. This lets you separate display text from rule logic and support multiple languages without changing your rule definitions.
@@ -120,6 +127,15 @@ foreach (var rule in workflow.Rules)
 
 workflow.Compile(parameters);
 ```
+
+---
+
+## Related
+
+- [Rule](rule.md) — `DescriptionKey` and `DescriptionProvider` properties
+- [Workflow](workflow.md) — Container for localized rules
+- [Rule Metrics](rule-metrics.md) — Track localization coverage
+
 
 ## Thread Safety
 

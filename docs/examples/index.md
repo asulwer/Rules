@@ -320,7 +320,7 @@ Store rules in JSON files for configuration-driven setups:
 using RoslynRules.Extensions;
 
 // Load from JSON
-var workflow = JsonRuleLoader.LoadFromFile("customer-rules.json");
+var workflow = JsonRuleLoader.LoadWorkflowFromFile("customer-rules.json");
 
 // Validate, compile, execute as normal
 workflow.Validate();

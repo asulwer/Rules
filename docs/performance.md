@@ -1,6 +1,7 @@
 ---
 layout: default
 title: Performance
+parent: Documentation
 nav_order: 5
 ---
 
