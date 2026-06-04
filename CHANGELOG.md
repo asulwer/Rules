@@ -51,13 +51,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Removed `[NotMapped]`, `[Key]`, `[JsonInclude]`, `[JsonIgnore]` attributes from core models
 - `Customer.cs` in Demo no longer references `System.ComponentModel.DataAnnotations`
 
-## [1.0.5] - 2026-06-02
+## [2026.6.2-2] - 2026-06-02
 
 ### Changed
 
 - Version bump for package release
 
-## [1.0.4] - 2026-06-02
+## [2026.6.2-1] - 2026-06-02
 
 ### Changed
 
@@ -67,7 +67,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - NuGet package creation excludes Demo and Tests projects
 
-## [1.0.3] - 2026-06-02
+## [2026.6.2] - 2026-06-02
 
 ### Added
 
@@ -110,7 +110,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `RuleContext` thread-safety with `ConcurrentDictionary`
 - CompiledDelegate null-safety
 
-## [1.0.2] - 2026-06-01
+## [2026.6.1] - 2026-06-01
 
 ### Added
 
@@ -134,13 +134,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Async deadlock prevention with `ConfigureAwait(false)`
 
-## [1.0.1] - 2026-05-31
+## [2026.5.31-1] - 2026-05-31
 
 ### Fixed
 
-- NuGet push `--skip-duplicate` flag to handle already-published packages
+- NuNet push `--skip-duplicate` flag to handle already-published packages
 
-## [1.0.0] - 2026-05-31
+## [2026.5.31] - 2026-05-31
 
 ### Added
 
