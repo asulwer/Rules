@@ -160,7 +160,7 @@ namespace RoslynRules.Tests.Execution
         }
 
         [Fact]
-        public void ExecuteAsync_SuccessfulRule_IncrementsEvalCount()
+        public async Task ExecuteAsync_SuccessfulRule_IncrementsEvalCount()
         {
             var rule = new Rule
             {
@@ -170,13 +170,13 @@ namespace RoslynRules.Tests.Execution
             var parameters = new[] { new RuleParameter("x", typeof(int), 1) };
             rule.Compile(new global::RoslynRules.Compiler.ExpressionCompiler(), parameters);
 
-            rule.ExecuteAsync(parameters).GetAwaiter().GetResult();
+            await rule.ExecuteAsync(parameters);
 
             rule.Metrics.EvalCount.Should().Be(1);
         }
 
         [Fact]
-        public void ExecuteAsync_FailingRule_IncrementsFailureCount()
+        public async Task ExecuteAsync_FailingRule_IncrementsFailureCount()
         {
             var rule = new Rule
             {
@@ -186,7 +186,7 @@ namespace RoslynRules.Tests.Execution
             var parameters = new[] { new RuleParameter("x", typeof(int), -1) };
             rule.Compile(new global::RoslynRules.Compiler.ExpressionCompiler(), parameters);
 
-            rule.ExecuteAsync(parameters).GetAwaiter().GetResult();
+            await rule.ExecuteAsync(parameters);
 
             rule.Metrics.FailureCount.Should().Be(1);
         }
