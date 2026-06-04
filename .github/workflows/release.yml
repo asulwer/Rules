@@ -41,6 +41,7 @@ jobs:
         run: dotnet pack './RoslynRules.Json/RoslynRules.Json.csproj' --configuration Release --no-build --output ./nuget_packages
 
       - name: Publish NuGet packages to NuGet.org
+        continue-on-error: true
         env:
           NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
         run: |
