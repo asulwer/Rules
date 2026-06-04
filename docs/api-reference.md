@@ -22,6 +22,9 @@ Complete reference for all RoslynRules public APIs, organized by component.
     <tr><td><a href="api/workflow.html">Workflow</a></td><td>Container for top-level rules</td></tr>
     <tr><td><a href="api/ruleresult.html">RuleResult</a></td><td>Execution result with child traceability</td></tr>
     <tr><td><a href="api/ruleparameter.html">RuleParameter</a></td><td>Parameter definition (name, type, value)</td></tr>
+    <tr><td><a href="api/rule-diagnostics.html">RuleDiagnostics</a></td><td>Diagnostics, logging, and auditing model</td></tr>
+    <tr><td><a href="api/rule-lifecycle-events.html">RuleLifecycleEvents</a></td><td>OnRuleExecuting/OnRuleExecuted event args</td></tr>
+    <tr><td><a href="api/compiled-delegate.html">CompiledDelegate</a></td><td>Fast invocation wrapper for compiled delegates</td></tr>
   </tbody>
 </table>
 
@@ -35,6 +38,7 @@ Complete reference for all RoslynRules public APIs, organized by component.
     <tr><td><a href="api/rulecontext.html">RuleContext</a></td><td>Access dependency rule results during execution</td></tr>
     <tr><td><a href="api/iruleengine.html">IRuleEngine</a></td><td>Abstraction for DI and mocking</td></tr>
     <tr><td><a href="api/rulebatch.html">RuleBatch</a></td><td>Batch evaluation for 10+ rules</td></tr>
+    <tr><td><a href="api/graph-algorithms.html">GraphAlgorithms</a></td><td>Topological sort for dependency resolution</td></tr>
   </tbody>
 </table>
 
