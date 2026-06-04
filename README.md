@@ -46,7 +46,15 @@ var results = workflow.Execute(parameters);
 
 ## Quick start
 
-### 1. Define your model
+### 1. Create a compiler
+
+```csharp
+using RoslynRules.Compiler;
+
+var compiler = new ExpressionCompiler();
+```
+
+### 2. Define your model
 
 ```csharp
 public class Customer
@@ -57,39 +65,51 @@ public class Customer
 }
 ```
 
-### 2. Create a rule
+### 3. Create and compile a rule
 
 ```csharp
+using RoslynRules.Models;
+
 var rule = new Rule
 {
     Description = "Check adult customers",
     Expression = "customer.Age >= 18",
     Action = "customer.Processed = true"
 };
+
+// Compile parameter (type-only, no value needed for compilation)
+var compileParam = new RuleParameter("customer", typeof(Customer));
+
+// Compile the rule
+rule.Compile(compiler, new[] { compileParam });
+
+// Execute with a value
+var adult = new Customer { Name = "Alice", Age = 25 };
+var param = new RuleParameter("customer", typeof(Customer), adult);
+var result = rule.Execute(param);
+Console.WriteLine(result.Success); // True
 ```
 
-### 3. Compile and run
+### 4. Compile a workflow
 
 ```csharp
-var parameters = new[]
+var workflow = new Workflow
 {
-    new RuleParameter("customer", typeof(Customer), new Customer { Name = "Alice", Age = 25 })
+    Rules =
+    {
+        new Rule
+        {
+            Description = "Adult customer",
+            Expression = "customer.Age >= 18",
+            Action = "customer.Processed = true"
+        }
+    }
 };
 
-workflow.Compile(parameters);
+workflow.Compile(compiler, new[] { compileParam });
 
-// Run once
-var result = rule.Execute(parameters);
-Console.WriteLine(result.Success); // True
-
-// Run a thousand times — zero recompilation
-foreach (var customer in customers)
-{
-    var results = workflow.Execute(new[]
-    {
-        new RuleParameter("customer", typeof(Customer), customer)
-    });
-}
+// Execute with real data
+var results = workflow.Execute(new[] { param });
 ```
 
 ### Or load rules from JSON
@@ -101,15 +121,25 @@ foreach (var customer in customers)
     {
       "description": "Adult check",
       "expression": "customer.Age >= 18",
-      "action": "customer.IsAdult = true"
+      "action": "customer.Processed = true"
     }
   ]
 }
 ```
 
 ```csharp
+using RoslynRules.Json;
+
 var workflow = JsonRuleLoader.LoadFromFile("rules.json");
-workflow.Compile(parameters);
+
+// Compile before executing
+var compileParam = new RuleParameter("customer", typeof(Customer));
+workflow.Compile(compiler, new[] { compileParam });
+
+// Execute
+var customer = new Customer { Name = "Alice", Age = 25 };
+var param = new RuleParameter("customer", typeof(Customer), customer);
+var results = workflow.Execute(param);
 ```
 
 ## Multi-Parameter Rules
@@ -124,14 +154,19 @@ var rule = new Rule
     IsActive = true
 };
 
-var parameters = new[]
+var compileParams = new[]
+{
+    new RuleParameter("price", typeof(decimal)),
+    new RuleParameter("quantity", typeof(int))
+};
+
+rule.Compile(compiler, compileParams);
+
+var result = rule.Execute(new[]
 {
     new RuleParameter("price", typeof(decimal), 9.99m),
     new RuleParameter("quantity", typeof(int), 5)
-};
-
-rule.Compile(compiler, parameters);
-var result = rule.Execute(parameters);
+});
 ```
 
 ## What makes it different
