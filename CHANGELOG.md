@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2026.6.3] - 2026-06-03
+
 ### Added
 
 - Multi-parameter rule support — rules now accept up to 16 parameters directly (no wrapper struct needed)
