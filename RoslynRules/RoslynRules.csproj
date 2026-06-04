@@ -6,7 +6,7 @@
     <LangVersion>12.0</LangVersion>
     <AssemblyName>RoslynRules</AssemblyName>
     <RootNamespace>RoslynRules</RootNamespace>
-    <Version>1.0.4</Version>
+    <Version>1.0.5</Version>
     <PackageId>RoslynRules</PackageId>
     <Authors>Aaron Sulwer</Authors>
     <Description>High-performance .NET rules engine with Roslyn compilation, typed delegates, and async support</Description>
