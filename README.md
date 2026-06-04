@@ -130,7 +130,7 @@ var results = workflow.Execute(new[] { param });
 ```csharp
 using RoslynRules.Json;
 
-var workflow = JsonRuleLoader.LoadFromFile("rules.json");
+var workflow = JsonRuleLoader.LoadWorkflowFromFile("rules.json");
 
 // Compile before executing
 var compileParam = new RuleParameter("customer", typeof(Customer));
