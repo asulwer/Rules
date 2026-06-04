@@ -29,7 +29,7 @@ jobs:
         run: dotnet build --configuration Release --no-restore
 
       - name: Run all tests
-        run: dotnet test --no-build --verbosity normal
+        run: dotnet test --configuration Release --no-build --verbosity normal
 
       - name: Pack RoslynRules
         run: dotnet pack './RoslynRules/RoslynRules.csproj' --configuration Release --no-build --output ./nuget_packages
