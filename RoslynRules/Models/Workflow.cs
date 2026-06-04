@@ -21,6 +21,8 @@ namespace RoslynRules.Models
     public class Workflow : IRuleEngine
     {
         private ExpressionCompiler _compiler = new ExpressionCompiler();
+        private List<Rule> _rules = new List<Rule>();
+        private bool _isCompiled;
 
         /// <summary>
         /// Initializes a new workflow with default values.
@@ -46,8 +48,19 @@ namespace RoslynRules.Models
 
         /// <summary>
         /// Top-level rules in this workflow. Child rules are nested inside their parents.
+        /// Returns IReadOnlyList after compilation to enforce immutability.
         /// </summary>
-        public IList<Rule> Rules { get; set; } = new List<Rule>();
+        /// <exception cref="InvalidOperationException">Thrown when setting Rules after compilation.</exception>
+        public IList<Rule> Rules
+        {
+            get => _isCompiled ? _rules.AsReadOnly() : _rules;
+            set
+            {
+                if (_isCompiled)
+                    throw new InvalidOperationException("Workflow.Rules cannot be modified after compilation.");
+                _rules = value is List<Rule> list ? list : value?.ToList() ?? new List<Rule>();
+            }
+        }
 
         // ==================== VALIDATION ====================
 
@@ -215,10 +228,11 @@ namespace RoslynRules.Models
         /// <param name="additionalNamespaces">Extra namespaces for expression compilation.</param>
         public void Compile(RuleParameter[] parameters, string[]? additionalNamespaces = null, Compiler.AssemblyReferenceProvider? referenceProvider = null)
         {
-            foreach (var rule in Rules.Where(r => r.IsActive))
+            foreach (var rule in _rules.Where(r => r.IsActive))
             {
                 rule.Compile(_compiler, parameters, additionalNamespaces, referenceProvider);
             }
+            _isCompiled = true;
         }
 
         // ==================== DEPENDENCY MANAGEMENT ====================
