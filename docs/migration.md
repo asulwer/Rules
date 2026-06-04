@@ -4,11 +4,72 @@ title: Migration
 nav_order: 5
 ---
 
-[← Back to Documentation Index](index.md)
+[<- Back to Documentation Index](index.md)
 
-# Migration from Microsoft.RulesEngine
+# Migration
 
-## Key Changes
+## From 0.x to 1.x
+
+### Breaking Changes
+
+| 0.x | 1.x | Migration |
+|-----|-----|-----------|
+| `Rule.Id` auto-generated | `Rule.Id` still auto-generated | No change |
+| Single parameter only | Multi-parameter support | Remove wrapper structs |
+| `workflow.Rules` mutable after compile | Immutable after `Compile()` | Add rules before compile |
+| No `ValidateSemantics` | Static `ValidateSemantics` overloads | Use for input validation |
+| `AssemblyReferenceProvider` basic | Whitelist + hardening | Review whitelist |
+
+### Multi-Parameter Migration
+
+Before (0.x):
+```csharp
+// Wrap in struct
+public record Input(int A, int B);
+var param = new RuleParameter("input", typeof(Input), new Input(1, 2));
+var rule = new Rule { Expression = "input.A > input.B" };
+```
+
+After (1.x):
+```csharp
+// Direct multi-parameter
+var parameters = new[] {
+    new RuleParameter("a", typeof(int), 1),
+    new RuleParameter("b", typeof(int), 2)
+};
+var rule = new Rule { Expression = "a > b" };
+```
+
+### Workflow Immutability
+
+Before (0.x):
+```csharp
+workflow.Compile(parameters);
+workflow.Rules.Add(newRule);  // Was allowed
+workflow.Compile(parameters); // Re-compile
+```
+
+After (1.x):
+```csharp
+workflow.Rules.Add(newRule);
+workflow.Compile(parameters);  // Locks Rules
+// workflow.Rules.Add(another); // NotSupportedException
+```
+
+### Static ValidateSemantics
+
+New in 1.x — validate user input without creating a Rule:
+
+```csharp
+// Validate API input before storing
+Rule.ValidateSemantics(userExpression, typeof(Customer), "customer");
+```
+
+---
+
+## From Microsoft.RulesEngine
+
+### Key Changes
 
 | RulesEngine | This Engine |
 |-------------|-------------|

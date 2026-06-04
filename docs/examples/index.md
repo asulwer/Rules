@@ -19,6 +19,7 @@ Quick-reference code snippets for common scenarios.
 - [Async Rule](#async-rule)
 - [Returning Multiple Values](#returning-multiple-values)
 - [Workflow with Multiple Rules](#workflow-with-multiple-rules)
+- [Dependency Chaining](#dependency-chaining)
 - [Logging with Serilog](#logging-with-serilog)
 - [ExpandoObject](#expandoobject-dynamic)
 - [JSON Configuration](#json-configuration)
@@ -200,6 +201,56 @@ workflow.Compile(parameters);
 // All rules evaluated, results in order
 var results = workflow.ExecuteParallel(parameters);
 ```
+
+## Dependency Chaining
+
+Chain rules with `DependsOnRuleId` so downstream rules access upstream results via `RuleContext`.
+
+```csharp
+var authId = Guid.NewGuid();
+var authRule = new Rule(authId)
+{
+    Description = "Authenticated?",
+    Expression = "user.IsAuthenticated",
+    IsActive = true
+};
+
+var adminId = Guid.NewGuid();
+var adminRule = new Rule(adminId)
+{
+    Description = "Admin?",
+    Expression = "context.GetValue<bool>(authId) && user.Role == \"Admin\"",
+    DependsOnRuleId = authId,
+    IsActive = true
+};
+
+var discountId = Guid.NewGuid();
+var discountRule = new Rule(discountId)
+{
+    Description = "VIP discount",
+    Expression = "context.GetValue<bool>(adminId) && user.IsVip",
+    DependsOnRuleId = adminId,
+    IsActive = true
+};
+
+var workflow = new Workflow();
+workflow.Rules.Add(authRule);
+workflow.Rules.Add(adminRule);
+workflow.Rules.Add(discountRule);
+
+workflow.Compile(new[] { new RuleParameter("user", typeof(User)) });
+
+// Auth → Admin → Discount (dependency order)
+var results = workflow.Execute(new[]
+{
+    new RuleParameter("user", typeof(User), currentUser)
+});
+```
+
+**Key points:**
+- `DependsOnRuleId` ensures execution order
+- `RuleContext.GetValue<T>(ruleId)` retrieves upstream results
+- Cyclic dependencies throw `CircularReferenceException` on `Validate()`
 
 ## Logging with Serilog
 
