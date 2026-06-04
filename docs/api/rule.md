@@ -156,6 +156,51 @@ rule.ValidateSemantics(compiler, parameters);
 
 ---
 
+### Static `ValidateSemantics(string, Type, string, string[]?)`
+
+Validates an expression string **without creating a Rule instance**. Creates a default compiler internally.
+
+```csharp
+// With a Type
+Rule.ValidateSemantics("param > 0", typeof(int));
+
+// With custom parameter name
+Rule.ValidateSemantics("customer.Age >= 18", typeof(int), "customer");
+```
+
+**Parameters:**
+- `expression` — C# expression to validate
+- `parameterType` — CLR type of the parameter
+- `parameterName` — Parameter name used in the expression (default: `"param"`)
+- `additionalNamespaces` — Optional extra namespaces
+
+**Throws:**
+- `RuleCompilationException` — Expression has semantic errors (undefined variable, missing type, etc.)
+- `ArgumentException` — Expression is null or whitespace
+
+### Static `ValidateSemantics(string, string, string, string[]?)`
+
+Same as above, but accepts the parameter type as a **string** (full type name or alias).
+
+```csharp
+// With C# alias
+Rule.ValidateSemantics("param.Length > 0", "string");
+
+// With full type name
+Rule.ValidateSemantics("param.Year > 2000", "System.DateTime");
+
+// With custom parameter name
+Rule.ValidateSemantics("age >= 18", "int", "age");
+```
+
+**Supported aliases:** `bool`, `byte`, `sbyte`, `char`, `decimal`, `double`, `float`, `int`, `uint`, `long`, `ulong`, `short`, `ushort`, `string`, `object`
+
+**Throws:**
+- `RuleCompilationException` — Expression has semantic errors
+- `ArgumentException` — Expression is null/whitespace, or type name cannot be resolved
+
+---
+
 ## Events
 
 ### `OnRuleExecuting`

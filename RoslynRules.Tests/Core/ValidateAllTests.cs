@@ -1,5 +1,8 @@
+using FluentAssertions;
 using RoslynRules.Batch;
+using RoslynRules.Exceptions;
 using RoslynRules.Models;
+using System;
 using System.Linq;
 using Xunit;
 using Workflow = global::RoslynRules.Models.Workflow;
@@ -95,6 +98,68 @@ namespace RoslynRules.Tests.Core
 
             Assert.Single(errors);
             Assert.Equal(ValidationErrorType.NoActiveRules, errors[0].ErrorType);
+        }
+
+        // ==================== STATIC VALIDATE SEMANTICS OVERLOADS ====================
+
+        [Fact]
+        public void Rule_ValidateSemantics_Static_WithType_ValidExpression_Succeeds()
+        {
+            // Should not throw
+            Rule.ValidateSemantics("param > 0", typeof(int));
+        }
+
+        [Fact]
+        public void Rule_ValidateSemantics_Static_WithType_InvalidExpression_Throws()
+        {
+            var ex = Assert.Throws<RuleCompilationException>(() =>
+                Rule.ValidateSemantics("param.NonExistentMethod()", typeof(int)));
+            Assert.Contains("Semantic error", ex.Message);
+        }
+
+        [Fact]
+        public void Rule_ValidateSemantics_Static_WithTypeName_Alias_ValidExpression_Succeeds()
+        {
+            // Should not throw
+            Rule.ValidateSemantics("param.Length > 0", "string");
+        }
+
+        [Fact]
+        public void Rule_ValidateSemantics_Static_WithTypeName_FullName_ValidExpression_Succeeds()
+        {
+            // Should not throw
+            Rule.ValidateSemantics("param.Year > 2000", "System.DateTime");
+        }
+
+        [Fact]
+        public void Rule_ValidateSemantics_Static_WithTypeName_InvalidTypeName_ThrowsArgumentException()
+        {
+            var ex = Assert.Throws<ArgumentException>(() =>
+                Rule.ValidateSemantics("param > 0", "NonExistent.Type"));
+            Assert.Contains("Could not resolve type", ex.Message);
+        }
+
+        [Fact]
+        public void Rule_ValidateSemantics_Static_WithTypeName_CustomParameterName_Succeeds()
+        {
+            // Should not throw — uses custom parameter name with matching type
+            Rule.ValidateSemantics("customer > 0", "int", "customer");
+        }
+
+        [Fact]
+        public void Rule_ValidateSemantics_Static_NullExpression_ThrowsArgumentException()
+        {
+            var ex = Assert.Throws<ArgumentException>(() =>
+                Rule.ValidateSemantics(null!, typeof(int)));
+            Assert.Contains("Expression cannot be null", ex.Message);
+        }
+
+        [Fact]
+        public void Rule_ValidateSemantics_Static_EmptyExpression_ThrowsArgumentException()
+        {
+            var ex = Assert.Throws<ArgumentException>(() =>
+                Rule.ValidateSemantics("   ", typeof(int)));
+            Assert.Contains("Expression cannot be null", ex.Message);
         }
 
         [Fact]

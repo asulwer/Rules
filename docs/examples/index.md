@@ -27,6 +27,7 @@ Quick-reference code snippets for common scenarios.
 - [Rule Priority](#rule-priority)
 - [Per-Rule Timeout](#per-rule-timeout)
 - [Validation Before Compile](#validation-before-compile)
+- [Semantic Validation (No Rule Instance)](#semantic-validation-no-rule-instance)
 - [Non-Throwing Validation](#non-throwing-validation)
 
 ## Detailed Guides
@@ -451,6 +452,25 @@ catch (InvalidOperationException ex)
     Console.WriteLine($"Validation failed: {ex.Message}");
 }
 ```
+
+## Semantic Validation (No Rule Instance)
+
+Validate an expression string without creating a Rule — useful for validating user input or API parameters before storing them.
+
+```csharp
+// Using a Type
+Rule.ValidateSemantics("param > 0", typeof(int));
+
+// Using a type alias
+Rule.ValidateSemantics("name.Length > 0", "string", "name");
+
+// Using full type name
+Rule.ValidateSemantics("date.Year >= 2000", "System.DateTime", "date");
+```
+
+**Supported aliases:** `bool`, `byte`, `char`, `decimal`, `double`, `float`, `int`, `long`, `short`, `string`, `object`, and any full type name (e.g., `System.DateTime`).
+
+**Throws `RuleCompilationException`** if the expression has undefined variables, missing types, or incorrect method signatures.
 
 ## Non-Throwing Validation
 
