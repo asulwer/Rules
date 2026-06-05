@@ -7,65 +7,183 @@ nav_order: 7
 
 # AOT Compatibility
 
-RoslynRules can be referenced from AOT-published applications, but with important limitations.
+RoslynRules supports AOT deployment via **pre-compiled snapshots**. Rules cannot be compiled at runtime in AOT — they must be compiled beforehand in a JIT environment.
 
-## AOT-Safe APIs
+---
 
-The following features work correctly in AOT context:
+## RoslynRules Role: JIT vs AOT
 
-| Feature | AOT Safe | Notes |
-|---------|----------|-------|
-| Workflow/Rule model creation | Yes | Plain object initialization |
-| `Workflow.Validate()` | Yes | Syntax validation only, no compilation |
-| Dependency graph building | Yes | `GraphAlgorithms.TopologicalSort` |
-| `RuleResult` manipulation | Yes | Immutable value type |
-| `RuleContext` | Yes | Thread-safe result storage |
-| `Rule.Compile()` | **No** | Requires Roslyn runtime compilation |
-| `Rule.Execute()` | **No** | Requires compiled delegate |
-| `ExpressionCompiler` | **No** | Dynamically generates assemblies |
+| Capability | JIT Mode | AOT Mode |
+|-----------|----------|----------|
+| Load rules from JSON/EF | ✅ Yes | ✅ Yes |
+| `Workflow.Validate()` | ✅ Yes | ✅ Yes |
+| `Workflow.GetExecutionOrder()` | ✅ Yes | ✅ Yes |
+| `Rule.Compile()` (from string) | ✅ Yes | ❌ **Not supported** |
+| `Rule.Execute()` without snapshot | ✅ Yes | ❌ Throws error |
+| `Rule.Execute()` with snapshot | ✅ Yes | ✅ Yes |
+| Create snapshots | ✅ Yes | ❌ **Not supported** |
+| Load snapshots | ✅ Yes | ✅ Yes |
 
-## Why Compilation Requires JIT
+**Key principle:**
+- **JIT** is the compilation environment
+- **AOT** is the execution environment
 
-RoslynRules uses Roslyn at runtime to compile rule expressions into executable delegates:
+---
 
-```csharp
-// This requires JIT compilation - not AOT-safe
-rule.Compile(compiler, parameters);
-var result = rule.Execute(parameters);
+## Why AOT Cannot Compile
+
+AOT removes the JIT compiler entirely. RoslynRules' `Compile()` method requires:
+1. `CSharpCompilation.Emit()` → generates IL
+2. `AssemblyLoadContext.LoadFromStream()` → loads dynamic assembly
+3. `MethodInfo.CreateDelegate()` → reflection on dynamic method
+
+All three require a JIT compiler. AOT has none.
+
+---
+
+## Deployment Architecture
+
+### Recommended: Two-Stage Deployment
+
+```
+[Rule Authoring]          [Production Runtime]
+     │                            │
+     ▼                            ▼
+┌──────────┐              ┌──────────────┐
+│ JSON/EF  │──Compile()──→│  Snapshot    │
+│ Rules    │   (JIT)      │  Files       │
+└──────────┘              └──────────────┘
+     │                            │
+     │                            │ LoadSnapshot()
+     │                            ▼
+     │                       ┌──────────┐
+     │                       │ AOT App  │
+     │                       │ Execute()│
+     │                       └──────────┘
 ```
 
-The `[RequiresUnreferencedCode]` attribute on these APIs produces trim analysis warnings when used in AOT context. This is expected and correct.
+**JIT Admin/Authoring Tool:**
+- Loads rules from JSON/EF
+- Compiles with `ExpressionCompiler`
+- Saves snapshots to disk/storage
+- Can modify and recompile rules
 
-## Usage Pattern for AOT Apps
+**AOT Production App:**
+- Loads rules from JSON/EF (for metadata)
+- Loads pre-compiled snapshots
+- Executes without compilation
 
-If your application needs AOT but also needs rule execution, consider these options:
+### Alternative: Self-Contained Single-File (Not AOT)
 
-1. **Pre-compile rules at build time** — compile rules during development and serialize the compiled delegates
-2. **Host rules engine in a separate JIT process** — use a microservice or separate process for rule execution
-3. **Use AOT-safe validation only** — validate rule structure in the AOT app, compile in a companion service
+If you need dynamic compilation in production, do not use AOT. Use:
 
-## AOT Tests
+```xml
+<!-- .csproj -->
+<PublishAot>false</PublishAot>
+<SelfContained>true</SelfContained>
+<PublishSingleFile>true</PublishSingleFile>
+```
 
-AOT compatibility tests live in the main test project under `RoslynRules.Tests/AotCompatibility/`.
-These validate that AOT-safe APIs compile without linker errors:
+This gives you:
+- Single .exe file
+- No runtime install needed
+- Full dynamic compilation support
+- Larger binary (~15-30MB vs ~5MB for AOT)
+
+---
+
+## Snapshot API (Proposed)
+
+```csharp
+// JIT: Compile and save
+var workflow = JsonRuleLoader.LoadWorkflowFromFile("rules.json");
+workflow.Compile(parameters);
+
+foreach (var rule in workflow.Rules)
+{
+    var snapshot = rule.ToSnapshot();
+    File.WriteAllBytes($"snapshots/{rule.Id}.snap", snapshot);
+}
+
+// AOT: Load and execute
+var workflow = JsonRuleLoader.LoadWorkflowFromFile("rules.json");
+foreach (var rule in workflow.Rules)
+{
+    var snapshot = File.ReadAllBytes($"snapshots/{rule.Id}.snap");
+    rule.LoadSnapshot(snapshot);
+}
+
+var results = workflow.Execute(parameters);
+```
+
+---
+
+## Runtime Detection
+
+RoslynRules detects AOT at runtime and throws clear errors:
+
+```csharp
+if (!RuntimeFeature.IsDynamicCodeSupported)
+{
+    throw new PlatformNotSupportedException(
+        "JIT compilation is not available in AOT mode. " +
+        "Use pre-compiled snapshots or run in JIT mode.");
+}
+```
+
+Your app can also detect mode:
+
+```csharp
+bool isAot = !RuntimeFeature.IsDynamicCodeSupported;
+
+if (isAot)
+{
+    workflow.LoadSnapshots("snapshots/");
+}
+else
+{
+    workflow.Compile(parameters);
+    workflow.SaveSnapshots("snapshots/");
+}
+```
+
+---
+
+## AOT-Safe APIs (No Compilation Needed)
+
+These work in AOT without snapshots:
+
+- `Workflow` / `Rule` model creation
+- `Workflow.Validate()` — syntax validation
+- `Workflow.GetExecutionOrder()` — dependency resolution
+- `RuleResult` creation and inspection
+- `RuleContext` result storage
+- `GraphAlgorithms.TopologicalSort()`
+
+These **require** snapshots in AOT:
+
+- `Rule.Execute()`
+- `Workflow.Execute()`
+- `Rule.Compile()`
+- `ExpressionCompiler`
+
+---
+
+## CI Integration
+
+The `.github/workflows/aot.yml` workflow validates AOT-safe APIs compile without linker errors:
 
 ```bash
 dotnet test RoslynRules.Tests --filter "FullyQualifiedName~AotCompatibilityTests"
 ```
 
-This runs 8 tests covering model creation, validation, `RuleResult`, `RuleContext`, and execution order.
+This runs 8 tests covering model creation, validation, `RuleResult`, `RuleContext`, and execution order — all without runtime compilation.
 
-## CI Integration
-
-The `.github/workflows/aot.yml` workflow runs on every PR affecting `RoslynRules/` or `RoslynRules.Tests/`:
-
-- Builds the test project with AOT analysis enabled
-- Runs the `AotCompatibilityTests` xUnit test suite
-- Publishes a native AOT binary on Linux (smoke test to validate trim annotations)
+---
 
 ## Known Limitations
 
-- `System.Linq.Expressions` is not AOT-friendly; RoslynRules uses it indirectly
+- `System.Linq.Expressions` is not AOT-friendly; RoslynRules avoids it
 - `Assembly.LoadFrom` and `Reflection.Emit` are unsupported in native AOT
 - Dynamic generic instantiation (`MakeGenericType`) may be trimmed
 
