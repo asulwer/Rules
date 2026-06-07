@@ -44,23 +44,6 @@ XmlRuleLoader.SaveWorkflowToFile(workflow, "rules.xml");
 var loaded = XmlRuleLoader.LoadWorkflowFromFile("rules.xml");
 ```
 
-## Child Rules and Dependencies
-
-XML naturally preserves hierarchical rule structures:
-
-```xml
-<Rule Id="guid" Priority="0">
-  <Description>Parent rule</Description>
-  <Expression>true</Expression>
-  <ChildRules>
-    <Rule Id="guid" Priority="1">
-      <Description>Child rule</Description>
-      <Expression>false</Expression>
-    </Rule>
-  </ChildRules>
-</Rule>
-```
-
 ## AOT Compatibility
 
-This extension uses `System.Xml.Linq` (XDocument) which is compatible with AOT/trimming. No reflection-based serialization is used.
+This extension uses System.Xml.Linq (XDocument) which is compatible with AOT/trimming. No reflection-based serialization is used.
