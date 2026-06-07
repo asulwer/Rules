@@ -42,6 +42,47 @@ namespace RoslynRules.Models
         public string Description { get; set; } = string.Empty;
 
         /// <summary>
+        /// Semantic version of this workflow. Used for tracking changes and compatibility.
+        /// Defaults to 1.0.0 for new workflows.
+        /// </summary>
+        public RuleVersion Version
+        {
+            get => _version;
+            set
+            {
+                if (_isCompiled)
+                    throw new InvalidOperationException("Workflow.Version cannot be modified after compilation.");
+                _version = value;
+            }
+        }
+        private RuleVersion _version = new(1, 0, 0);
+
+        /// <summary>
+        /// When this workflow was created.
+        /// </summary>
+        public DateTime CreatedAt { get; init; } = DateTime.UtcNow;
+
+        /// <summary>
+        /// When this workflow was last modified.
+        /// </summary>
+        public DateTime ModifiedAt
+        {
+            get => _modifiedAt;
+            set
+            {
+                if (_isCompiled)
+                    throw new InvalidOperationException("Workflow.ModifiedAt cannot be modified after compilation.");
+                _modifiedAt = value;
+            }
+        }
+        private DateTime _modifiedAt = DateTime.UtcNow;
+
+        /// <summary>
+        /// Optional identifier of the user/system that last modified this workflow.
+        /// </summary>
+        public string? ModifiedBy { get; set; }
+
+        /// <summary>
         /// When false, the entire workflow and its rules are skipped.
         /// </summary>
         public bool IsActive { get; set; } = true;
@@ -62,7 +103,79 @@ namespace RoslynRules.Models
             }
         }
 
-        // ==================== VALIDATION ====================
+        /// <summary>
+        /// Checks if all rules in this workflow have compatible versions with the target workflow.
+        /// Rules with the same major version and equal or greater minor/patch are compatible.
+        /// </summary>
+        /// <param name="target">The workflow to compare against.</param>
+        /// <returns>True if this workflow's version is compatible with the target.</returns>
+        public bool IsVersionCompatibleWith(Workflow target)
+        {
+            return Version.IsCompatibleWith(target.Version);
+        }
+
+        /// <summary>
+        /// Gets a dictionary of all rules by their version status.
+        /// Useful for migration planning and compatibility analysis.
+        /// </summary>
+        /// <returns>Dictionary of rule IDs to their versions.</returns>
+        public Dictionary<Guid, RuleVersion> GetRuleVersions()
+        {
+            var result = new Dictionary<Guid, RuleVersion>();
+            foreach (var rule in Rules)
+            {
+                CollectRuleVersions(rule, result);
+            }
+            return result;
+        }
+
+        private static void CollectRuleVersions(Rule rule, Dictionary<Guid, RuleVersion> versions)
+        {
+            versions[rule.Id] = rule.Version;
+            foreach (var child in rule.ChildRules)
+            {
+                CollectRuleVersions(child, versions);
+            }
+        }
+
+        /// <summary>
+        /// Bumps the major version (resetting minor and patch to 0).
+        /// Use for breaking changes.
+        /// </summary>
+        public void BumpMajorVersion(string? modifiedBy = null)
+        {
+            if (_isCompiled)
+                throw new InvalidOperationException("Workflow version cannot be modified after compilation.");
+            _version = _version.IncrementMajor();
+            _modifiedAt = DateTime.UtcNow;
+            ModifiedBy = modifiedBy;
+        }
+
+        /// <summary>
+        /// Bumps the minor version (resetting patch to 0).
+        /// Use for new features (backward compatible).
+        /// </summary>
+        public void BumpMinorVersion(string? modifiedBy = null)
+        {
+            if (_isCompiled)
+                throw new InvalidOperationException("Workflow version cannot be modified after compilation.");
+            _version = _version.IncrementMinor();
+            _modifiedAt = DateTime.UtcNow;
+            ModifiedBy = modifiedBy;
+        }
+
+        /// <summary>
+        /// Bumps the patch version.
+        /// Use for bug fixes (backward compatible).
+        /// </summary>
+        public void BumpPatchVersion(string? modifiedBy = null)
+        {
+            if (_isCompiled)
+                throw new InvalidOperationException("Workflow version cannot be modified after compilation.");
+            _version = _version.IncrementPatch();
+            _modifiedAt = DateTime.UtcNow;
+            ModifiedBy = modifiedBy;
+        }
 
         /// <summary>
         /// Validates the entire workflow and all contained rules.

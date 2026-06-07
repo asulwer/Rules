@@ -11,7 +11,7 @@ using Xunit;
 namespace RoslynRules.Tests.AotCompatibility
 {
     /// <summary>
-    /// Validates AOT-safe APIs that don&apos;t require JIT compilation.
+    /// Validates AOT-safe APIs that don't require JIT compilation.
     /// These tests confirm RoslynRules can be referenced from AOT apps
     /// without linker errors for model/validation scenarios.
     /// </summary>
@@ -157,6 +157,90 @@ namespace RoslynRules.Tests.AotCompatibility
             var attributes = compileMethod!.GetCustomAttributes(
                 typeof(System.Diagnostics.CodeAnalysis.RequiresUnreferencedCodeAttribute), false);
             attributes.Should().NotBeEmpty("Compile should have RequiresUnreferencedCode attribute for AOT safety");
+        }
+
+        // ==================== VERSIONING AOT TESTS ====================
+
+        [Fact]
+        public void RuleVersion_CreateAndCompare()
+        {
+            var v1 = new RuleVersion(1, 0, 0);
+            var v2 = new RuleVersion(1, 1, 0);
+            var v3 = new RuleVersion(2, 0, 0);
+
+            v1.Should().BeLessThan(v2);
+            v2.Should().BeLessThan(v3);
+            v2.IsCompatibleWith(v1).Should().BeTrue("1.1.0 is backward compatible with 1.0.0 since both have major=1");
+            v3.IsCompatibleWith(v1).Should().BeFalse();
+        }
+
+        [Fact]
+        public void RuleVersion_ParseAndToString()
+        {
+            var version = RuleVersion.Parse("1.2.3-alpha+build.123");
+            version.Major.Should().Be(1);
+            version.Minor.Should().Be(2);
+            version.Patch.Should().Be(3);
+            version.Prerelease.Should().Be("alpha");
+            version.BuildMetadata.Should().Be("build.123");
+            version.ToString().Should().Be("1.2.3-alpha+build.123");
+        }
+
+        [Fact]
+        public void Rule_VersionProperties_WorkWithoutCompile()
+        {
+            var rule = new Rule
+            {
+                Description = "Test",
+                Version = new RuleVersion(2, 0, 0),
+                Expression = "true"
+            };
+
+            rule.Version.Should().Be(new RuleVersion(2, 0, 0));
+            rule.CreatedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
+        }
+
+        [Fact]
+        public void Workflow_VersionProperties_WorkWithoutCompile()
+        {
+            var workflow = new Workflow
+            {
+                Description = "Test",
+                Version = new RuleVersion(3, 1, 0),
+                Rules =
+                {
+                    new Rule { Description = "R1", Expression = "true" }
+                }
+            };
+
+            workflow.Version.Should().Be(new RuleVersion(3, 1, 0));
+            workflow.CreatedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
+        }
+
+        [Fact]
+        public void Workflow_GetRuleVersions_WorkWithoutCompile()
+        {
+            var workflow = new Workflow
+            {
+                Rules =
+                {
+                    new Rule { Description = "R1", Expression = "true", Version = new RuleVersion(1, 0, 0) },
+                    new Rule { Description = "R2", Expression = "true", Version = new RuleVersion(2, 0, 0) }
+                }
+            };
+
+            var versions = workflow.GetRuleVersions();
+            versions.Should().HaveCount(2);
+        }
+
+        [Fact]
+        public void RuleVersion_Increment_WorksWithoutCompile()
+        {
+            var version = new RuleVersion(1, 2, 3);
+
+            version.IncrementMajor().Should().Be(new RuleVersion(2, 0, 0));
+            version.IncrementMinor().Should().Be(new RuleVersion(1, 3, 0));
+            version.IncrementPatch().Should().Be(new RuleVersion(1, 2, 4));
         }
     }
 }

@@ -49,12 +49,93 @@ namespace RoslynRules.Models
         public Guid Id { get; init; } = Guid.NewGuid();
 
         /// <summary>
+        /// Semantic version of this rule. Used for tracking changes and compatibility.
+        /// Defaults to 1.0.0 for new rules.
+        /// </summary>
+        public RuleVersion Version
+        {
+            get => _version;
+            set { EnsureNotCompiled(nameof(Version)); _version = value; }
+        }
+        private RuleVersion _version = new(1, 0, 0);
+
+        /// <summary>
+        /// When this rule was created. Automatically set on first compilation.
+        /// </summary>
+        public DateTime CreatedAt { get; init; } = DateTime.UtcNow;
+
+        /// <summary>
+        /// When this rule was last modified. Updated automatically when properties change.
+        /// </summary>
+        public DateTime ModifiedAt
+        {
+            get => _modifiedAt;
+            set { EnsureNotCompiled(nameof(ModifiedAt)); _modifiedAt = value; }
+        }
+        private DateTime _modifiedAt = DateTime.UtcNow;
+
+        /// <summary>
+        /// Optional identifier of the user/system that last modified this rule.
+        /// </summary>
+        public string? ModifiedBy
+        {
+            get => _modifiedBy;
+            set { EnsureNotCompiled(nameof(ModifiedBy)); _modifiedBy = value; }
+        }
+        private string? _modifiedBy;
+
+        /// <summary>
         /// Public constructor for external factory methods.
         /// Preserves the specified ID without generating a new one.
         /// </summary>
         public Rule(Guid id)
         {
             Id = id;
+        }
+
+        /// <summary>
+        /// Creates a new rule with the specified version.
+        /// </summary>
+        public Rule(Guid id, RuleVersion version)
+        {
+            Id = id;
+            _version = version;
+        }
+
+        /// <summary>
+        /// Bumps the major version (resetting minor and patch to 0).
+        /// Use for breaking changes.
+        /// </summary>
+        public void BumpMajorVersion(string? modifiedBy = null)
+        {
+            EnsureNotCompiled(nameof(Version));
+            _version = _version.IncrementMajor();
+            _modifiedAt = DateTime.UtcNow;
+            _modifiedBy = modifiedBy;
+        }
+
+        /// <summary>
+        /// Bumps the minor version (resetting patch to 0).
+        /// Use for new features (backward compatible).
+        /// </summary>
+        public void BumpMinorVersion(string? modifiedBy = null)
+        {
+            EnsureNotCompiled(nameof(Version));
+            _version = _version.IncrementMinor();
+            _modifiedAt = DateTime.UtcNow;
+            _modifiedBy = modifiedBy;
+        }
+
+        /// <summary>
+        /// Bumps the patch version.
+        /// Use for bug fixes (backward compatible).
+        /// </summary>
+        public void BumpPatchVersion(string? modifiedBy = null)
+        {
+            EnsureNotCompiled(nameof(Version));
+            _version = _version.IncrementPatch();
+            _modifiedAt = DateTime.UtcNow;
+            _modifiedBy = modifiedBy;
         }
 
         /// <summary>

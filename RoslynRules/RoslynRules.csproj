@@ -6,11 +6,11 @@
     <LangVersion>12.0</LangVersion>
     <AssemblyName>RoslynRules</AssemblyName>
     <RootNamespace>RoslynRules</RootNamespace>
-    <Version>1.0.5</Version>
+    <Version>1.0.6</Version>
     <PackageId>RoslynRules</PackageId>
     <Authors>Aaron Sulwer</Authors>
-    <Description>High-performance .NET rules engine with Roslyn compilation, typed delegates, and async support</Description>
-    <PackageTags>rules;engine;roslyn;validation;workflow;business-logic</PackageTags>
+    <Description>High-performance .NET rules engine with Roslyn compilation, typed delegates, async support, AOT compatibility, and rule versioning</Description>
+    <PackageTags>rules;engine;roslyn;validation;workflow;business-logic;aot;trimming;versioning</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <RepositoryUrl>https://github.com/asulwer/RoslynRules</RepositoryUrl>
     <PackageProjectUrl>https://github.com/asulwer/RoslynRules</PackageProjectUrl>
@@ -23,6 +23,17 @@
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+
+    <!-- Enable trim annotations for AOT/trimming compatibility -->
+    <IsTrimmable>true</IsTrimmable>
+    <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
+    
+    <!-- 
+      RoslynRules uses reflection for compilation which is inherently not trim-safe.
+      The library is annotated with RequiresUnreferencedCodeAttribute where needed.
+      These suppressions prevent false-positive trim warnings for known reflection usage.
+    -->
+    <NoWarn>$(NoWarn);IL2026;IL2057;IL2090</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
