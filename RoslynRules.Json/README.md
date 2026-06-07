@@ -44,6 +44,26 @@ JsonRuleLoader.SaveWorkflowToFile(workflow, "rules.json");
 var loaded = JsonRuleLoader.LoadWorkflowFromFile("rules.json");
 ```
 
+### JSON Format
+
+```json
+{
+  "id": "550e8400-e29b-41d4-a716-446655440000",
+  "description": "Validation rules",
+  "version": "1.0.0",
+  "isActive": true,
+  "rules": [
+    {
+      "id": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
+      "description": "Adult check",
+      "expression": "customer.Age >= 18",
+      "isActive": true,
+      "priority": 0
+    }
+  ]
+}
+```
+
 ## Custom Options
 
 ```csharp
