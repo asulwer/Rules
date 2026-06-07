@@ -24,12 +24,13 @@
 
   <PropertyGroup>
     <VersionPrefix>1.0</VersionPrefix>
-    <Month>$([System.DateTime]::Now.Month.ToString().PadLeft(2, '0'))</Month>
-    <Day>$([System.DateTime]::Now.Day.ToString().PadLeft(2, '0'))</Day>
-    <Hour>$([System.DateTime]::Now.Hour.ToString().PadLeft(2, '0'))</Hour>
-    <Minute>$([System.DateTime]::Now.Minute.ToString().PadLeft(2, '0'))</Minute>
-    <Version>$(VersionPrefix).$(Month)$(Day).$(Hour)$(Minute)</Version>
-    <PackageVersion>$(VersionPrefix).$(Month)$(Day).$(Hour)$(Minute)</PackageVersion>
+    <BuildDate>$([System.DateTime]::Now.ToString('yyMMdd'))</BuildDate>
+    <BuildTime>$([System.DateTime]::Now.ToString('HHmm'))</BuildTime>
+    <Version>$(VersionPrefix).$(BuildDate).$(BuildTime)</Version>
+    <PackageVersion>$(VersionPrefix).$(BuildDate).$(BuildTime)</PackageVersion>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <FileVersion>1.0.0.0</FileVersion>
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
   </PropertyGroup>
 
   <ItemGroup>
