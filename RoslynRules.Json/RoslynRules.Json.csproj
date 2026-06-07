@@ -13,7 +13,7 @@
 
     <!-- NuGet Package Metadata -->
     <PackageId>RoslynRules.Json</PackageId>
-    <Version>1.0.3</Version>
+    <Version>1.0.4</Version>
     <Authors>Aaron Sulwer</Authors>
     <Description>JSON serialization support for RoslynRules workflows and rules. Provides JsonRuleLoader for saving and loading rules from JSON with AOT/trimming support via source generators.</Description>
     <PackageTags>roslynrules;rules;json;serialization;workflow;aot;trimming</PackageTags>

@@ -41,6 +41,9 @@ jobs:
       - name: Pack RoslynRules.Json
         run: dotnet pack './RoslynRules.Json/RoslynRules.Json.csproj' --configuration Release --no-build --output ./nuget_packages
 
+      - name: Pack RoslynRules.Xml
+        run: dotnet pack './RoslynRules.Xml/RoslynRules.Xml.csproj' --configuration Release --no-build --output ./nuget_packages
+
       - name: Publish NuGet packages to NuGet.org
         continue-on-error: true
         env:
