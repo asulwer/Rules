@@ -1,6 +1,6 @@
 # RoslynRules.Xml
 
-XML serialization support for RoslynRules workflows and rules.
+XML serialization support for RoslynRules. Save and load workflows and rules from XML for configuration-driven rule sets.
 
 ## Installation
 
@@ -10,7 +10,7 @@ dotnet add package RoslynRules.Xml
 
 ## Usage
 
-### Serialize a Workflow
+### Serialize
 
 ```csharp
 using RoslynRules.Xml;
@@ -18,70 +18,49 @@ using RoslynRules.Models;
 
 var workflow = new Workflow
 {
-    Description = "My Workflow",
-    Rules =
+    Description = "Validation rules",
+    Rules = new List<Rule>
     {
-        new Rule
-        {
-            Description = "Age Check",
-            Expression = "customer.Age >= 18",
-            IsActive = true
-        }
+        new Rule { Description = "Adult check", Expression = "customer.Age >= 18" }
     }
 };
 
 var xml = XmlRuleLoader.Serialize(workflow);
+File.WriteAllText("rules.xml", xml);
 ```
 
-### Deserialize a Workflow
+### Deserialize
 
 ```csharp
-var workflow = XmlRuleLoader.DeserializeWorkflow(xmlString);
+var workflow = XmlRuleLoader.DeserializeWorkflow(xml);
+workflow.Compile(new[] { new RuleParameter("customer", typeof(Customer)) });
+var results = workflow.Execute(new[] { new RuleParameter("customer", typeof(Customer), customer) });
 ```
 
-### Save/Load from Files
+### File Helpers
 
 ```csharp
-// Save
-XmlRuleLoader.SaveWorkflowToFile(workflow, "workflow.xml");
-
-// Load
-var loaded = XmlRuleLoader.LoadWorkflowFromFile("workflow.xml");
+XmlRuleLoader.SaveWorkflowToFile(workflow, "rules.xml");
+var loaded = XmlRuleLoader.LoadWorkflowFromFile("rules.xml");
 ```
 
-### Serialize a Single Rule
+## Child Rules and Dependencies
 
-```csharp
-var rule = new Rule
-{
-    Description = "Simple Rule",
-    Expression = "true"
-};
-
-var xml = XmlRuleLoader.Serialize(rule);
-var loaded = XmlRuleLoader.DeserializeRule(xml);
-```
-
-## XML Format
+XML naturally preserves hierarchical rule structures:
 
 ```xml
-<Workflow Id="guid" Version="1.0.0" CreatedAt="2024-01-01T00:00:00.0000000Z" ModifiedAt="2024-01-01T00:00:00.0000000Z" IsActive="true">
-  <Description>My Workflow</Description>
-  <Rules>
-    <Rule Id="guid" Version="1.0.0" CreatedAt="2024-01-01T00:00:00.0000000Z" ModifiedAt="2024-01-01T00:00:00.0000000Z" IsActive="true" Priority="0">
-      <Description>Age Check</Description>
-      <Expression>customer.Age >= 18</Expression>
-      <Action>customer.IsAdult = true</Action>
-      <Timeout>10</Timeout>
-      <CacheDuration>300</CacheDuration>
-      <ChildRules>
-        <!-- Nested child rules -->
-      </ChildRules>
+<Rule Id="guid" Priority="0">
+  <Description>Parent rule</Description>
+  <Expression>true</Expression>
+  <ChildRules>
+    <Rule Id="guid" Priority="1">
+      <Description>Child rule</Description>
+      <Expression>false</Expression>
     </Rule>
-  </Rules>
-</Workflow>
+  </ChildRules>
+</Rule>
 ```
 
 ## AOT Compatibility
 
-This extension uses System.Xml.Linq (XDocument) which is compatible with AOT/trimming. No reflection-based serialization is used.
+This extension uses `System.Xml.Linq` (XDocument) which is compatible with AOT/trimming. No reflection-based serialization is used.
