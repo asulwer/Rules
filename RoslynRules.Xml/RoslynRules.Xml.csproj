@@ -13,7 +13,6 @@
 
     <!-- NuGet Package Metadata -->
     <PackageId>RoslynRules.Xml</PackageId>
-    <Version>1.0.0</Version>
     <Authors>Aaron Sulwer</Authors>
     <Description>XML serialization support for RoslynRules workflows and rules. Provides XmlRuleLoader for saving and loading rules from XML with AOT/trimming support.</Description>
     <PackageTags>roslynrules;rules;xml;serialization;workflow;aot;trimming</PackageTags>
@@ -21,6 +20,16 @@
     <RepositoryUrl>https://github.com/asulwer/RoslynRules</RepositoryUrl>
     <PackageProjectUrl>https://github.com/asulwer/RoslynRules</PackageProjectUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <VersionPrefix>1.0</VersionPrefix>
+    <Month>$([System.DateTime]::Now.Month.ToString().PadLeft(2, '0'))</Month>
+    <Day>$([System.DateTime]::Now.Day.ToString().PadLeft(2, '0'))</Day>
+    <Hour>$([System.DateTime]::Now.Hour.ToString().PadLeft(2, '0'))</Hour>
+    <Minute>$([System.DateTime]::Now.Minute.ToString().PadLeft(2, '0'))</Minute>
+    <Version>$(VersionPrefix).$(Month)$(Day).$(Hour)$(Minute)</Version>
+    <PackageVersion>$(VersionPrefix).$(Month)$(Day).$(Hour)$(Minute)</PackageVersion>
   </PropertyGroup>
 
   <ItemGroup>

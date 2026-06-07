@@ -6,7 +6,6 @@
     <LangVersion>12.0</LangVersion>
     <AssemblyName>RoslynRules</AssemblyName>
     <RootNamespace>RoslynRules</RootNamespace>
-    <Version>1.0.6</Version>
     <PackageId>RoslynRules</PackageId>
     <Authors>Aaron Sulwer</Authors>
     <Description>High-performance .NET rules engine with Roslyn compilation, typed delegates, async support, AOT compatibility, and rule versioning</Description>
@@ -34,6 +33,16 @@
       These suppressions prevent false-positive trim warnings for known reflection usage.
     -->
     <NoWarn>$(NoWarn);IL2026;IL2057;IL2090</NoWarn>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <VersionPrefix>1.0</VersionPrefix>
+    <Month>$([System.DateTime]::Now.Month.ToString().PadLeft(2, '0'))</Month>
+    <Day>$([System.DateTime]::Now.Day.ToString().PadLeft(2, '0'))</Day>
+    <Hour>$([System.DateTime]::Now.Hour.ToString().PadLeft(2, '0'))</Hour>
+    <Minute>$([System.DateTime]::Now.Minute.ToString().PadLeft(2, '0'))</Minute>
+    <Version>$(VersionPrefix).$(Month)$(Day).$(Hour)$(Minute)</Version>
+    <PackageVersion>$(VersionPrefix).$(Month)$(Day).$(Hour)$(Minute)</PackageVersion>
   </PropertyGroup>
 
   <ItemGroup>
