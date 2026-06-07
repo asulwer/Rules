@@ -4,15 +4,15 @@ XML serialization support for RoslynRules workflows and rules.
 
 ## Installation
 
-`ash
+```bash
 dotnet add package RoslynRules.Xml
-`
+```
 
 ## Usage
 
 ### Serialize a Workflow
 
-`csharp
+```csharp
 using RoslynRules.Xml;
 using RoslynRules.Models;
 
@@ -31,27 +31,27 @@ var workflow = new Workflow
 };
 
 var xml = XmlRuleLoader.Serialize(workflow);
-`
+```
 
 ### Deserialize a Workflow
 
-`csharp
+```csharp
 var workflow = XmlRuleLoader.DeserializeWorkflow(xmlString);
-`
+```
 
 ### Save/Load from Files
 
-`csharp
+```csharp
 // Save
 XmlRuleLoader.SaveWorkflowToFile(workflow, "workflow.xml");
 
 // Load
 var loaded = XmlRuleLoader.LoadWorkflowFromFile("workflow.xml");
-`
+```
 
 ### Serialize a Single Rule
 
-`csharp
+```csharp
 var rule = new Rule
 {
     Description = "Simple Rule",
@@ -60,11 +60,11 @@ var rule = new Rule
 
 var xml = XmlRuleLoader.Serialize(rule);
 var loaded = XmlRuleLoader.DeserializeRule(xml);
-`
+```
 
 ## XML Format
 
-`xml
+```xml
 <Workflow Id="guid" Version="1.0.0" CreatedAt="2024-01-01T00:00:00.0000000Z" ModifiedAt="2024-01-01T00:00:00.0000000Z" IsActive="true">
   <Description>My Workflow</Description>
   <Rules>
@@ -80,7 +80,7 @@ var loaded = XmlRuleLoader.DeserializeRule(xml);
     </Rule>
   </Rules>
 </Workflow>
-`
+```
 
 ## AOT Compatibility
 
