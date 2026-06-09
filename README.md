@@ -169,6 +169,30 @@ var result = rule.Execute(new[]
 });
 ```
 
+## AOT Compatibility
+
+RoslynRules supports AOT deployment through a two-stage pattern:
+
+| Stage | Environment | Action |
+|-------|-------------|--------|
+| 1. Compile | JIT (.NET 8+) | Build and compile rules using `Workflow.Compile()` or `CompiledWorkflow.Compile()` |
+| 2. Snapshot | JIT | Save compiled state via `SnapshotManager` |
+| 3. Deploy | AOT | Load snapshots without compilation — execution only |
+
+JIT-only APIs throw `AotCompatibilityException` when called in AOT/trimming mode:
+
+```csharp
+// This throws in AOT — compile in JIT instead
+try {
+    workflow.Compile(parameters);
+}
+catch (AotCompatibilityException ex) {
+    // Message: "'Workflow.Compile' is not available in AOT/trimming mode..."
+}
+```
+
+Use `RoslynRules.AotCompatibility.IsAot` to detect AOT at runtime.
+
 ## What makes it different
 
 **Not an interpreter.**

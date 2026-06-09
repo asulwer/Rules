@@ -49,6 +49,24 @@ XmlRuleLoader.SaveWorkflowToFile(workflow, "rules.xml");
 var loaded = XmlRuleLoader.LoadWorkflowFromFile("rules.xml");
 ```
 
+#### Schema Validation
+
+Validate XML against an embedded XSD schema before deserialization.
+
+```csharp
+// Validate during load — throws InvalidOperationException with line/position details
+var workflow = XmlRuleLoader.LoadWorkflowFromFile("rules.xml", validateSchema: true);
+
+// Or validate manually
+var errors = XmlSchemaValidator.ValidateWorkflow(xml);
+if (errors.Count > 0)
+{
+    Console.WriteLine(string.Join("\n", errors));
+}
+```
+
+Validation checks: element ordering, required elements/attributes, GUID format, SemVer format (including prerelease and build metadata), boolean/integer/double types, and nested child rule structure.
+
 ### XmlSnapshotSerializer — AOT-Safe Snapshot Serialization
 
 `XmlSnapshotSerializer` implements `ISnapshotSerializer` for AOT-safe persistence of compiled rule snapshots.

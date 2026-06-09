@@ -44,6 +44,24 @@ JsonRuleLoader.SaveWorkflowToFile(workflow, "rules.json");
 var loaded = JsonRuleLoader.LoadWorkflowFromFile("rules.json");
 ```
 
+### Schema Validation
+
+Validate JSON structure before deserialization to catch malformed files early.
+
+```csharp
+// Validate during load — throws InvalidOperationException with details
+var workflow = JsonRuleLoader.LoadWorkflowFromFile("rules.json", validateSchema: true);
+
+// Or validate manually
+var errors = JsonSchemaValidator.ValidateWorkflow(json);
+if (errors.Count > 0)
+{
+    Console.WriteLine(string.Join("\n", errors));
+}
+```
+
+Validation checks: required fields, GUID format, SemVer format, correct types (boolean, integer, number), and rule array structure.
+
 ### JSON Format
 
 ```json
