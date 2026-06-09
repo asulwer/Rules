@@ -47,16 +47,38 @@ public static class XmlRuleLoader
     }
 
     /// <summary>
-    /// Loads a workflow from an XML file.
+    /// Loads a workflow from an XML file. Optionally validates against the XML schema before deserialization.
     /// </summary>
-    public static Workflow LoadWorkflowFromFile(string filePath)
-        => DeserializeWorkflow(File.ReadAllText(filePath));
+    /// <param name="filePath">Path to the XML file.</param>
+    /// <param name="validateSchema">When true, validates XML against the workflow schema and throws if invalid.</param>
+    public static Workflow LoadWorkflowFromFile(string filePath, bool validateSchema = false)
+    {
+        var xml = File.ReadAllText(filePath);
+        if (validateSchema)
+        {
+            var errors = XmlSchemaValidator.ValidateWorkflow(xml);
+            if (errors.Count > 0)
+                throw new InvalidOperationException($"XML schema validation failed:{Environment.NewLine}{string.Join(Environment.NewLine, errors)}");
+        }
+        return DeserializeWorkflow(xml);
+    }
 
     /// <summary>
-    /// Loads a rule from an XML file.
+    /// Loads a rule from an XML file. Optionally validates against the XML schema before deserialization.
     /// </summary>
-    public static Rule LoadRuleFromFile(string filePath)
-        => DeserializeRule(File.ReadAllText(filePath));
+    /// <param name="filePath">Path to the XML file.</param>
+    /// <param name="validateSchema">When true, validates XML against the rule schema and throws if invalid.</param>
+    public static Rule LoadRuleFromFile(string filePath, bool validateSchema = false)
+    {
+        var xml = File.ReadAllText(filePath);
+        if (validateSchema)
+        {
+            var errors = XmlSchemaValidator.ValidateRule(xml);
+            if (errors.Count > 0)
+                throw new InvalidOperationException($"XML schema validation failed:{Environment.NewLine}{string.Join(Environment.NewLine, errors)}");
+        }
+        return DeserializeRule(xml);
+    }
 
     /// <summary>
     /// Saves a workflow to an XML file.
@@ -80,7 +102,7 @@ public static class XmlRuleLoader
             new XAttribute("CreatedAt", workflow.CreatedAt.ToString("O", CultureInfo.InvariantCulture)),
             new XAttribute("ModifiedAt", workflow.ModifiedAt.ToString("O", CultureInfo.InvariantCulture)),
             new XAttribute("IsActive", workflow.IsActive),
-            ElementOrNull("Description", workflow.Description),
+            new XElement("Description", workflow.Description),
             ElementOrNull("ModifiedBy", workflow.ModifiedBy)
         );
 
@@ -103,10 +125,10 @@ public static class XmlRuleLoader
             new XAttribute("ModifiedAt", rule.ModifiedAt.ToString("O", CultureInfo.InvariantCulture)),
             new XAttribute("IsActive", rule.IsActive),
             new XAttribute("Priority", rule.Priority),
-            ElementOrNull("Description", rule.Description),
+            new XElement("Description", rule.Description),
             ElementOrNull("DescriptionKey", rule.DescriptionKey),
-            ElementOrNull("Expression", rule.Expression),
-            ElementOrNull("Action", rule.Action),
+            new XElement("Expression", rule.Expression),
+            new XElement("Action", rule.Action),
             ElementOrNull("ModifiedBy", rule.ModifiedBy)
         );
 
