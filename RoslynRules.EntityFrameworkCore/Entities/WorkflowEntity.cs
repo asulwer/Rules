@@ -11,7 +11,15 @@ public class WorkflowEntity
 {
     [Key] public Guid Id { get; set; } = Guid.NewGuid();
     public string Description { get; set; } = string.Empty;
+    public string? ModifiedBy { get; set; }
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime ModifiedAt { get; set; } = DateTime.UtcNow;
     public bool IsActive { get; set; } = true;
+
+    /// <summary>
+    /// Semantic version of this workflow (e.g. "1.2.3").
+    /// </summary>
+    public string Version { get; set; } = "1.0.0";
 
     // Navigation property — virtual for lazy loading
     public virtual ICollection<RuleEntity> Rules { get; set; } = new List<RuleEntity>();
@@ -25,7 +33,11 @@ public class WorkflowEntity
         {
             Id = Id,
             Description = Description,
-            IsActive = IsActive
+            IsActive = IsActive,
+            ModifiedBy = ModifiedBy,
+            CreatedAt = CreatedAt,
+            ModifiedAt = ModifiedAt,
+            Version = Models.RuleVersion.Parse(Version)
         };
 
         foreach (var ruleEntity in Rules.Where(r => r.ParentRuleId == null))
