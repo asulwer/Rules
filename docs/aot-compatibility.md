@@ -92,28 +92,21 @@ This gives you:
 
 ---
 
-## Snapshot API (Proposed)
+## Snapshot API
+
+Snapshots are now implemented. See the [Snapshots](snapshots.html) documentation for full details.
+
+Quick reference:
 
 ```csharp
-// JIT: Compile and save
-var workflow = JsonRuleLoader.LoadWorkflowFromFile("rules.json");
-workflow.Compile(parameters);
-
-foreach (var rule in workflow.Rules)
-{
-    var snapshot = rule.ToSnapshot();
-    File.WriteAllBytes($"snapshots/{rule.Id}.snap", snapshot);
-}
+// JIT: Compile and save snapshot
+var compiled = CompiledWorkflow.Compile(workflow, parameters);
+var snapshot = compiled.ToSnapshot();
+File.WriteAllText("workflow.snap.json", new JsonSnapshotSerializer().Serialize(snapshot));
 
 // AOT: Load and execute
-var workflow = JsonRuleLoader.LoadWorkflowFromFile("rules.json");
-foreach (var rule in workflow.Rules)
-{
-    var snapshot = File.ReadAllBytes($"snapshots/{rule.Id}.snap");
-    rule.LoadSnapshot(snapshot);
-}
-
-var results = workflow.Execute(parameters);
+var snapshot = SnapshotManager.LoadSnapshot(new JsonSnapshotSerializer(), "workflow.snap.json");
+var workflow = SnapshotManager.RestoreWorkflow(snapshot);
 ```
 
 ---
