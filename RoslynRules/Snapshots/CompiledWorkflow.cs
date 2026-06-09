@@ -73,6 +73,7 @@ public sealed class CompiledWorkflow
     /// <param name="referenceProvider">Optional custom assembly reference provider.</param>
     public static CompiledWorkflow Compile(Workflow workflow, RuleParameter[] parameters, string[]? additionalNamespaces = null, Compiler.AssemblyReferenceProvider? referenceProvider = null)
     {
+        AotCompatibility.ThrowIfAot(nameof(CompiledWorkflow.Compile));
         workflow.Compile(parameters, additionalNamespaces, referenceProvider);
         return new CompiledWorkflow(workflow);
     }

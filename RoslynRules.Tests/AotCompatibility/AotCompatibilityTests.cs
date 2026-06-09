@@ -2,6 +2,7 @@ using FluentAssertions;
 using RoslynRules.Exceptions;
 using RoslynRules.Execution;
 using RoslynRules.Models;
+using RoslynRules.Snapshots;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -241,6 +242,63 @@ namespace RoslynRules.Tests.AotCompatibility
             version.IncrementMajor().Should().Be(new RuleVersion(2, 0, 0));
             version.IncrementMinor().Should().Be(new RuleVersion(1, 3, 0));
             version.IncrementPatch().Should().Be(new RuleVersion(1, 2, 4));
+        }
+
+        // ==================== AOT COMPATIBILITY DETECTION ====================
+
+        [Fact]
+        public void AotCompatibility_IsAot_ReturnsFalse_InJitEnvironment()
+        {
+            // Test runner is JIT — AOT should be false.
+            global::RoslynRules.AotCompatibility.IsAot.Should().BeFalse();
+        }
+
+        [Fact]
+        public void AotCompatibility_ThrowIfAot_DoesNotThrow_InJitEnvironment()
+        {
+            var act = () => global::RoslynRules.AotCompatibility.ThrowIfAot("TestApi");
+            act.Should().NotThrow();
+        }
+
+        [Fact]
+        public void Workflow_Compile_DoesNotThrow_InJitEnvironment()
+        {
+            var workflow = new Workflow
+            {
+                Rules =
+                {
+                    new Rule { Description = "R1", Expression = "true" }
+                }
+            };
+
+            var act = () => workflow.Compile(new[] { new RuleParameter("x", typeof(int)) });
+            act.Should().NotThrow();
+        }
+
+        [Fact]
+        public void CompiledWorkflow_Compile_DoesNotThrow_InJitEnvironment()
+        {
+            var workflow = new Workflow
+            {
+                Rules =
+                {
+                    new Rule { Description = "R1", Expression = "x > 0" }
+                }
+            };
+
+            var act = () => CompiledWorkflow.Compile(workflow, new[] { new RuleParameter("x", typeof(int)) });
+            act.Should().NotThrow();
+        }
+
+        [Fact]
+        public void AotCompatibilityException_HasClearMessage()
+        {
+            var ex = new AotCompatibilityException("Workflow.Compile");
+
+            ex.ApiName.Should().Be("Workflow.Compile");
+            ex.Message.Should().Contain("Workflow.Compile");
+            ex.Message.Should().Contain("AOT");
+            ex.Message.Should().Contain("snapshots");
         }
     }
 }

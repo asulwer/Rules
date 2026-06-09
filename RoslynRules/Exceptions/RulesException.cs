@@ -114,4 +114,21 @@ namespace RoslynRules.Exceptions
             DuplicateIds = duplicateIds;
         }
     }
+
+    /// <summary>
+    /// Thrown when a JIT-only API is called in an AOT/trimming environment.
+    /// Use snapshots (JsonSnapshotSerializer / XmlSnapshotSerializer) for AOT-safe rule loading.
+    /// </summary>
+    public class AotCompatibilityException : RulesException
+    {
+        public string ApiName { get; }
+
+        public AotCompatibilityException(string apiName)
+            : base($"'{apiName}' is not available in AOT/trimming mode. " +
+                   "Compile rules in a JIT environment, create snapshots with SnapshotManager, " +
+                   "then load and execute those snapshots in AOT. See docs/snapshots.md for the two-stage deployment pattern.")
+        {
+            ApiName = apiName;
+        }
+    }
 }
