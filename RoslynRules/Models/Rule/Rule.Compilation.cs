@@ -23,6 +23,8 @@ namespace RoslynRules.Models
         /// <param name="referenceProvider">Optional custom assembly reference provider for sandboxing.</param>
         public void Compile(Compiler.ExpressionCompiler compiler, RuleParameter[] parameters, string[]? additionalNamespaces = null, Compiler.AssemblyReferenceProvider? referenceProvider = null)
         {
+            AotCompatibility.ThrowIfAot(nameof(Rule.Compile));
+
             // Store parameter schemas for execution-time validation.
             _compiledParameters = parameters;
 
