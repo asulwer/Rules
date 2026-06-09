@@ -116,20 +116,46 @@ public static class JsonRuleLoader
     }
 
     /// <summary>
-    /// Loads a workflow from a JSON file.
+    /// Loads a workflow from a JSON file. Optionally validates the JSON schema before deserialization.
     /// </summary>
-    public static Workflow LoadWorkflowFromFile(string filePath, JsonSerializerOptions? options = null, bool useAot = false)
-        => useAot
-            ? DeserializeWorkflowAot(File.ReadAllText(filePath), options)
-            : DeserializeWorkflow(File.ReadAllText(filePath), options);
+    /// <param name="filePath">Path to the JSON file.</param>
+    /// <param name="options">Optional JSON serializer settings.</param>
+    /// <param name="useAot">Use AOT-safe serializer.</param>
+    /// <param name="validateSchema">When true, validates JSON structure before deserialization and throws if invalid.</param>
+    public static Workflow LoadWorkflowFromFile(string filePath, JsonSerializerOptions? options = null, bool useAot = false, bool validateSchema = false)
+    {
+        var json = File.ReadAllText(filePath);
+        if (validateSchema)
+        {
+            var errors = JsonSchemaValidator.ValidateWorkflow(json);
+            if (errors.Count > 0)
+                throw new InvalidOperationException($"JSON schema validation failed:{Environment.NewLine}{string.Join(Environment.NewLine, errors)}");
+        }
+        return useAot
+            ? DeserializeWorkflowAot(json, options)
+            : DeserializeWorkflow(json, options);
+    }
 
     /// <summary>
-    /// Loads a rule from a JSON file.
+    /// Loads a rule from a JSON file. Optionally validates the JSON schema before deserialization.
     /// </summary>
-    public static Rule LoadRuleFromFile(string filePath, JsonSerializerOptions? options = null, bool useAot = false)
-        => useAot
-            ? DeserializeRuleAot(File.ReadAllText(filePath), options)
-            : DeserializeRule(File.ReadAllText(filePath), options);
+    /// <param name="filePath">Path to the JSON file.</param>
+    /// <param name="options">Optional JSON serializer settings.</param>
+    /// <param name="useAot">Use AOT-safe serializer.</param>
+    /// <param name="validateSchema">When true, validates JSON structure before deserialization and throws if invalid.</param>
+    public static Rule LoadRuleFromFile(string filePath, JsonSerializerOptions? options = null, bool useAot = false, bool validateSchema = false)
+    {
+        var json = File.ReadAllText(filePath);
+        if (validateSchema)
+        {
+            var errors = JsonSchemaValidator.ValidateRule(json);
+            if (errors.Count > 0)
+                throw new InvalidOperationException($"JSON schema validation failed:{Environment.NewLine}{string.Join(Environment.NewLine, errors)}");
+        }
+        return useAot
+            ? DeserializeRuleAot(json, options)
+            : DeserializeRule(json, options);
+    }
 
     /// <summary>
     /// Saves a workflow to a JSON file.
